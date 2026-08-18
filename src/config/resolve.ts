@@ -37,7 +37,10 @@ async function readConfig(path: string, platform: NodeJS.Platform): Promise<File
   try {
     const raw = await readFile(path, 'utf8');
     const config = FileConfigSchema.parse(JSON.parse(raw) as unknown);
-    if (platform !== 'win32' && containsLiteralApiKey(config)) {
+    // `platform` can be injected to resolve another platform's config paths in tests and hosts.
+    // POSIX mode enforcement is valid only when both the selected platform and the real filesystem
+    // support those permission bits. Windows relies on the documented owner-only ACL boundary.
+    if (platform !== 'win32' && process.platform !== 'win32' && containsLiteralApiKey(config)) {
       const metadata = await stat(path);
       if ((metadata.mode & 0o077) !== 0) {
         throw new XerifyError(

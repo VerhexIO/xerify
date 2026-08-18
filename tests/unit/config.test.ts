@@ -156,6 +156,20 @@ describe('config precedence', () => {
     });
   });
 
+  it('does not interpret Windows mode bits as POSIX secret permissions', async () => {
+    const root = await temporaryDirectory();
+    await writeProjectConfig(root, {
+      providers: { direct: { kind: 'openai-api', apiKey: 'local-config-key' } }
+    });
+    await chmod(path.join(root, '.xerify', 'xverify-config.json'), 0o644);
+
+    await expect(
+      resolveConfig({ cwd: root, platform: 'win32', homeDirectory: root, env: { APPDATA: root } })
+    ).resolves.toMatchObject({
+      config: { providers: { direct: { kind: 'openai-api', apiKey: 'local-config-key' } } }
+    });
+  });
+
   it('rejects unused defaultModel configuration instead of implying silent model choice', async () => {
     const root = await temporaryDirectory();
     await writeProjectConfig(root, {
