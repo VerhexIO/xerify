@@ -104,7 +104,7 @@ try {
     const commandLine = [installedBinary, ...args]
       .map((value) => `"${value.replaceAll('"', '""')}"`)
       .join(' ');
-    return ['cmd.exe', ['/d', '/s', '/c', commandLine]];
+    return ['cmd.exe', ['/d', '/s', '/c', `"${commandLine}"`]];
   }
 
   function runInstalledBinary(args, options = {}) {
