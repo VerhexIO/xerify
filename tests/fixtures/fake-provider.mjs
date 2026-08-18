@@ -7,20 +7,27 @@ import { setTimeout as delay } from 'node:timers/promises';
 const scenario = process.argv[2] ?? 'echo';
 const input = readFileSync(0, 'utf8');
 
+const retryDelay = new Int32Array(new SharedArrayBuffer(4));
+
 const write = (fileDescriptor, value) => {
   const buffer = Buffer.from(value);
   let offset = 0;
   while (offset < buffer.byteLength) {
-    offset += writeSync(fileDescriptor, buffer, offset, buffer.byteLength - offset);
+    try {
+      offset += writeSync(fileDescriptor, buffer, offset, buffer.byteLength - offset);
+    } catch (error) {
+      if (error?.code !== 'EAGAIN' && error?.code !== 'EWOULDBLOCK') throw error;
+      Atomics.wait(retryDelay, 0, 0, 1);
+    }
   }
 };
 
 switch (scenario) {
   case 'echo':
-    write(1, input);
+    await write(1, input);
     break;
   case 'confirmed':
-    write(
+    await write(
       1,
       JSON.stringify({
         verdict: 'confirmed',
@@ -30,7 +37,7 @@ switch (scenario) {
     );
     break;
   case 'confirmed-crlf':
-    write(
+    await write(
       1,
       `\r\n${JSON.stringify({
         verdict: 'confirmed',
@@ -40,7 +47,7 @@ switch (scenario) {
     );
     break;
   case 'refuted':
-    write(
+    await write(
       1,
       JSON.stringify({
         verdict: 'refuted',
@@ -50,21 +57,21 @@ switch (scenario) {
     );
     break;
   case 'malformed':
-    write(1, '{"verdict":');
+    await write(1, '{"verdict":');
     break;
   case 'prose':
-    write(1, 'Looks good to me.');
+    await write(1, 'Looks good to me.');
     break;
   case 'stderr':
-    write(2, 'fixture failed');
+    await write(2, 'fixture failed');
     process.exitCode = 7;
     break;
   case 'huge':
-    write(1, 'x'.repeat(256 * 1024));
+    await write(1, 'x'.repeat(256 * 1024));
     break;
   case 'delay':
     await delay(5_000);
-    write(1, '{}');
+    await write(1, '{}');
     break;
   case 'descendant': {
     const marker = process.argv[3];
@@ -83,7 +90,7 @@ switch (scenario) {
     break;
   }
   case 'codex-jsonl':
-    write(
+    await write(
       1,
       [
         JSON.stringify({ type: 'thread.started', thread_id: 'fixture' }),
@@ -106,7 +113,7 @@ switch (scenario) {
     );
     break;
   case 'claude-json':
-    write(
+    await write(
       1,
       JSON.stringify({
         type: 'result',
@@ -123,6 +130,6 @@ switch (scenario) {
     );
     break;
   default:
-    write(2, `unknown scenario: ${scenario}`);
+    await write(2, `unknown scenario: ${scenario}`);
     process.exitCode = 2;
 }
