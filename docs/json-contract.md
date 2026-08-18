@@ -26,9 +26,11 @@ Pre-invocation or command error:
 
 `ask` and `verify` data use the same schemas as their MCP tools. Published Draft 2020-12 artifacts live in `schemas/` and are generated from the runtime Zod schemas.
 
+Successful verifier payloads may add `evidence`, `assumptions`, `limitations`, and `unverifiedClaims`. These fields are optional for compatibility. Structured provider adapters request all four fields; command adapters with older payloads remain accepted. Evidence entries are bounded verifier-reported references into supplied context, not independently validated citations.
+
 ## Verification outcomes
 
-`confirmed`, `refuted`, and genuine `unclear` are completed verification results. Once a provider lifecycle starts, timeout, cancellation, provider failure, or invalid structured output also returns a complete `VerifyResult` with `verdict: "unclear"` and a typed `failure`. The process exit preserves the lower-level cause.
+`confirmed`, `refuted`, and genuine `unclear` are completed verification results. Once a provider lifecycle starts, timeout, cancellation, provider failure, invalid structured output, or any verification input/output truncation also returns a complete `VerifyResult` with `verdict: "unclear"` and a typed `failure`. Truncated evidence can never produce `confirmed`. The process exit preserves the lower-level cause.
 
 This means callers must parse stdout even when the exit is nonzero.
 
@@ -51,4 +53,5 @@ Discovery with zero matches is successful. Missing usage values remain `null`; X
 - Removing or reinterpreting an existing field is breaking.
 - A new optional field may be additive.
 - Unknown input/config fields are rejected by strict schemas.
+- Public request schemas accept `declared` or `unknown` author provenance and require a `declared` target. They reject caller-supplied `observed`; author `unknown` then fails the different-provider admission rule.
 - Secret values, raw authorization headers, token fragments, credential paths, prompt/context, answer text, and findings do not enter typed errors or audit records.

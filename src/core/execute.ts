@@ -90,6 +90,23 @@ export async function executeVerify(
       options.signal ?? new AbortController().signal
     );
 
+    if (invoked.inputTruncated || invoked.outputTruncated) {
+      return unclearResult({
+        id,
+        from: request.from,
+        to: request.to,
+        startedAt,
+        usage: invoked.usage,
+        inputTruncated: invoked.inputTruncated,
+        outputTruncated: invoked.outputTruncated,
+        failure: {
+          code: 'INVALID_PROVIDER_RESPONSE',
+          message: 'Verification input or output was truncated',
+          retryable: true
+        }
+      });
+    }
+
     try {
       const payload = parseVerifierPayload(invoked.output);
       return {

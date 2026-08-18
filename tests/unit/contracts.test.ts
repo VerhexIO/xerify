@@ -6,6 +6,8 @@ import {
   CliSuccessEnvelopeSchema,
   ErrorBodySchema,
   parseProviderReference,
+  ProviderReferenceSchema,
+  StructuredVerifierPayloadSchema,
   VerifierPayloadSchema,
   VerifyRequestSchema
 } from '../../src/core/contracts.js';
@@ -39,6 +41,12 @@ describe('request schemas', () => {
   it('requires verify author identity', () => {
     expect(() => VerifyRequestSchema.parse({ to, claim: 'Safe' })).toThrow();
   });
+
+  it('does not accept self-attested observed provenance on public requests', () => {
+    const observed = { provider: 'openai', model: 'author', provenance: 'observed' };
+    expect(() => VerifyRequestSchema.parse({ from: observed, to, claim: 'Safe' })).toThrow();
+    expect(ProviderReferenceSchema.parse(observed)).toEqual(observed);
+  });
 });
 
 describe('verifier payload', () => {
@@ -64,6 +72,24 @@ describe('verifier payload', () => {
         findings: [],
         confidence: 1
       })
+    ).toThrow();
+  });
+
+  it('accepts additive epistemic fields and enforces the structured provider boundary', () => {
+    const payload = {
+      verdict: 'confirmed' as const,
+      summary: 'No material counterexample was found.',
+      findings: [{ severity: 'info' as const, message: 'No contradiction found.', evidence: '' }],
+      evidence: [{ reference: 'src/example.ts:10', observation: 'The guarded write occurs here.' }],
+      assumptions: ['All mutation paths are represented in the supplied diff.'],
+      limitations: ['No runtime trace was supplied.'],
+      unverifiedClaims: []
+    };
+
+    expect(StructuredVerifierPayloadSchema.parse(payload)).toEqual(payload);
+    expect(VerifierPayloadSchema.parse(payload)).toEqual(payload);
+    expect(() =>
+      StructuredVerifierPayloadSchema.parse({ ...payload, limitations: undefined })
     ).toThrow();
   });
 });

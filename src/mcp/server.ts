@@ -95,7 +95,7 @@ export function createXerifyMcpServer(options: XerifyMcpServerOptions): McpServe
     XERIFY_MCP_TOOLS.ask,
     {
       title: 'Ask another provider',
-      description: 'Ask a configured AI provider for an independent second opinion.',
+      description: 'Ask a configured AI provider for a bounded cross-provider second opinion.',
       inputSchema: AskRequestSchema,
       outputSchema: AskResultSchema,
       annotations: externalCallAnnotations

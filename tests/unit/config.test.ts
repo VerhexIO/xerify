@@ -114,4 +114,16 @@ describe('config precedence', () => {
       resolveConfig({ cwd: root, platform: 'linux', homeDirectory: root, env: {} })
     ).rejects.toMatchObject({ code: 'CONFIG_INVALID' });
   });
+
+  it('rejects unused defaultModel configuration instead of implying silent model choice', async () => {
+    const root = await temporaryDirectory();
+    await writeFile(
+      path.join(root, 'xerify.config.json'),
+      JSON.stringify({ providers: { claude: { kind: 'claude', defaultModel: 'guessed-model' } } })
+    );
+
+    await expect(
+      resolveConfig({ cwd: root, platform: 'linux', homeDirectory: root, env: {} })
+    ).rejects.toMatchObject({ code: 'CONFIG_INVALID' });
+  });
 });

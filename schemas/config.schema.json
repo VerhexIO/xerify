@@ -21,7 +21,6 @@
                 "type": "array",
                 "items": { "type": "string", "maxLength": 16384 }
               },
-              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 },
               "authKind": {
                 "default": "unknown",
                 "type": "string",
@@ -58,8 +57,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 4096
-              },
-              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+              }
             },
             "required": ["kind", "provider", "executable"],
             "additionalProperties": false
@@ -74,8 +72,7 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 4096
-              },
-              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+              }
             },
             "required": ["kind", "provider", "executable"],
             "additionalProperties": false
@@ -94,8 +91,7 @@
                 "default": "OPENAI_API_KEY",
                 "type": "string",
                 "pattern": "^[A-Z_][A-Z0-9_]*$"
-              },
-              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+              }
             },
             "required": ["kind", "provider", "endpoint", "apiKeyEnvironment"],
             "additionalProperties": false
@@ -115,7 +111,6 @@
                 "type": "string",
                 "pattern": "^[A-Z_][A-Z0-9_]*$"
               },
-              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 },
               "maxTokens": {
                 "default": 4096,
                 "type": "integer",
@@ -132,8 +127,7 @@
               "kind": { "type": "string", "const": "openai-compatible" },
               "provider": { "type": "string", "minLength": 1, "maxLength": 200 },
               "endpoint": { "type": "string", "format": "uri" },
-              "apiKeyEnvironment": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" },
-              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+              "apiKeyEnvironment": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" }
             },
             "required": ["kind", "provider", "endpoint"],
             "additionalProperties": false

@@ -61,6 +61,34 @@
         "additionalProperties": false
       }
     },
+    "evidence": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "reference": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "observation": { "type": "string", "minLength": 1, "maxLength": 20000 }
+        },
+        "required": ["reference", "observation"],
+        "additionalProperties": false
+      }
+    },
+    "assumptions": {
+      "maxItems": 100,
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 20000 }
+    },
+    "limitations": {
+      "maxItems": 100,
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 20000 }
+    },
+    "unverifiedClaims": {
+      "maxItems": 100,
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 20000 }
+    },
     "usage": {
       "anyOf": [
         {

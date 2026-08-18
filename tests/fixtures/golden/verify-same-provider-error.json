@@ -1,0 +1,11 @@
+{
+  "ok": false,
+  "schemaVersion": 1,
+  "command": "verify",
+  "error": {
+    "code": "SAME_PROVIDER",
+    "message": "Author and verifier must belong to different providers",
+    "retryable": false,
+    "details": { "provider": "openai" }
+  }
+}

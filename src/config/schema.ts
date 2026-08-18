@@ -10,7 +10,6 @@ export const CommandProviderConfigSchema = z
     provider: z.string().trim().min(1).max(200),
     executable: z.string().trim().min(1).max(4_096),
     args: z.array(z.string().max(16_384)).max(100).default([]),
-    defaultModel: z.string().trim().min(1).max(200).optional(),
     authKind: AuthKindSchema.default('unknown'),
     authEnvironment: z
       .array(z.string().regex(/^[A-Z_][A-Z0-9_]*$/))
@@ -25,8 +24,7 @@ export const CodexProviderConfigSchema = z
   .object({
     kind: z.literal('codex'),
     provider: z.literal('openai').default('openai'),
-    executable: z.string().trim().min(1).max(4_096).default('codex'),
-    defaultModel: z.string().trim().min(1).max(200).optional()
+    executable: z.string().trim().min(1).max(4_096).default('codex')
   })
   .strict();
 
@@ -34,8 +32,7 @@ export const ClaudeProviderConfigSchema = z
   .object({
     kind: z.literal('claude'),
     provider: z.literal('anthropic').default('anthropic'),
-    executable: z.string().trim().min(1).max(4_096).default('claude'),
-    defaultModel: z.string().trim().min(1).max(200).optional()
+    executable: z.string().trim().min(1).max(4_096).default('claude')
   })
   .strict();
 
@@ -47,8 +44,7 @@ export const OpenAiApiProviderConfigSchema = z
     apiKeyEnvironment: z
       .string()
       .regex(/^[A-Z_][A-Z0-9_]*$/)
-      .default('OPENAI_API_KEY'),
-    defaultModel: z.string().trim().min(1).max(200).optional()
+      .default('OPENAI_API_KEY')
   })
   .strict();
 
@@ -61,7 +57,6 @@ export const AnthropicApiProviderConfigSchema = z
       .string()
       .regex(/^[A-Z_][A-Z0-9_]*$/)
       .default('ANTHROPIC_API_KEY'),
-    defaultModel: z.string().trim().min(1).max(200).optional(),
     maxTokens: z.number().int().positive().max(100_000).default(4_096)
   })
   .strict();
@@ -74,8 +69,7 @@ export const OpenAiCompatibleProviderConfigSchema = z
     apiKeyEnvironment: z
       .string()
       .regex(/^[A-Z_][A-Z0-9_]*$/)
-      .optional(),
-    defaultModel: z.string().trim().min(1).max(200).optional()
+      .optional()
   })
   .strict();
 

@@ -12,6 +12,9 @@ const identifierPart = z
 export const ProvenanceSchema = z.enum(['observed', 'declared', 'unknown']);
 export type Provenance = z.infer<typeof ProvenanceSchema>;
 
+export const PublicProvenanceSchema = z.enum(['declared', 'unknown']);
+export type PublicProvenance = z.infer<typeof PublicProvenanceSchema>;
+
 export const ProviderReferenceSchema = z
   .object({
     provider: identifierPart,
@@ -20,6 +23,16 @@ export const ProviderReferenceSchema = z
   })
   .strict();
 export type ProviderReference = z.infer<typeof ProviderReferenceSchema>;
+
+export const PublicProviderReferenceSchema = ProviderReferenceSchema.extend({
+  provenance: PublicProvenanceSchema
+});
+export type PublicProviderReference = z.infer<typeof PublicProviderReferenceSchema>;
+
+export const DeclaredProviderReferenceSchema = ProviderReferenceSchema.extend({
+  provenance: z.literal('declared')
+});
+export type DeclaredProviderReference = z.infer<typeof DeclaredProviderReferenceSchema>;
 
 export const RequestLimitsSchema = z
   .object({
@@ -48,8 +61,8 @@ const boundedText = z.string().max(100 * 1024 * 1024);
 
 export const AskRequestSchema = z
   .object({
-    from: ProviderReferenceSchema.optional(),
-    to: ProviderReferenceSchema,
+    from: PublicProviderReferenceSchema.optional(),
+    to: DeclaredProviderReferenceSchema,
     question: z.string().trim().min(1).max(100_000),
     context: boundedText.default(''),
     limits: RequestLimitsSchema.default(DEFAULT_LIMITS)
@@ -59,8 +72,8 @@ export type AskRequest = z.infer<typeof AskRequestSchema>;
 
 export const VerifyRequestSchema = z
   .object({
-    from: ProviderReferenceSchema,
-    to: ProviderReferenceSchema,
+    from: PublicProviderReferenceSchema,
+    to: DeclaredProviderReferenceSchema,
     claim: z.string().trim().min(1).max(100_000),
     context: boundedText.default(''),
     limits: RequestLimitsSchema.default(DEFAULT_LIMITS)
@@ -77,6 +90,17 @@ export const FindingSchema = z
   .strict();
 export type Finding = z.infer<typeof FindingSchema>;
 
+export const EvidenceReferenceSchema = z
+  .object({
+    reference: z.string().trim().min(1).max(2_000),
+    observation: z.string().trim().min(1).max(20_000)
+  })
+  .strict();
+export type EvidenceReference = z.infer<typeof EvidenceReferenceSchema>;
+
+const EpistemicListItemSchema = z.string().trim().min(1).max(20_000);
+const EpistemicListSchema = z.array(EpistemicListItemSchema).max(100);
+
 export const VerdictSchema = z.enum(['confirmed', 'refuted', 'unclear']);
 export type Verdict = z.infer<typeof VerdictSchema>;
 
@@ -84,10 +108,25 @@ export const VerifierPayloadSchema = z
   .object({
     verdict: VerdictSchema,
     summary: z.string().trim().min(1).max(20_000),
-    findings: z.array(FindingSchema).max(100)
+    findings: z.array(FindingSchema).max(100),
+    evidence: z.array(EvidenceReferenceSchema).max(100).optional(),
+    assumptions: EpistemicListSchema.optional(),
+    limitations: EpistemicListSchema.optional(),
+    unverifiedClaims: EpistemicListSchema.optional()
   })
   .strict();
 export type VerifierPayload = z.infer<typeof VerifierPayloadSchema>;
+
+// Provider structured-output APIs often need every property to be required. This
+// schema is a strict generation boundary; VerifierPayloadSchema remains
+// backwards-compatible for command adapters and public result consumers.
+export const StructuredVerifierPayloadSchema = VerifierPayloadSchema.extend({
+  findings: z.array(FindingSchema.extend({ evidence: z.string().trim().max(20_000) })).max(100),
+  evidence: z.array(EvidenceReferenceSchema).max(100),
+  assumptions: EpistemicListSchema,
+  limitations: EpistemicListSchema,
+  unverifiedClaims: EpistemicListSchema
+});
 
 export const UsageSchema = z
   .object({
@@ -124,6 +163,10 @@ export const VerifyResultSchema = z
     verdict: VerdictSchema,
     summary: z.string().min(1).max(20_000),
     findings: z.array(FindingSchema).max(100),
+    evidence: z.array(EvidenceReferenceSchema).max(100).optional(),
+    assumptions: EpistemicListSchema.optional(),
+    limitations: EpistemicListSchema.optional(),
+    unverifiedClaims: EpistemicListSchema.optional(),
     usage: UsageSchema.nullable(),
     durationMs: z.number().int().nonnegative(),
     truncation: TruncationSchema,
@@ -176,18 +219,15 @@ export const CliErrorEnvelopeSchema = z
   .strict();
 export type CliErrorEnvelope = z.infer<typeof CliErrorEnvelopeSchema>;
 
-export function parseProviderReference(
-  value: string,
-  provenance: Provenance = 'declared'
-): ProviderReference {
+export function parseProviderReference(value: string): DeclaredProviderReference {
   const separator = value.indexOf(':');
   if (separator <= 0 || separator === value.length - 1) {
     throw new Error('provider reference must use provider:model');
   }
 
-  return ProviderReferenceSchema.parse({
+  return DeclaredProviderReferenceSchema.parse({
     provider: value.slice(0, separator),
     model: value.slice(separator + 1),
-    provenance
+    provenance: 'declared'
   });
 }

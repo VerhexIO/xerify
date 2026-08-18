@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "schemaVersion": 1,
+  "command": "verify",
+  "data": {
+    "schemaVersion": 1,
+    "id": "xrf_normalized",
+    "from": {
+      "provider": "openai",
+      "model": "author",
+      "provenance": "declared"
+    },
+    "to": {
+      "provider": "fixture",
+      "model": "verifier",
+      "provenance": "declared"
+    },
+    "verdict": "confirmed",
+    "summary": "The supplied evidence supports the claim.",
+    "findings": [],
+    "evidence": [
+      {
+        "reference": "supplied context",
+        "observation": "No material contradiction was present in the bounded fixture."
+      }
+    ],
+    "assumptions": ["The fixture represents all relevant evidence."],
+    "limitations": ["No live system was exercised."],
+    "unverifiedClaims": [],
+    "usage": null,
+    "durationMs": 0,
+    "truncation": { "input": false, "output": false },
+    "failure": null
+  }
+}

@@ -70,6 +70,29 @@ describe('canonical execution chain', () => {
     expect(verificationExitCode(result)).toBe(0);
   });
 
+  it('fails closed when the verification prompt is truncated', async () => {
+    const result = await executeVerify(
+      {
+        from,
+        to,
+        claim: 'The change is safe',
+        context: 'Evidence',
+        limits: { ...DEFAULT_LIMITS, maxInputBytes: 32 }
+      },
+      registry('confirmed')
+    );
+
+    expect(result).toMatchObject({
+      verdict: 'unclear',
+      truncation: { input: true, output: false },
+      failure: {
+        code: 'INVALID_PROVIDER_RESPONSE',
+        message: 'Verification input or output was truncated'
+      }
+    });
+    expect(verificationExitCode(result)).toBe(6);
+  });
+
   it('preserves refuted as a domain outcome', async () => {
     const result = await executeVerify(
       { from, to, claim: 'The change is safe', context: 'Evidence', limits: DEFAULT_LIMITS },
@@ -172,7 +195,7 @@ describe('canonical execution chain', () => {
       registry('echo', { fixturePath: copiedFixture })
     );
     expect(result.answer).toContain('Türkçe soru?');
-    expect(result.answer).toContain('satır 1\r\nsatır 2');
+    expect(result.answer).toContain(JSON.stringify({ context: 'satır 1\r\nsatır 2' }));
   });
 
   it('accepts a valid structured response framed with CRLF', async () => {

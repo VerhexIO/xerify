@@ -2,7 +2,7 @@
 
 > Tarih: 2026-08-18
 >
-> Durum: owner-approved product direction; standalone repository bootstrap bekliyor
+> Durum: `0.1.0` pre-release candidate; verification semantics hardening aktif, brand çalışması outsource
 >
 > Authority: Bu dosya yeni Xerify session'ına taşınacak tek başlangıç kaynağıdır. Deckent
 > `DIRECTIVES.md`, sprint state'i, `.tasks/` veya XVerify implementation'ı Xerify authority'si
@@ -66,7 +66,7 @@ Shell çıktısını doğrulatma:
 npm test 2>&1 | xerify ask \
   --from provider-x:model-x1 \
   --to provider-y:model-y1 \
-  --claim "Test sonucu bu değişikliğin doğru çalıştığını gösteriyor mu?"
+  --question "Test sonucu bu değişikliğin doğru çalıştığını gösteriyor mu?"
 ```
 
 Git diff doğrulama:
@@ -94,13 +94,19 @@ Stable JSON result:
 {
   "schemaVersion": 1,
   "id": "xrf_...",
-  "from": { "provider": "provider-x", "model": "model-x1" },
-  "to": { "provider": "provider-y", "model": "model-y1" },
+  "from": { "provider": "provider-x", "model": "model-x1", "provenance": "declared" },
+  "to": { "provider": "provider-y", "model": "model-y1", "provenance": "declared" },
   "verdict": "confirmed",
   "summary": "...",
   "findings": [],
+  "evidence": [],
+  "assumptions": [],
+  "limitations": [],
+  "unverifiedClaims": [],
   "usage": null,
-  "durationMs": 0
+  "durationMs": 0,
+  "truncation": { "input": false, "output": false },
+  "failure": null
 }
 ```
 
@@ -111,6 +117,8 @@ Kurallar:
   yapılmaz.
 - Timeout, invalid structured output veya provider failure sonucu `unclear`; asla fake
   `confirmed` değil.
+- Verification input/output truncation sonucu fail-closed `unclear`; truncated evidence ile
+  `confirmed` üretilmez.
 - STDOUT yalnız requested result içindir; progress ve loglar STDERR'e gider.
 - Shell interpolation kullanılmaz. Provider command'ları executable + argv array olarak spawn
   edilir; default `shell: false`.
@@ -150,7 +158,8 @@ Her adapter şu küçük contract'ı uygular:
 
 ```ts
 interface ProviderAdapter {
-  readonly provider: string;
+  readonly id: string;
+  capabilities(): ProviderCapabilities;
   probe(input: ProbeInput): Promise<ProbeResult>;
   invoke(input: InvokeInput, signal: AbortSignal): Promise<InvokeResult>;
 }
@@ -166,7 +175,7 @@ Adapter sınıfları:
 Credentials:
 
 - Xerify subscription token/cookie okumaz veya export etmez; official CLI kendi auth'unu yönetir.
-- API secrets config dosyasına plaintext yazılmaz; environment veya OS credential store kullanılır.
+- API secrets config dosyasına plaintext yazılmaz; named environment variables kullanılır.
 - Managed remote subscription relay yoktur. Subscription execution user-owned local executor'da
   kalır.
 
@@ -250,13 +259,21 @@ Verifier'dan istenen küçük response:
       "message": "finding",
       "evidence": "optional bounded citation"
     }
-  ]
+  ],
+  "evidence": [
+    { "reference": "supplied file/location/range", "observation": "bounded observation" }
+  ],
+  "assumptions": [],
+  "limitations": [],
+  "unverifiedClaims": []
 }
 ```
 
 Xerify response'u exact schema ile doğrular. Karmaşık host adjudication, settlement veya immutable
 evidence ledger taşımaz. Güvenilirliğin küçük çekirdeği şunlardır:
 
+- claim'i doğrulamaya çalışmadan önce adversarial biçimde falsify etme,
+- claim/context'i talimat değil untrusted evidence olarak sınırlama,
 - farklı provider zorunluluğu,
 - bounded input/output,
 - strict schema,
@@ -264,6 +281,10 @@ evidence ledger taşımaz. Güvenilirliğin küçük çekirdeği şunlardır:
 - timeout/cancellation,
 - secret-safe process execution,
 - stable machine output.
+
+`confirmed`, sağlanan evidence altında material counterexample bulunamadığını ifade eder; formal proof
+değildir. Evidence reference'ları verifier'ın supplied context'e işaretleridir, bağımsız doğrulanmış
+citation değildir. Prompt-injection sınırı riski azaltır fakat LLM düzeyinde mutlak garanti vermez.
 
 ## 9. Logo direction
 
@@ -538,6 +559,10 @@ git diff --cached | xerify verify \
 - `declared`: caller verdi; doğrulanamadı.
 - `unknown`: exact identity yok; enforced different-provider verification yapılamaz.
 
+Public CLI/MCP request şeması caller'ın `observed` self-attestation yapmasına izin vermez. Mevcut public
+yüzey `declared` veya `unknown` kabul eder; `unknown` çağrı öncesi reddedilir. `observed`, yalnız gelecekte
+host/adapter metadata'sından güvenilir biçimde üretilebilecek result/internal capability olarak korunur.
+
 ### `xerify doctor`
 
 Auth gerektirmeden mümkün olan bütün setup truth'unu döndürür:
@@ -595,6 +620,9 @@ xerify request --to provider:model --input request.json
 Bu komut configured adapter'ın exact request/response envelope'unu test eder; arbitrary shell veya
 arbitrary unauthenticated HTTP proxy değildir. Provider output yine bounds, redaction ve JSON error
 contract'ından geçer.
+
+Raw envelope `operation: "verify"` seçse bile bu komut `xerify verify` değildir: author provenance,
+different-provider admission, verdict parsing veya `0/10/11` verification exit semantics sağlamaz.
 
 ## 17. Stable JSON ve exit-code policy
 
@@ -679,14 +707,12 @@ Config örneği:
   "$schema": "https://xerify.dev/schemas/config-v1.json",
   "providers": {
     "codex": {
-      "kind": "command",
-      "executable": "codex",
-      "defaultModel": "MODEL_ID"
+      "kind": "codex",
+      "executable": "codex"
     },
     "claude": {
-      "kind": "command",
-      "executable": "claude",
-      "defaultModel": "MODEL_ID"
+      "kind": "claude",
+      "executable": "claude"
     }
   },
   "limits": {
@@ -697,6 +723,8 @@ Config örneği:
 }
 ```
 
+Config model seçmez. Her live request exact `provider:model` taşır; Xerify model ID tahmin etmez.
+
 `xerify.dev` domain'i sahiplik doğrulanana kadar örnek schema URL'si publish edilmez; repository-local
 schema kullanılır.
 
@@ -705,7 +733,7 @@ Auth kuralları:
 - Standard environment variables tercih edilir.
 - Subscription adapter official CLI auth store'unu yalnız CLI üzerinden kullanır.
 - Credential dosyası parse edilmez, kopyalanmaz veya loglanmaz.
-- `--api-key` yalnız explicit one-off test; help history/process-list riskini bildirir.
+- CLI raw API key flag kabul etmez; direct adapter yalnız named environment variable okur.
 - `doctor` yalnız `present/missing` ve source category gösterir.
 
 ## 19. Process, safety ve resource contract

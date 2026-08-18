@@ -32,7 +32,16 @@ switch (scenario) {
       JSON.stringify({
         verdict: 'confirmed',
         summary: 'The supplied evidence supports the claim.',
-        findings: []
+        findings: [],
+        evidence: [
+          {
+            reference: 'supplied context',
+            observation: 'No material contradiction was present in the bounded fixture.'
+          }
+        ],
+        assumptions: ['The fixture represents all relevant evidence.'],
+        limitations: ['No live system was exercised.'],
+        unverifiedClaims: []
       })
     );
     break;
@@ -52,7 +61,22 @@ switch (scenario) {
       JSON.stringify({
         verdict: 'refuted',
         summary: 'The supplied evidence contradicts the claim.',
-        findings: [{ severity: 'high', message: 'Contradicting evidence was found.' }]
+        findings: [
+          {
+            severity: 'high',
+            message: 'Contradicting evidence was found.',
+            evidence: 'supplied context'
+          }
+        ],
+        evidence: [
+          {
+            reference: 'supplied context',
+            observation: 'The fixture contains a direct contradiction.'
+          }
+        ],
+        assumptions: [],
+        limitations: [],
+        unverifiedClaims: []
       })
     );
     break;
@@ -101,7 +125,11 @@ switch (scenario) {
             text: JSON.stringify({
               verdict: 'confirmed',
               summary: 'Codex confirms the claim.',
-              findings: []
+              findings: [],
+              evidence: [],
+              assumptions: [],
+              limitations: ['Fixture output only.'],
+              unverifiedClaims: []
             })
           }
         }),
@@ -122,7 +150,11 @@ switch (scenario) {
         structured_output: {
           verdict: 'refuted',
           summary: 'Claude found contradicting evidence.',
-          findings: []
+          findings: [],
+          evidence: [],
+          assumptions: [],
+          limitations: ['Fixture output only.'],
+          unverifiedClaims: []
         },
         total_cost_usd: 0.01,
         usage: { input_tokens: 14, output_tokens: 9 }

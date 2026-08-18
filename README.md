@@ -8,7 +8,7 @@ Xerify is a shell-first, open-source tool for bounded cross-provider questions a
 
 Xerify provides a second opinion, not formal proof or guaranteed truth. Provider output is untrusted data and is never executed.
 
-> **Release status:** `0.1.0` is a pre-release candidate. Linux x64/Node 24 hermetic tests and local Codex/Claude auth probes are green. Published npm/GitHub artifacts, owner-approved logo geometry, a billable provider smoke, and the remaining OS proof lanes are release gates, not completed claims.
+> **Release status:** `0.1.0` is a pre-release candidate. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke; an owner-approved Claude live verification is also recorded. WSL, Cursor host smoke, externally sourced brand approval, and published signed npm/GitHub artifacts remain release gates.
 
 ## Install
 
@@ -77,6 +77,8 @@ xerify request
 
 Global `--json`, `--timeout`, and `--log` options may appear before or after a subcommand. JSON mode writes one undecorated envelope to stdout. Important verification exits are `0` confirmed, `10` refuted, and `11` unclear; transport and schema failures have separate typed exits. See [the JSON contract](docs/json-contract.md).
 
+`xerify request` is a bounded adapter-debug escape hatch. Even when its envelope uses `operation: "verify"`, it does not enforce author provenance, provider separation, verdict parsing, or verification exit semantics.
+
 ## Providers
 
 The default config exposes the official `codex` and `claude` CLI adapters. Additional built-ins are `openai-api`, `anthropic-api`, `openai-compatible`, and a shell-free generic `command` adapter.
@@ -95,8 +97,7 @@ Hermetic automation may point `XERIFY_USER_CONFIG_PATH` at a dedicated file with
   "providers": {
     "openaiApi": {
       "kind": "openai-api",
-      "apiKeyEnvironment": "OPENAI_API_KEY",
-      "defaultModel": "MODEL_ID"
+      "apiKeyEnvironment": "OPENAI_API_KEY"
     },
     "localVerifier": {
       "kind": "command",
@@ -116,6 +117,8 @@ Hermetic automation may point `XERIFY_USER_CONFIG_PATH` at a dedicated file with
 ```
 
 Only `{model}` and `{operation}` are expanded for a command adapter. Xerify invokes an executable plus argument array with `shell: false` and sends prompt/context through stdin.
+
+Every live `ask` or `verify` request must name an exact model in `--to provider:model`; configuration does not silently choose or guess a model.
 
 ## MCP
 

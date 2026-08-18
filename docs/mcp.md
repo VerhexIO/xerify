@@ -12,6 +12,8 @@ Xerify exposes its shared core through MCP SDK v2. The STDIO and Streamable HTTP
 
 Provider calls may consume quota or incur charges. MCP hosts should obtain user approval before invoking `xerify_ask` or `xerify_verify`.
 
+MCP callers may declare author provenance but cannot self-attest `observed`. Supplied claim/context is treated as untrusted evidence; embedded instructions do not alter the verification task. This mitigates, but cannot eliminate, model-level prompt injection.
+
 ## Local STDIO
 
 Build or globally install Xerify, then configure a host with an executable and argument array:

@@ -36,4 +36,20 @@ export function writeVerifyHuman(writer: OutputWriter, result: VerifyResult): vo
   if (result.findings.length > 0) {
     writer.stdout(`${result.findings.map(findingLine).join('\n')}\n`);
   }
+  if (result.evidence && result.evidence.length > 0) {
+    writer.stdout(
+      `Evidence:\n${result.evidence
+        .map((item) => `- ${item.reference}: ${item.observation}`)
+        .join('\n')}\n`
+    );
+  }
+  for (const [label, values] of [
+    ['Assumptions', result.assumptions],
+    ['Limitations', result.limitations],
+    ['Unverified claims', result.unverifiedClaims]
+  ] as const) {
+    if (values && values.length > 0) {
+      writer.stdout(`${label}:\n${values.map((value) => `- ${value}`).join('\n')}\n`);
+    }
+  }
 }

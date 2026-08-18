@@ -11,6 +11,10 @@ one. `verify` requires both `from` and `to`; `from.provenance=unknown` is reject
 because the different-provider invariant cannot be enforced. Declared
 provenance is accepted and reported without upgrading its confidence.
 
+Public CLI/MCP request schemas cannot self-attest `observed`; they accept `declared` or `unknown`
+for the author and require a declared target. `observed` remains reserved for a future trusted
+host/adapter metadata path.
+
 Once a valid verification invocation reaches a provider, every terminal path
 returns a complete verification result. Timeout, cancellation, provider/process
 failure, and invalid structured output use `verdict=unclear` and carry a typed,

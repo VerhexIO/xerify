@@ -7,6 +7,10 @@ different-provider rule.
 Every built-in adapter returns the same bounded `InvokeResult`. Usage values come only from the
 provider response. Missing token or cost fields remain `null`; Xerify does not estimate them.
 
+Official adapters pin serving-organization identity in code. The organization on `command` and
+`openai-compatible` adapters is owner-controlled configuration rather than remote attestation;
+cross-provider enforcement for those adapters is only as strong as that configuration.
+
 ## Built-in matrix
 
 | Adapter kind        | Provider identity | Transport                        | Authentication                                                        | Structured verification                              |
@@ -47,6 +51,9 @@ Schema through `--json-schema`; the provider result comes from `structured_outpu
 `usage.input_tokens`, `usage.output_tokens`, and `total_cost_usd` are mapped when present. A
 non-success subtype or non-zero exit is a provider failure. `xerify providers probe --provider
 claude` runs `claude auth status --json` without a model call.
+
+The strict generation schema is derived from canonical Zod field definitions and stripped of
+provider-unsupported validation constraints. Core Zod validation re-applies all bounds after receipt.
 
 ## Direct APIs
 
@@ -89,13 +96,13 @@ Hermetic contract tests cover CLI event parsing, structured payloads, usage mapp
 HTTP request shape, timeout/cancellation, invalid output, output bounds, CRLF, Unicode and spaced
 paths. The process integration test also verifies POSIX descendant signalling.
 
-| Environment         | Hermetic evidence       | Official binary probe                    | Billable live smoke       |
-| ------------------- | ----------------------- | ---------------------------------------- | ------------------------- |
-| Linux x64, Node 24  | green locally           | Codex and Claude available/authenticated | pending explicit approval |
-| Linux, Node 20      | CI pending              | CI/account independent                   | opt-in only               |
-| macOS, Node 20/24   | CI pending              | host-specific                            | opt-in only               |
-| Windows, Node 20/24 | CI pending              | host-specific                            | opt-in only               |
-| WSL, Node 20/24     | dedicated proof pending | host-specific                            | opt-in only               |
+| Environment         | Hermetic evidence       | Official binary probe                    | Billable live smoke |
+| ------------------- | ----------------------- | ---------------------------------------- | ------------------- |
+| Linux x64, Node 24  | green locally and in CI | Codex and Claude available/authenticated | Claude verify green |
+| Linux, Node 20      | public CI green         | CI/account independent                   | opt-in only         |
+| macOS, Node 20/24   | public CI green         | host-specific                            | opt-in only         |
+| Windows, Node 20/24 | public CI green         | host-specific                            | opt-in only         |
+| WSL, Node 20/24     | dedicated proof pending | host-specific                            | opt-in only         |
 
 Normal tests never use a provider account. A live smoke must be explicitly enabled and clearly
 treated as potentially billable.

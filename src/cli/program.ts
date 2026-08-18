@@ -196,7 +196,7 @@ export async function runCli(
 
   program
     .command('ask')
-    .description('ask a provider for an independent second opinion')
+    .description('ask a provider for a cross-provider second opinion')
     .argument('[question]', 'question to ask')
     .option('--question <question>', 'question to ask when stdin supplies context')
     .option('--from <provider:model>', 'declared author identity for provenance')
@@ -250,7 +250,7 @@ export async function runCli(
   program
     .command('verify')
     .description('verify a claim with a different provider')
-    .requiredOption('--from <provider:model>', 'declared or observed author identity')
+    .requiredOption('--from <provider:model>', 'declared author identity')
     .requiredOption('--to <provider:model>', 'target provider and verifier model')
     .requiredOption('--claim <claim>', 'claim to evaluate')
     .option('--adapter <id>', 'configured adapter id to use')
@@ -524,7 +524,7 @@ export async function runCli(
 
   program
     .command('request')
-    .description('send a bounded raw envelope through a configured adapter')
+    .description('send a bounded raw adapter envelope without verification guarantees')
     .requiredOption('--to <provider:model>', 'target provider and model')
     .requiredOption('--input <path>', 'JSON request envelope path')
     .option('--adapter <id>', 'configured adapter id to use')

@@ -101,6 +101,21 @@ describe('MCP v2 contract', () => {
     });
   });
 
+  it('does not advertise observed provenance as caller-assertable verification input', () => {
+    const server = createXerifyMcpServer({ registry: new ProviderRegistry() });
+    const advertised = server.toolInputSchemaJson(XERIFY_MCP_TOOLS.verify) as
+      | {
+          properties?: {
+            from?: { properties?: { provenance?: { enum?: string[] } } };
+          };
+        }
+      | undefined;
+    expect(advertised?.properties?.from?.properties?.provenance?.enum).toEqual([
+      'declared',
+      'unknown'
+    ]);
+  });
+
   it('serves a legacy initialize and tool listing over the STDIO entry', async () => {
     const channel = await openChannel();
     try {

@@ -18,7 +18,7 @@
           "maxLength": 200,
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
         },
-        "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+        "provenance": { "type": "string", "enum": ["declared", "unknown"] }
       },
       "required": ["provider", "model", "provenance"],
       "additionalProperties": false
@@ -38,7 +38,7 @@
           "maxLength": 200,
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
         },
-        "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+        "provenance": { "type": "string", "const": "declared" }
       },
       "required": ["provider", "model", "provenance"],
       "additionalProperties": false

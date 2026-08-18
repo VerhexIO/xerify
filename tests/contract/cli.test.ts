@@ -12,6 +12,14 @@ const fixture = path.resolve(
   '../fixtures/fake-provider.mjs'
 );
 const temporaryDirectories: string[] = [];
+const goldenDirectory = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../fixtures/golden'
+);
+
+async function golden(name: string): Promise<unknown> {
+  return JSON.parse(await readFile(path.join(goldenDirectory, name), 'utf8')) as unknown;
+}
 
 interface CapturedRun {
   code: number;
@@ -115,11 +123,7 @@ describe('CLI contract', () => {
       'safe'
     ]);
     expect(result.code).toBe(2);
-    expect(JSON.parse(result.stdout)).toMatchObject({
-      ok: false,
-      command: 'verify',
-      error: { code: 'SAME_PROVIDER', retryable: false }
-    });
+    expect(JSON.parse(result.stdout)).toEqual(await golden('verify-same-provider-error.json'));
   });
 
   it('accepts global --json after the subcommand', async () => {
@@ -139,11 +143,10 @@ describe('CLI contract', () => {
       { cwd: directory }
     );
     expect(result.code).toBe(0);
-    expect(JSON.parse(result.stdout)).toMatchObject({
-      ok: true,
-      command: 'verify',
-      data: { verdict: 'confirmed', failure: null }
-    });
+    const actual = JSON.parse(result.stdout) as { data: { id: string; durationMs: number } };
+    actual.data.id = 'xrf_normalized';
+    actual.data.durationMs = 0;
+    expect(actual).toEqual(await golden('verify-confirmed.json'));
   });
 
   it('returns refuted as a complete result with exit 10', async () => {
