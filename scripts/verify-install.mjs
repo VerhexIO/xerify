@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import {
   accessSync,
   constants,
@@ -99,24 +99,22 @@ try {
         });
   if (!resolvedBinary.trim()) throw new Error('Installed xerify was not discoverable on PATH');
 
-  function binaryInvocation(args) {
-    if (process.platform !== 'win32') return [installedBinary, args];
-    const commandLine = [installedBinary, ...args]
-      .map((value) => `"${value.replaceAll('"', '""')}"`)
-      .join(' ');
-    return ['cmd.exe', ['/d', '/s', '/c', `"${commandLine}"`]];
-  }
-
   function runInstalledBinary(args, options = {}) {
-    const [command, commandArgs] = binaryInvocation(args);
-    return execFileSync(command, commandArgs, {
+    const executionOptions = {
       encoding: 'utf8',
       maxBuffer: 4 * 1024 * 1024,
       timeout: 30_000,
       windowsHide: true,
       env: binaryEnvironment,
       ...options
-    });
+    };
+    if (process.platform !== 'win32') {
+      return execFileSync(installedBinary, args, executionOptions);
+    }
+    const commandLine = [installedBinary, ...args]
+      .map((value) => `"${value.replaceAll('"', '""')}"`)
+      .join(' ');
+    return execSync(commandLine, executionOptions);
   }
 
   const help = runInstalledBinary(['--help'], { cwd: externalProject });
@@ -152,28 +150,12 @@ try {
       2
     )}\n`
   );
-  const [askCommand, askArguments] = binaryInvocation([
-    '--json',
-    'ask',
-    '--adapter',
-    'fixture',
-    '--to',
-    'fixture-lab:echo',
-    '--question',
-    'test'
-  ]);
-  const ask = spawnSync(askCommand, askArguments, {
-    cwd: externalProject,
-    env: binaryEnvironment,
-    input: 'external context\r\n',
-    encoding: 'utf8',
-    maxBuffer: 4 * 1024 * 1024,
-    timeout: 30_000,
-    windowsHide: true
-  });
-  if (ask.error) throw ask.error;
-  if (ask.status !== 0) throw new Error(`Installed ask failed with exit ${ask.status}`);
-  const askResult = JSON.parse(ask.stdout);
+  const askResult = JSON.parse(
+    runInstalledBinary(
+      ['--json', 'ask', '--adapter', 'fixture', '--to', 'fixture-lab:echo', '--question', 'test'],
+      { cwd: externalProject, input: 'external context\r\n' }
+    )
+  );
   if (askResult.data?.answer !== 'external fixture answer\n') {
     throw new Error('Installed binary did not complete the external fake-provider chain');
   }
