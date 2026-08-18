@@ -1,0 +1,95 @@
+{
+  "$id": "urn:xerify:schema:ask-result:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": { "type": "number", "const": 1 },
+    "id": { "type": "string", "pattern": "^xrf_[A-Za-z0-9_-]+$" },
+    "from": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+            },
+            "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+          },
+          "required": ["provider", "model", "provenance"],
+          "additionalProperties": false
+        },
+        { "type": "null" }
+      ]
+    },
+    "to": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+      },
+      "required": ["provider", "model", "provenance"],
+      "additionalProperties": false
+    },
+    "answer": { "type": "string" },
+    "usage": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "inputTokens": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                { "type": "null" }
+              ]
+            },
+            "outputTokens": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                { "type": "null" }
+              ]
+            },
+            "totalTokens": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                { "type": "null" }
+              ]
+            },
+            "costUsd": { "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }] }
+          },
+          "required": ["inputTokens", "outputTokens", "totalTokens", "costUsd"],
+          "additionalProperties": false
+        },
+        { "type": "null" }
+      ]
+    },
+    "durationMs": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "truncation": {
+      "type": "object",
+      "properties": { "input": { "type": "boolean" }, "output": { "type": "boolean" } },
+      "required": ["input", "output"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["schemaVersion", "id", "from", "to", "answer", "usage", "durationMs", "truncation"],
+  "additionalProperties": false
+}

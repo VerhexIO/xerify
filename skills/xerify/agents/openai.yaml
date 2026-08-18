@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Xerify'
+  short_description: 'Cross-provider second opinions from the CLI'
+  default_prompt: 'Use $xerify to verify this claim with a different provider.'

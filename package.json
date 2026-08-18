@@ -1,0 +1,78 @@
+{
+  "name": "xerify",
+  "version": "0.1.0",
+  "description": "Lightweight cross-provider verification for the shell and MCP.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "xerify": "./dist/cli/entry.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "assets",
+    "docs",
+    "schemas",
+    "skills",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "assets:logo": "node scripts/export-logo.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
+    "generate:schemas": "npm run build && node scripts/export-schemas.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "release:audit": "npm run generate:schemas && npm run assets:logo && node scripts/release-audit.mjs",
+    "smoke:mcp": "npm run build && node scripts/verify-mcp-inspector.mjs",
+    "smoke:live": "npm run build && node scripts/live-provider-smoke.mjs",
+    "smoke:install": "node scripts/verify-install.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "prepack": "npm run generate:schemas",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "commander": "^14.0.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@modelcontextprotocol/inspector": "2.2.0",
+    "@resvg/resvg-js": "2.6.2",
+    "@types/node": "^20.19.43",
+    "eslint": "^10.8.1",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0",
+    "vitest": "^4.1.10"
+  },
+  "keywords": [
+    "verification",
+    "ai",
+    "cli",
+    "mcp",
+    "cross-provider"
+  ]
+}

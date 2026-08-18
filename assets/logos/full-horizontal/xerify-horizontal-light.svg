@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2500 1000" role="img" aria-label="Xerify">
+  <g fill="none" stroke-linejoin="miter" stroke-width="112" stroke-linecap="square">
+    <path d="M170 130 500 590 830 130" stroke="#111827"/>
+    <path d="M170 890 500 590 830 890" stroke="#15803d"/>
+  </g>
+  <g transform="translate(0 -130)" fill="none" stroke="#111827" stroke-width="72" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1350 635c-40 58-97 87-171 87-127 0-209-76-209-193s82-199 196-199c119 0 190 82 190 190H972m1 0h302"/>
+    <path d="M1445 715V346m0 100c27-73 84-112 165-112"/>
+    <path d="M1715 346v369"/>
+    <path d="M1845 715V305c0-91 57-137 151-109M1778 374h193"/>
+    <path d="M2048 348 2190 690m192-342-244 500"/>
+  </g>
+  <circle cx="1715" cy="80" r="39" fill="#111827"/>
+</svg>

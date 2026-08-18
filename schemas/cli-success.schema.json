@@ -1,0 +1,13 @@
+{
+  "$id": "urn:xerify:schema:cli-success:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "ok": { "type": "boolean", "const": true },
+    "schemaVersion": { "type": "number", "const": 1 },
+    "command": { "type": "string", "minLength": 1 },
+    "data": {}
+  },
+  "required": ["ok", "schemaVersion", "command", "data"],
+  "additionalProperties": false
+}

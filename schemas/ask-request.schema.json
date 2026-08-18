@@ -1,0 +1,62 @@
+{
+  "$id": "urn:xerify:schema:ask-request:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "from": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+      },
+      "required": ["provider", "model", "provenance"],
+      "additionalProperties": false
+    },
+    "to": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+      },
+      "required": ["provider", "model", "provenance"],
+      "additionalProperties": false
+    },
+    "question": { "type": "string", "minLength": 1, "maxLength": 100000 },
+    "context": { "default": "", "type": "string", "maxLength": 104857600 },
+    "limits": {
+      "default": { "timeoutMs": 120000, "maxInputBytes": 1048576, "maxOutputBytes": 1048576 },
+      "type": "object",
+      "properties": {
+        "timeoutMs": { "type": "integer", "exclusiveMinimum": 0, "maximum": 3600000 },
+        "maxInputBytes": { "type": "integer", "exclusiveMinimum": 0, "maximum": 104857600 },
+        "maxOutputBytes": { "type": "integer", "exclusiveMinimum": 0, "maximum": 104857600 }
+      },
+      "required": ["timeoutMs", "maxInputBytes", "maxOutputBytes"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["to", "question", "context", "limits"],
+  "additionalProperties": false
+}

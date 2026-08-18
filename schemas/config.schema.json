@@ -1,0 +1,158 @@
+{
+  "$id": "urn:xerify:schema:config:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "providers": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 1 },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": { "type": "string", "const": "command" },
+              "provider": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "executable": { "type": "string", "minLength": 1, "maxLength": 4096 },
+              "args": {
+                "default": [],
+                "maxItems": 100,
+                "type": "array",
+                "items": { "type": "string", "maxLength": 16384 }
+              },
+              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "authKind": {
+                "default": "unknown",
+                "type": "string",
+                "enum": ["subscription", "api-key", "local", "unknown"]
+              },
+              "authEnvironment": {
+                "default": [],
+                "maxItems": 50,
+                "type": "array",
+                "items": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" }
+              },
+              "structuredOutput": { "default": false, "type": "boolean" },
+              "reportsUsage": { "default": false, "type": "boolean" }
+            },
+            "required": [
+              "kind",
+              "provider",
+              "executable",
+              "args",
+              "authKind",
+              "authEnvironment",
+              "structuredOutput",
+              "reportsUsage"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": { "type": "string", "const": "codex" },
+              "provider": { "default": "openai", "type": "string", "const": "openai" },
+              "executable": {
+                "default": "codex",
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+            },
+            "required": ["kind", "provider", "executable"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": { "type": "string", "const": "claude" },
+              "provider": { "default": "anthropic", "type": "string", "const": "anthropic" },
+              "executable": {
+                "default": "claude",
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+            },
+            "required": ["kind", "provider", "executable"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": { "type": "string", "const": "openai-api" },
+              "provider": { "default": "openai", "type": "string", "const": "openai" },
+              "endpoint": {
+                "default": "https://api.openai.com/v1/responses",
+                "type": "string",
+                "format": "uri"
+              },
+              "apiKeyEnvironment": {
+                "default": "OPENAI_API_KEY",
+                "type": "string",
+                "pattern": "^[A-Z_][A-Z0-9_]*$"
+              },
+              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+            },
+            "required": ["kind", "provider", "endpoint", "apiKeyEnvironment"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": { "type": "string", "const": "anthropic-api" },
+              "provider": { "default": "anthropic", "type": "string", "const": "anthropic" },
+              "endpoint": {
+                "default": "https://api.anthropic.com/v1/messages",
+                "type": "string",
+                "format": "uri"
+              },
+              "apiKeyEnvironment": {
+                "default": "ANTHROPIC_API_KEY",
+                "type": "string",
+                "pattern": "^[A-Z_][A-Z0-9_]*$"
+              },
+              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "maxTokens": {
+                "default": 4096,
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 100000
+              }
+            },
+            "required": ["kind", "provider", "endpoint", "apiKeyEnvironment", "maxTokens"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": { "type": "string", "const": "openai-compatible" },
+              "provider": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "endpoint": { "type": "string", "format": "uri" },
+              "apiKeyEnvironment": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" },
+              "defaultModel": { "type": "string", "minLength": 1, "maxLength": 200 }
+            },
+            "required": ["kind", "provider", "endpoint"],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "timeoutMs": { "type": "integer", "exclusiveMinimum": 0, "maximum": 3600000 },
+        "maxInputBytes": { "type": "integer", "exclusiveMinimum": 0, "maximum": 104857600 },
+        "maxOutputBytes": { "type": "integer", "exclusiveMinimum": 0, "maximum": 104857600 }
+      },
+      "additionalProperties": false
+    },
+    "logPath": {
+      "anyOf": [{ "type": "string", "minLength": 1, "maxLength": 4096 }, { "type": "null" }]
+    }
+  },
+  "additionalProperties": false
+}

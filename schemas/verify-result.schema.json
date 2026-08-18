@@ -1,0 +1,135 @@
+{
+  "$id": "urn:xerify:schema:verify-result:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": { "type": "number", "const": 1 },
+    "id": { "type": "string", "pattern": "^xrf_[A-Za-z0-9_-]+$" },
+    "from": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+      },
+      "required": ["provider", "model", "provenance"],
+      "additionalProperties": false
+    },
+    "to": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
+        },
+        "provenance": { "type": "string", "enum": ["observed", "declared", "unknown"] }
+      },
+      "required": ["provider", "model", "provenance"],
+      "additionalProperties": false
+    },
+    "verdict": { "type": "string", "enum": ["confirmed", "refuted", "unclear"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 20000 },
+    "findings": {
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": { "type": "string", "enum": ["critical", "high", "medium", "low", "info"] },
+          "message": { "type": "string", "minLength": 1, "maxLength": 20000 },
+          "evidence": { "type": "string", "maxLength": 20000 }
+        },
+        "required": ["severity", "message"],
+        "additionalProperties": false
+      }
+    },
+    "usage": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "inputTokens": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                { "type": "null" }
+              ]
+            },
+            "outputTokens": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                { "type": "null" }
+              ]
+            },
+            "totalTokens": {
+              "anyOf": [
+                { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+                { "type": "null" }
+              ]
+            },
+            "costUsd": { "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }] }
+          },
+          "required": ["inputTokens", "outputTokens", "totalTokens", "costUsd"],
+          "additionalProperties": false
+        },
+        { "type": "null" }
+      ]
+    },
+    "durationMs": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "truncation": {
+      "type": "object",
+      "properties": { "input": { "type": "boolean" }, "output": { "type": "boolean" } },
+      "required": ["input", "output"],
+      "additionalProperties": false
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": ["TIMEOUT", "CANCELLED", "PROVIDER_FAILURE", "INVALID_PROVIDER_RESPONSE"]
+            },
+            "message": { "type": "string", "minLength": 1, "maxLength": 2000 },
+            "retryable": { "type": "boolean" }
+          },
+          "required": ["code", "message", "retryable"],
+          "additionalProperties": false
+        },
+        { "type": "null" }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "from",
+    "to",
+    "verdict",
+    "summary",
+    "findings",
+    "usage",
+    "durationMs",
+    "truncation",
+    "failure"
+  ],
+  "additionalProperties": false
+}
