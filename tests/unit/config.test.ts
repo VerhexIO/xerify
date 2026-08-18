@@ -8,6 +8,7 @@ import { userConfigPath } from '../../src/config/paths.js';
 import { resolveConfig } from '../../src/config/resolve.js';
 
 const temporaryDirectories: string[] = [];
+const itOnPosix = process.platform === 'win32' ? it.skip : it;
 
 async function temporaryDirectory(): Promise<string> {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'xerify-config-test-'));
@@ -141,7 +142,7 @@ describe('config precedence', () => {
     });
   });
 
-  it('rejects a literal API key in a group/world-readable POSIX config', async () => {
+  itOnPosix('rejects a literal API key in a group/world-readable POSIX config', async () => {
     const root = await temporaryDirectory();
     await writeProjectConfig(root, {
       providers: { direct: { kind: 'anthropic-api', apiKey: 'local-config-key' } }
