@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,8 +34,10 @@ async function temporaryDirectory(): Promise<string> {
 }
 
 async function configureFixture(directory: string, scenario: string): Promise<void> {
+  const stateDirectory = path.join(directory, '.xerify');
+  await mkdir(stateDirectory, { recursive: true });
   await writeFile(
-    path.join(directory, 'xerify.config.json'),
+    path.join(stateDirectory, 'xverify-config.json'),
     JSON.stringify({
       providers: {
         fixture: {
@@ -87,9 +89,128 @@ describe('CLI contract', () => {
   it('shows every major command in top-level help', async () => {
     const result = await capture(['--help']);
     expect(result.code).toBe(0);
-    for (const command of ['ask', 'verify', 'doctor', 'providers', 'config', 'mcp', 'request']) {
+    for (const command of [
+      'ask',
+      'verify',
+      'health',
+      'doctor',
+      'providers',
+      'config',
+      'init',
+      'runs',
+      'mcp',
+      'request'
+    ]) {
       expect(result.stdout).toContain(command);
     }
+  });
+
+  it('initializes isolated project config and idempotent secret-safe logging', async () => {
+    const directory = await temporaryDirectory();
+    for (const name of ['.gitignore', '.npmignore', '.dockerignore']) {
+      await writeFile(path.join(directory, name), `owner-rule-${name}\n`);
+    }
+    const first = await capture(['--json', 'init'], { cwd: directory });
+    expect(first.code).toBe(0);
+    expect(JSON.parse(first.stdout)).toMatchObject({
+      ok: true,
+      command: 'init',
+      data: {
+        root: path.join(directory, '.xerify'),
+        configPath: path.join(directory, '.xerify', 'xverify-config.json'),
+        logPath: path.join(directory, '.xerify', 'logs', 'audit.jsonl')
+      }
+    });
+    const configPath = path.join(directory, '.xerify', 'xverify-config.json');
+    const config = JSON.parse(await readFile(configPath, 'utf8')) as Record<string, unknown>;
+    expect(config).toMatchObject({
+      providers: {},
+      history: {
+        enabled: true,
+        directory: '.xerify/runs',
+        archiveDirectory: '.xerify/archive'
+      },
+      logPath: '.xerify/logs/audit.jsonl'
+    });
+    expect(JSON.stringify(config)).not.toMatch(/token|secret|apiKey/i);
+    expect(await readFile(path.join(directory, '.xerify', '.gitignore'), 'utf8')).toContain(
+      'xverify-config.json'
+    );
+    expect(await readFile(path.join(directory, '.xerify', '.gitignore'), 'utf8')).toContain(
+      '.gitignore'
+    );
+    for (const name of ['.gitignore', '.npmignore', '.dockerignore']) {
+      const ignore = await readFile(path.join(directory, name), 'utf8');
+      expect(ignore).toContain(`owner-rule-${name}`);
+      expect(ignore).toContain('.xerify/');
+    }
+
+    const second = await capture(['--json', 'init'], { cwd: directory });
+    expect(JSON.parse(second.stdout)).toMatchObject({
+      data: { created: [], existing: expect.arrayContaining([configPath]) }
+    });
+
+    const listed = await capture(['--json', 'providers', 'list'], { cwd: directory });
+    expect(listed.code).toBe(0);
+    const audit = await readFile(path.join(directory, '.xerify', 'logs', 'audit.jsonl'), 'utf8');
+    expect(audit.trim().split('\n')).toHaveLength(1);
+    expect(audit).not.toMatch(/prompt|context|answer|finding|secret|token/i);
+  });
+
+  it('reports usable health and linked invocation providers without a model call', async () => {
+    const directory = await temporaryDirectory();
+    await configureFixture(directory, 'echo');
+    const result = await capture(['--json', 'health'], { cwd: directory });
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      ok: true,
+      command: 'health',
+      data: {
+        status: 'degraded',
+        usable: true,
+        project: { initialized: true },
+        providers: {
+          identityBasis: 'invocation-provider',
+          configured: 3,
+          linked: 1,
+          identities: ['fixture'],
+          adapters: expect.arrayContaining([
+            expect.objectContaining({
+              adapterId: 'fixture',
+              provider: 'fixture',
+              available: true
+            })
+          ])
+        },
+        networkProbed: false
+      }
+    });
+  });
+
+  it('redacts literal API keys from config output', async () => {
+    const directory = await temporaryDirectory();
+    const stateDirectory = path.join(directory, '.xerify');
+    await mkdir(stateDirectory, { recursive: true });
+    await writeFile(
+      path.join(stateDirectory, 'xverify-config.json'),
+      JSON.stringify({
+        providers: {
+          direct: { kind: 'openai-api', apiKey: 'literal-never-print-this' }
+        }
+      })
+    );
+    await chmod(path.join(stateDirectory, 'xverify-config.json'), 0o600);
+
+    const result = await capture(['--json', 'config', 'show'], { cwd: directory });
+    expect(result.code).toBe(0);
+    expect(result.stdout).not.toContain('literal-never-print-this');
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      data: {
+        secretsRedacted: true,
+        config: { providers: { direct: { apiKey: '[REDACTED]' } } }
+      }
+    });
   });
 
   it('emits a single stable doctor envelope without configured auth', async () => {
@@ -147,6 +268,22 @@ describe('CLI contract', () => {
     actual.data.id = 'xrf_normalized';
     actual.data.durationMs = 0;
     expect(actual).toEqual(await golden('verify-confirmed.json'));
+    const runs = await capture(['--json', 'runs', 'list'], { cwd: directory });
+    expect(JSON.parse(runs.stdout)).toMatchObject({
+      ok: true,
+      command: 'runs.list',
+      data: {
+        location: 'active',
+        runs: [
+          {
+            id: 'xrun_000001',
+            operation: 'verify',
+            status: 'completed',
+            outcome: { exitCode: 0, verdict: 'confirmed' }
+          }
+        ]
+      }
+    });
   });
 
   it('returns refuted as a complete result with exit 10', async () => {

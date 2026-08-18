@@ -141,6 +141,39 @@ describe('direct API adapters', () => {
     expect(request).not.toHaveBeenCalled();
   });
 
+  it('supports a literal config key but gives the named environment variable precedence', async () => {
+    const request = vi.fn<typeof fetch>(async () =>
+      jsonResponse({
+        status: 'completed',
+        output: [{ type: 'message', content: [{ type: 'output_text', text: 'answer' }] }]
+      })
+    );
+    const configAdapter = new OpenAiApiAdapter({ apiKey: 'config-key', env: {}, fetch: request });
+    await expect(configAdapter.probe({ network: false, timeoutMs: 100 })).resolves.toMatchObject({
+      available: true,
+      auth: { status: 'present', source: 'config' }
+    });
+    await configAdapter.invoke(
+      { operation: 'ask', model: 'gpt-test', prompt: 'hello', limits: DEFAULT_LIMITS },
+      new AbortController().signal
+    );
+    expect(request.mock.calls[0]?.[1]?.headers).toMatchObject({
+      authorization: 'Bearer config-key'
+    });
+
+    request.mockClear();
+    const envAdapter = new OpenAiApiAdapter({
+      apiKey: 'config-key',
+      env: { OPENAI_API_KEY: 'env-key' },
+      fetch: request
+    });
+    await envAdapter.invoke(
+      { operation: 'ask', model: 'gpt-test', prompt: 'hello', limits: DEFAULT_LIMITS },
+      new AbortController().signal
+    );
+    expect(request.mock.calls[0]?.[1]?.headers).toMatchObject({ authorization: 'Bearer env-key' });
+  });
+
   it('maps an aborting HTTP request to timeout without leaking the key', async () => {
     const request = vi.fn<typeof fetch>(async (_input, init) => {
       await new Promise<void>((_resolve, reject) => {

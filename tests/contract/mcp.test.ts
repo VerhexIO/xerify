@@ -1,3 +1,5 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,7 +11,7 @@ import {
   type JSONRPCMessage,
   type JSONRPCResponse
 } from '@modelcontextprotocol/server';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import { AskRequestSchema } from '../../src/core/contracts.js';
@@ -20,6 +22,7 @@ import {
   XERIFY_MCP_TOOLS
 } from '../../src/mcp/server.js';
 import { serveXerifyStdio } from '../../src/mcp/stdio.js';
+import { RunHistoryStore } from '../../src/history/store.js';
 import { CommandAdapter } from '../../src/providers/command.js';
 import { ProviderRegistry } from '../../src/providers/registry.js';
 
@@ -27,6 +30,28 @@ const fixture = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../fixtures/fake-provider.mjs'
 );
+const temporaryDirectories: string[] = [];
+
+function historyAt(root: string, enabled: boolean): RunHistoryStore {
+  return new RunHistoryStore({
+    enabled,
+    directory: path.join(root, 'runs'),
+    archiveDirectory: path.join(root, 'archive'),
+    captureInput: 'full',
+    captureOutput: 'normalized',
+    sequencePadding: 6
+  });
+}
+
+function disabledHistory(): RunHistoryStore {
+  return historyAt(path.join(os.tmpdir(), 'xerify-disabled-mcp-history'), false);
+}
+
+afterEach(async () => {
+  await Promise.all(
+    temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true }))
+  );
+});
 
 const modernMeta = {
   [PROTOCOL_VERSION_META_KEY]: '2026-07-28',
@@ -40,9 +65,12 @@ interface InMemoryChannel {
   close(): Promise<void>;
 }
 
-async function openChannel(registry = new ProviderRegistry()): Promise<InMemoryChannel> {
+async function openChannel(
+  registry = new ProviderRegistry(),
+  history = disabledHistory()
+): Promise<InMemoryChannel> {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-  const handle = serveXerifyStdio(createXerifyMcpFactory({ registry }), {
+  const handle = serveXerifyStdio(createXerifyMcpFactory({ registry, history }), {
     transport: serverTransport
   });
   const pending = new Map<string | number, (message: JSONRPCResponse) => void>();
@@ -91,7 +119,10 @@ function resultOf(response: JSONRPCResponse): Record<string, unknown> {
 
 describe('MCP v2 contract', () => {
   it('derives the advertised ask input schema from the canonical core schema', () => {
-    const server = createXerifyMcpServer({ registry: new ProviderRegistry() });
+    const server = createXerifyMcpServer({
+      registry: new ProviderRegistry(),
+      history: disabledHistory()
+    });
     const advertised = server.toolInputSchemaJson(XERIFY_MCP_TOOLS.ask);
     const canonical = z.toJSONSchema(AskRequestSchema);
     expect(advertised?.properties).toEqual(canonical.properties);
@@ -102,7 +133,10 @@ describe('MCP v2 contract', () => {
   });
 
   it('does not advertise observed provenance as caller-assertable verification input', () => {
-    const server = createXerifyMcpServer({ registry: new ProviderRegistry() });
+    const server = createXerifyMcpServer({
+      registry: new ProviderRegistry(),
+      history: disabledHistory()
+    });
     const advertised = server.toolInputSchemaJson(XERIFY_MCP_TOOLS.verify) as
       | {
           properties?: {
@@ -193,7 +227,10 @@ describe('MCP v2 contract', () => {
         env: {}
       })
     ]);
-    const channel = await openChannel(registry);
+    const historyRoot = await mkdtemp(path.join(os.tmpdir(), 'xerify-mcp-history-test-'));
+    temporaryDirectories.push(historyRoot);
+    const history = historyAt(historyRoot, true);
+    const channel = await openChannel(registry, history);
     try {
       await channel.request({
         jsonrpc: '2.0',
@@ -229,6 +266,14 @@ describe('MCP v2 contract', () => {
         structuredContent: { verdict: 'confirmed', failure: null }
       });
       expect(called.isError).not.toBe(true);
+      await expect(history.list()).resolves.toMatchObject([
+        {
+          operation: 'verify',
+          surface: 'mcp',
+          status: 'completed',
+          outcome: { exitCode: 0, verdict: 'confirmed' }
+        }
+      ]);
     } finally {
       await channel.close();
     }
@@ -236,7 +281,10 @@ describe('MCP v2 contract', () => {
 
   it('enforces HTTP bearer and Origin checks at the server boundary', async () => {
     const boundary = createXerifyHttpBoundary({
-      factory: createXerifyMcpFactory({ registry: new ProviderRegistry() }),
+      factory: createXerifyMcpFactory({
+        registry: new ProviderRegistry(),
+        history: disabledHistory()
+      }),
       host: '127.0.0.1',
       bearerToken: 'test-token'
     });
@@ -293,7 +341,10 @@ describe('MCP v2 contract', () => {
   });
 
   it('rejects public HTTP bind without explicit confirmation and authentication', async () => {
-    const factory = createXerifyMcpFactory({ registry: new ProviderRegistry() });
+    const factory = createXerifyMcpFactory({
+      registry: new ProviderRegistry(),
+      history: disabledHistory()
+    });
     await expect(
       serveXerifyHttp({ factory, host: '0.0.0.0', port: 0, bearerToken: 'token' })
     ).rejects.toMatchObject({ code: 'CONFIG_INVALID' });

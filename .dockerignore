@@ -1,0 +1,2 @@
+# Xerify local state must never enter a container build context.
+.xerify/

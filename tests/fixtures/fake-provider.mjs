@@ -161,6 +161,45 @@ switch (scenario) {
       })
     );
     break;
+  case 'cursor-json':
+    await write(
+      1,
+      JSON.stringify({
+        type: 'result',
+        subtype: 'success',
+        is_error: false,
+        result: JSON.stringify({
+          verdict: 'refuted',
+          summary: 'Cursor found contradicting evidence.',
+          findings: [],
+          evidence: [],
+          assumptions: [],
+          limitations: ['Fixture output only.'],
+          unverifiedClaims: []
+        }),
+        usage: {
+          inputTokens: 16,
+          outputTokens: 11,
+          cacheReadTokens: 4,
+          cacheWriteTokens: 20
+        }
+      })
+    );
+    break;
+  case 'cursor-inspect':
+    await write(
+      1,
+      JSON.stringify({
+        type: 'result',
+        subtype: 'success',
+        is_error: false,
+        result: JSON.stringify({ argv: process.argv.slice(3), input, cwd: process.cwd() })
+      })
+    );
+    break;
+  case 'inspect-raw':
+    await write(1, JSON.stringify({ argv: process.argv.slice(3), input, cwd: process.cwd() }));
+    break;
   default:
     await write(2, `unknown scenario: ${scenario}`);
     process.exitCode = 2;

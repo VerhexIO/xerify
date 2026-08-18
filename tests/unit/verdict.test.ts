@@ -14,10 +14,28 @@ const reference = (
 ): ProviderReference => ({ provider, model: 'test-model', provenance });
 
 describe('provider separation', () => {
-  it('accepts distinct provider organizations', () => {
+  it('accepts distinct invocation-provider identities', () => {
     expect(() =>
       assertProviderSeparation(reference('openai'), reference('anthropic'))
     ).not.toThrow();
+  });
+
+  it('admits direct OpenAI to Cursor even when the model lineage label overlaps', () => {
+    expect(() =>
+      assertProviderSeparation(
+        { provider: 'openai', model: 'gpt-test', provenance: 'declared' },
+        { provider: 'cursor', model: 'gpt-test', provenance: 'declared' }
+      )
+    ).not.toThrow();
+  });
+
+  it('rejects two Cursor models regardless of their upstream family labels', () => {
+    expect(() =>
+      assertProviderSeparation(
+        { provider: 'cursor', model: 'gpt-test', provenance: 'declared' },
+        { provider: 'cursor', model: 'claude-test', provenance: 'declared' }
+      )
+    ).toThrow('different providers');
   });
 
   it('rejects the same provider case-insensitively', () => {

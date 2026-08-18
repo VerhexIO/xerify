@@ -14,7 +14,8 @@ import {
   VerifyResultSchema
 } from '../core/contracts.js';
 import { toXerifyError } from '../core/errors.js';
-import { executeAsk, executeVerify } from '../core/execute.js';
+import { executeRecordedAsk, executeRecordedVerify } from '../history/execute.js';
+import type { RunHistoryStore } from '../history/store.js';
 import type { ProviderRegistry } from '../providers/registry.js';
 
 export const MCP_PROTOCOL_REVISION = '2026-07-28' as const;
@@ -29,6 +30,7 @@ const CapabilitiesOutputSchema = z
   .object({
     schemaVersion: z.literal(SCHEMA_VERSION),
     protocolRevision: z.literal(MCP_PROTOCOL_REVISION),
+    identityBasis: z.literal('invocation-provider'),
     eras: z.tuple([z.literal('modern'), z.literal('legacy')]),
     authenticated: z.boolean(),
     clientId: z.string().nullable(),
@@ -81,6 +83,7 @@ function errorResult(error: unknown): CallToolResult {
 
 export interface XerifyMcpServerOptions {
   registry: ProviderRegistry;
+  history: RunHistoryStore;
   version?: string;
   requestContext?: McpRequestContext;
 }
@@ -103,7 +106,12 @@ export function createXerifyMcpServer(options: XerifyMcpServerOptions): McpServe
     async (request, context) => {
       try {
         return successResult(
-          await executeAsk(request, options.registry, { signal: context.mcpReq.signal })
+          await executeRecordedAsk(request, options.registry, {
+            signal: context.mcpReq.signal,
+            history: options.history,
+            surface: 'mcp',
+            contextLabel: 'mcp-context'
+          })
         );
       } catch (error) {
         return errorResult(error);
@@ -115,7 +123,7 @@ export function createXerifyMcpServer(options: XerifyMcpServerOptions): McpServe
     XERIFY_MCP_TOOLS.verify,
     {
       title: 'Verify a claim',
-      description: 'Verify a claim with a provider organization different from its author.',
+      description: 'Verify a claim with an invocation provider different from its author.',
       inputSchema: VerifyRequestSchema,
       outputSchema: VerifyResultSchema,
       annotations: externalCallAnnotations
@@ -123,7 +131,12 @@ export function createXerifyMcpServer(options: XerifyMcpServerOptions): McpServe
     async (request, context) => {
       try {
         return successResult(
-          await executeVerify(request, options.registry, { signal: context.mcpReq.signal })
+          await executeRecordedVerify(request, options.registry, {
+            signal: context.mcpReq.signal,
+            history: options.history,
+            surface: 'mcp',
+            contextLabel: 'mcp-context'
+          })
         );
       } catch (error) {
         return errorResult(error);
@@ -146,6 +159,7 @@ export function createXerifyMcpServer(options: XerifyMcpServerOptions): McpServe
       return successResult({
         schemaVersion: SCHEMA_VERSION,
         protocolRevision: MCP_PROTOCOL_REVISION,
+        identityBasis: 'invocation-provider' as const,
         eras: ['modern', 'legacy'] as const,
         authenticated: authInfo !== undefined,
         clientId: authInfo?.clientId ?? null,

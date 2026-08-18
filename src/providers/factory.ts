@@ -4,6 +4,7 @@ import { ClaudeAdapter } from './claude.js';
 import { CommandAdapter } from './command.js';
 import type { ProviderAdapter } from './contract.js';
 import { CodexAdapter } from './codex.js';
+import { CursorAdapter } from './cursor.js';
 import { OpenAiApiAdapter } from './openai-api.js';
 import { OpenAiCompatibleAdapter } from './openai-compatible.js';
 import { ProviderRegistry } from './registry.js';
@@ -35,11 +36,18 @@ export function adaptersFromConfig(
         return new CodexAdapter({ id, executable: provider.executable, ...environment });
       case 'claude':
         return new ClaudeAdapter({ id, executable: provider.executable, ...environment });
+      case 'cursor':
+        return new CursorAdapter({
+          id,
+          executable: provider.executable,
+          ...environment
+        });
       case 'openai-api':
         return new OpenAiApiAdapter({
           id,
           endpoint: provider.endpoint,
           apiKeyEnvironment: provider.apiKeyEnvironment,
+          ...(provider.apiKey === undefined ? {} : { apiKey: provider.apiKey }),
           ...environment
         });
       case 'anthropic-api':
@@ -47,6 +55,7 @@ export function adaptersFromConfig(
           id,
           endpoint: provider.endpoint,
           apiKeyEnvironment: provider.apiKeyEnvironment,
+          ...(provider.apiKey === undefined ? {} : { apiKey: provider.apiKey }),
           maxTokens: provider.maxTokens,
           ...environment
         });
@@ -56,6 +65,7 @@ export function adaptersFromConfig(
           provider: provider.provider,
           endpoint: provider.endpoint,
           ...environment,
+          ...(provider.apiKey === undefined ? {} : { apiKey: provider.apiKey }),
           ...(provider.apiKeyEnvironment === undefined
             ? {}
             : { apiKeyEnvironment: provider.apiKeyEnvironment })

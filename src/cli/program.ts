@@ -7,11 +7,14 @@ import { Command, CommanderError, InvalidArgumentError } from 'commander';
 import { z } from 'zod';
 
 import { resolveConfig, type ConfigOverrides } from '../config/resolve.js';
+import { initializeProject } from '../config/initialize.js';
+import { redactResolvedConfig } from '../config/redact.js';
 import { appendAuditRecord } from '../core/audit.js';
 import { parseProviderReference } from '../core/contracts.js';
 import { toXerifyError, XerifyError } from '../core/errors.js';
-import { executeAsk, executeVerify } from '../core/execute.js';
 import { verificationExitCode } from '../core/verdict.js';
+import { executeRecordedAsk, executeRecordedVerify } from '../history/execute.js';
+import { RunHistoryStore } from '../history/store.js';
 import { serveXerifyHttp } from '../mcp/http.js';
 import { createXerifyMcpFactory } from '../mcp/server.js';
 import { serveXerifyStdio } from '../mcp/stdio.js';
@@ -63,7 +66,18 @@ function positiveInteger(value: string): number {
 }
 
 function requestedCommand(argv: readonly string[]): string {
-  const commands = ['ask', 'verify', 'doctor', 'providers', 'config', 'mcp', 'request'];
+  const commands = [
+    'ask',
+    'verify',
+    'health',
+    'doctor',
+    'providers',
+    'config',
+    'init',
+    'runs',
+    'mcp',
+    'request'
+  ];
   return argv.find((argument) => commands.includes(argument)) ?? 'cli';
 }
 
@@ -202,6 +216,7 @@ export async function runCli(
     .option('--from <provider:model>', 'declared author identity for provenance')
     .requiredOption('--to <provider:model>', 'target provider and model')
     .option('--adapter <id>', 'configured adapter id to use')
+    .option('--context-label <label>', 'human-readable label for stdin evidence')
     .action(async (positionalQuestion: string | undefined, options: Record<string, unknown>) => {
       await run('ask', async () => {
         const global = program.opts<{ timeout?: number; log?: string }>();
@@ -217,7 +232,7 @@ export async function runCli(
         if (!question) throw new XerifyError('INVALID_INPUT', 'A question is required');
         const abort = installAbortHandlers();
         try {
-          const result = await executeAsk(
+          const result = await executeRecordedAsk(
             {
               ...(options.from
                 ? { from: providerReference(options.from as string, '--from') }
@@ -230,7 +245,10 @@ export async function runCli(
             registryFromConfig(resolved.config, { env: dependencies.env }),
             {
               signal: abort.signal,
-              ...(options.adapter ? { adapterId: options.adapter as string } : {})
+              history: new RunHistoryStore(resolved.config.history),
+              surface: 'cli',
+              ...(options.adapter ? { adapterId: options.adapter as string } : {}),
+              ...(options.contextLabel ? { contextLabel: options.contextLabel as string } : {})
             }
           );
           await emitSuccess(dependencies, json, 'ask', result, {
@@ -254,6 +272,7 @@ export async function runCli(
     .requiredOption('--to <provider:model>', 'target provider and verifier model')
     .requiredOption('--claim <claim>', 'claim to evaluate')
     .option('--adapter <id>', 'configured adapter id to use')
+    .option('--context-label <label>', 'human-readable label for stdin evidence')
     .action(async (options: Record<string, unknown>) => {
       await run('verify', async () => {
         const global = program.opts<{ timeout?: number; log?: string }>();
@@ -267,7 +286,7 @@ export async function runCli(
         const context = await stdinContext(dependencies, resolved.config.limits.maxInputBytes);
         const abort = installAbortHandlers();
         try {
-          const result = await executeVerify(
+          const result = await executeRecordedVerify(
             {
               from: providerReference(options.from as string, '--from'),
               to: providerReference(options.to as string, '--to'),
@@ -278,7 +297,10 @@ export async function runCli(
             registryFromConfig(resolved.config, { env: dependencies.env }),
             {
               signal: abort.signal,
-              ...(options.adapter ? { adapterId: options.adapter as string } : {})
+              history: new RunHistoryStore(resolved.config.history),
+              surface: 'cli',
+              ...(options.adapter ? { adapterId: options.adapter as string } : {}),
+              ...(options.contextLabel ? { contextLabel: options.contextLabel as string } : {})
             }
           );
           const resultExitCode = verificationExitCode(result);
@@ -291,6 +313,67 @@ export async function runCli(
         } finally {
           abort.dispose();
         }
+      });
+    });
+
+  program
+    .command('health')
+    .description('show project readiness and linked providers without a billable model call')
+    .option('--network', 'include explicit endpoint reachability probes', false)
+    .action(async (options: { network: boolean }) => {
+      await run('health', async () => {
+        const global = program.opts<{ timeout?: number; log?: string }>();
+        const resolved = await resolveConfig({
+          cwd: dependencies.cwd,
+          env: dependencies.env,
+          platform: dependencies.platform,
+          overrides: optionOverrides(global)
+        });
+        activeAuditPath = resolved.config.logPath;
+        const adapters = adaptersFromConfig(resolved.config, { env: dependencies.env });
+        const probes = await Promise.all(
+          adapters.map((adapter) =>
+            adapter.probe({ network: options.network, timeoutMs: resolved.config.limits.timeoutMs })
+          )
+        );
+        const linked = probes.filter((probe) => probe.available);
+        const status =
+          linked.length === 0
+            ? 'setup-required'
+            : linked.length === probes.length
+              ? 'ready'
+              : 'degraded';
+        const data = {
+          status,
+          usable: linked.length > 0,
+          xerifyVersion: VERSION,
+          nodeVersion: dependencies.nodeVersion,
+          platform: dependencies.platform,
+          architecture: dependencies.architecture,
+          project: {
+            initialized: resolved.paths.loaded.includes(resolved.paths.project),
+            configPath: resolved.paths.project,
+            loadedConfigPaths: resolved.paths.loaded
+          },
+          history: {
+            enabled: resolved.config.history.enabled,
+            directory: resolved.config.history.directory,
+            archiveDirectory: resolved.config.history.archiveDirectory,
+            captureInput: resolved.config.history.captureInput,
+            captureOutput: resolved.config.history.captureOutput
+          },
+          providers: {
+            identityBasis: 'invocation-provider',
+            configured: probes.length,
+            linked: linked.length,
+            identities: [...new Set(linked.map((probe) => probe.provider))].sort(),
+            adapters: probes
+          },
+          networkProbed: options.network
+        };
+        await emitSuccess(dependencies, json, 'health', data, {
+          auditPath: activeAuditPath
+        });
       });
     });
 
@@ -320,6 +403,7 @@ export async function runCli(
           platform: dependencies.platform,
           architecture: dependencies.architecture,
           config: { paths: resolved.paths, valid: true },
+          history: resolved.config.history,
           providers: probes,
           mcp: { sdkMajor: 2, stdioSafe: true },
           tempDirectory: os.tmpdir(),
@@ -328,6 +412,105 @@ export async function runCli(
         await emitSuccess(dependencies, json, 'doctor', data, {
           auditPath: activeAuditPath
         });
+      });
+    });
+
+  program
+    .command('init')
+    .description('initialize .xerify/xverify-config.json and secret-safe project logs')
+    .action(async () => {
+      await run('init', async () => {
+        const data = await initializeProject(dependencies.cwd);
+        await emitSuccess(dependencies, json, 'init', data, {
+          human: () => {
+            dependencies.writer.stdout(`Initialized Xerify project state at ${data.root}\n`);
+          }
+        });
+      });
+    });
+
+  const runs = program
+    .command('runs')
+    .description('inspect and manage local deterministic run records');
+  runs
+    .command('list')
+    .description('list active or archived runs without provider calls')
+    .option('--archived', 'list archived runs', false)
+    .option('--limit <count>', 'maximum records', positiveInteger, 50)
+    .action(async (options: { archived: boolean; limit: number }) => {
+      await run('runs.list', async () => {
+        const resolved = await resolveConfig({
+          cwd: dependencies.cwd,
+          env: dependencies.env,
+          platform: dependencies.platform
+        });
+        const location = options.archived ? 'archive' : 'active';
+        const data = await new RunHistoryStore(resolved.config.history).list(
+          location,
+          options.limit
+        );
+        await emitSuccess(dependencies, json, 'runs.list', { location, runs: data });
+      });
+    });
+  runs
+    .command('show')
+    .description('show a run record; evidence content is opt-in')
+    .argument('<run>', 'sequence or xrun_<sequence>')
+    .option('--archived', 'read from the archive', false)
+    .option('--include-evidence', 'include captured evidence content', false)
+    .action(async (selector: string, options: { archived: boolean; includeEvidence: boolean }) => {
+      await run('runs.show', async () => {
+        const resolved = await resolveConfig({
+          cwd: dependencies.cwd,
+          env: dependencies.env,
+          platform: dependencies.platform
+        });
+        const data = await new RunHistoryStore(resolved.config.history).show(selector, {
+          location: options.archived ? 'archive' : 'active',
+          includeEvidence: options.includeEvidence
+        });
+        await emitSuccess(dependencies, json, 'runs.show', data);
+      });
+    });
+  runs
+    .command('archive')
+    .description('move an active run into the local archive')
+    .argument('<run>', 'sequence or xrun_<sequence>')
+    .action(async (selector: string) => {
+      await run('runs.archive', async () => {
+        const resolved = await resolveConfig({ cwd: dependencies.cwd, env: dependencies.env });
+        const data = await new RunHistoryStore(resolved.config.history).archive(selector);
+        await emitSuccess(dependencies, json, 'runs.archive', data);
+      });
+    });
+  runs
+    .command('restore')
+    .description('restore an archived run to the active list')
+    .argument('<run>', 'sequence or xrun_<sequence>')
+    .action(async (selector: string) => {
+      await run('runs.restore', async () => {
+        const resolved = await resolveConfig({ cwd: dependencies.cwd, env: dependencies.env });
+        const data = await new RunHistoryStore(resolved.config.history).restore(selector);
+        await emitSuccess(dependencies, json, 'runs.restore', data);
+      });
+    });
+  runs
+    .command('delete')
+    .description('permanently delete one local run record')
+    .argument('<run>', 'sequence or xrun_<sequence>')
+    .option('--archived', 'delete from the archive', false)
+    .option('--yes', 'confirm permanent deletion', false)
+    .action(async (selector: string, options: { archived: boolean; yes: boolean }) => {
+      await run('runs.delete', async () => {
+        if (!options.yes) {
+          throw new XerifyError('INVALID_INPUT', 'Permanent deletion requires --yes');
+        }
+        const resolved = await resolveConfig({ cwd: dependencies.cwd, env: dependencies.env });
+        const data = await new RunHistoryStore(resolved.config.history).delete(
+          selector,
+          options.archived ? 'archive' : 'active'
+        );
+        await emitSuccess(dependencies, json, 'runs.delete', data);
       });
     });
 
@@ -361,7 +544,7 @@ export async function runCli(
   providers
     .command('probe')
     .description('probe executable/auth availability without a provider call')
-    .option('--provider <id-or-provider>', 'adapter id or provider organization')
+    .option('--provider <id-or-provider>', 'adapter id or invocation-provider identity')
     .option('--all', 'probe every configured adapter')
     .option('--network', 'include explicit endpoint reachability probes', false)
     .action(async (options: { provider?: string; all?: boolean; network: boolean }) => {
@@ -403,7 +586,7 @@ export async function runCli(
 
   const config = program
     .command('config')
-    .description('inspect validated secret-free configuration');
+    .description('inspect validated configuration with all secret values redacted');
   for (const subcommand of ['show', 'validate'] as const) {
     config
       .command(subcommand)
@@ -422,9 +605,15 @@ export async function runCli(
             overrides: optionOverrides(global)
           });
           activeAuditPath = resolved.config.logPath;
-          await emitSuccess(dependencies, json, `config.${subcommand}`, resolved, {
-            auditPath: activeAuditPath
-          });
+          await emitSuccess(
+            dependencies,
+            json,
+            `config.${subcommand}`,
+            redactResolvedConfig(resolved),
+            {
+              auditPath: activeAuditPath
+            }
+          );
         });
       });
   }
@@ -451,6 +640,7 @@ export async function runCli(
         }
         const factory = createXerifyMcpFactory({
           registry: registryFromConfig(resolved.config, { env: dependencies.env }),
+          history: new RunHistoryStore(resolved.config.history),
           version: VERSION
         });
         const handle = serveXerifyStdio(factory, {
@@ -490,6 +680,7 @@ export async function runCli(
           const handle = await serveXerifyHttp({
             factory: createXerifyMcpFactory({
               registry: registryFromConfig(resolved.config, { env: dependencies.env }),
+              history: new RunHistoryStore(resolved.config.history),
               version: VERSION
             }),
             host: options.host,

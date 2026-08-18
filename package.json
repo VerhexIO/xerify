@@ -2,6 +2,18 @@
   "name": "xerify",
   "version": "0.1.0",
   "description": "Lightweight cross-provider verification for the shell and MCP.",
+  "author": {
+    "name": "Verhex",
+    "url": "https://github.com/VerhexIO"
+  },
+  "homepage": "https://github.com/VerhexIO/xerify#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VerhexIO/xerify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VerhexIO/xerify/issues"
+  },
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -17,10 +29,10 @@
   },
   "files": [
     "dist",
-    "assets",
     "docs",
     "schemas",
     "skills",
+    "scripts/postinstall.mjs",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
@@ -38,6 +50,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
+    "postinstall": "node ./scripts/postinstall.mjs",
+    "prepack": "npm run generate:schemas",
     "release:audit": "npm run generate:schemas && npm run assets:logo && node scripts/release-audit.mjs",
     "smoke:mcp": "npm run build && node scripts/verify-mcp-inspector.mjs",
     "smoke:live": "npm run build && node scripts/live-provider-smoke.mjs",
@@ -46,7 +60,6 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
-  "prepack": "npm run generate:schemas",
   "publishConfig": {
     "access": "public",
     "provenance": true
@@ -73,6 +86,7 @@
     "ai",
     "cli",
     "mcp",
-    "cross-provider"
+    "cross-provider",
+    "verhex"
   ]
 }

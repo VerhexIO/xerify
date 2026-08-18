@@ -216,12 +216,14 @@ const requiredPaths = [
   'dist/cli/entry.js',
   'schemas/config.schema.json',
   'skills/xerify/SKILL.md',
-  'assets/logos/source/xerify-master.svg'
+  'scripts/postinstall.mjs'
 ];
 const missingPaths = requiredPaths.filter((path) => !packedPaths.includes(path));
 const forbiddenPaths = packedPaths.filter(
   (path) =>
     path === 'XERIFY.md' ||
+    path.startsWith('.xerify/') ||
+    path.startsWith('assets/') ||
     path.startsWith('src/') ||
     path.startsWith('tests/') ||
     path.startsWith('.github/') ||

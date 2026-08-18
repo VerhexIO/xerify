@@ -51,6 +51,24 @@ function registry(
 }
 
 describe('canonical execution chain', () => {
+  it('isolates generic command adapters from the project by default', async () => {
+    const adapter = new CommandAdapter({
+      id: 'inspect',
+      provider: 'fixture',
+      executable: process.execPath,
+      args: [fixture, 'inspect-raw'],
+      authKind: 'local'
+    });
+    const result = await adapter.invoke(
+      { operation: 'ask', model: 'fixture', prompt: 'scoped stdin', limits: DEFAULT_LIMITS },
+      new AbortController().signal
+    );
+    const inspected = JSON.parse(result.output) as { cwd: string; input: string; argv: string[] };
+    expect(inspected.input).toBe('scoped stdin');
+    expect(inspected.argv).not.toContain('scoped stdin');
+    expect(path.basename(inspected.cwd)).toMatch(/^xerify-command-/);
+  });
+
   it('asks through the same provider SPI', async () => {
     const result = await executeAsk(
       { to, question: 'What changed?', context: 'A small diff.', limits: DEFAULT_LIMITS },

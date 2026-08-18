@@ -35,6 +35,7 @@ export interface OpenAiCompatibleAdapterOptions {
   provider: string;
   endpoint: string;
   apiKeyEnvironment?: string;
+  apiKey?: string;
   env?: NodeJS.ProcessEnv;
   fetch?: FetchLike;
 }
@@ -44,6 +45,7 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
   readonly #provider: string;
   readonly #endpoint: string;
   readonly #apiKeyEnvironment: string | undefined;
+  readonly #apiKey: string | undefined;
   readonly #env: NodeJS.ProcessEnv;
   readonly #fetch: FetchLike;
 
@@ -52,6 +54,7 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
     this.#provider = options.provider;
     this.#endpoint = options.endpoint;
     this.#apiKeyEnvironment = options.apiKeyEnvironment;
+    this.#apiKey = options.apiKey;
     this.#env = options.env ?? process.env;
     this.#fetch = options.fetch ?? fetch;
   }
@@ -60,25 +63,28 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
     return {
       provider: this.#provider,
       transports: ['http'],
-      authKinds: this.#apiKeyEnvironment ? ['api-key'] : ['local'],
+      authKinds: this.#apiKeyEnvironment || this.#apiKey ? ['api-key'] : ['local'],
       structuredOutput: true,
       reportsUsage: true,
       supportsAbort: true
     };
   }
 
-  #key(): string | undefined {
-    return this.#apiKeyEnvironment ? this.#env[this.#apiKeyEnvironment] : undefined;
+  #credential(): { key: string; source: 'env' | 'config' } | null {
+    const environmentKey = this.#apiKeyEnvironment ? this.#env[this.#apiKeyEnvironment] : undefined;
+    if (environmentKey) return { key: environmentKey, source: 'env' };
+    return this.#apiKey ? { key: this.#apiKey, source: 'config' } : null;
   }
 
   #headers(): Record<string, string> {
-    const key = this.#key();
-    return key ? { authorization: `Bearer ${key}` } : {};
+    const credential = this.#credential();
+    return credential ? { authorization: `Bearer ${credential.key}` } : {};
   }
 
   async probe(input: ProbeInput): Promise<ProbeResult> {
-    const key = this.#key();
-    const authPresent = !this.#apiKeyEnvironment || Boolean(key);
+    const credential = this.#credential();
+    const authRequired = Boolean(this.#apiKeyEnvironment || this.#apiKey);
+    const authPresent = !authRequired || credential !== null;
     const reachable = input.network
       ? await probeHttpEndpoint(this.#endpoint, this.#headers(), input.timeoutMs, this.#fetch)
       : null;
@@ -87,15 +93,15 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
       provider: this.#provider,
       available: authPresent && reachable !== false,
       executable: null,
-      auth: this.#apiKeyEnvironment
+      auth: authRequired
         ? {
             kind: 'api-key',
-            status: key ? 'present' : 'missing',
-            source: key ? 'env' : 'missing'
+            status: credential ? 'present' : 'missing',
+            source: credential?.source ?? 'missing'
           }
         : { kind: 'local', status: 'not-required', source: 'local' },
       detail: !authPresent
-        ? `${this.#apiKeyEnvironment} is missing`
+        ? `${this.#apiKeyEnvironment ?? 'Configured environment'} and config apiKey are missing`
         : reachable === false
           ? 'Compatible endpoint is unreachable'
           : reachable === true
@@ -105,7 +111,7 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
   }
 
   async invoke(input: InvokeInput, signal: AbortSignal): Promise<InvokeResult> {
-    if (this.#apiKeyEnvironment && !this.#key()) {
+    if ((this.#apiKeyEnvironment || this.#apiKey) && !this.#credential()) {
       throw new XerifyError('AUTH_UNAVAILABLE', 'Compatible endpoint API key is unavailable', {
         details: { environment: this.#apiKeyEnvironment }
       });

@@ -36,6 +36,14 @@ export const ClaudeProviderConfigSchema = z
   })
   .strict();
 
+export const CursorProviderConfigSchema = z
+  .object({
+    kind: z.literal('cursor'),
+    provider: z.literal('cursor').default('cursor'),
+    executable: z.string().trim().min(1).max(4_096).default('agent')
+  })
+  .strict();
+
 export const OpenAiApiProviderConfigSchema = z
   .object({
     kind: z.literal('openai-api'),
@@ -44,7 +52,8 @@ export const OpenAiApiProviderConfigSchema = z
     apiKeyEnvironment: z
       .string()
       .regex(/^[A-Z_][A-Z0-9_]*$/)
-      .default('OPENAI_API_KEY')
+      .default('OPENAI_API_KEY'),
+    apiKey: z.string().min(1).max(16_384).optional()
   })
   .strict();
 
@@ -57,6 +66,7 @@ export const AnthropicApiProviderConfigSchema = z
       .string()
       .regex(/^[A-Z_][A-Z0-9_]*$/)
       .default('ANTHROPIC_API_KEY'),
+    apiKey: z.string().min(1).max(16_384).optional(),
     maxTokens: z.number().int().positive().max(100_000).default(4_096)
   })
   .strict();
@@ -69,7 +79,8 @@ export const OpenAiCompatibleProviderConfigSchema = z
     apiKeyEnvironment: z
       .string()
       .regex(/^[A-Z_][A-Z0-9_]*$/)
-      .optional()
+      .optional(),
+    apiKey: z.string().min(1).max(16_384).optional()
   })
   .strict();
 
@@ -77,11 +88,26 @@ export const ProviderConfigSchema = z.discriminatedUnion('kind', [
   CommandProviderConfigSchema,
   CodexProviderConfigSchema,
   ClaudeProviderConfigSchema,
+  CursorProviderConfigSchema,
   OpenAiApiProviderConfigSchema,
   AnthropicApiProviderConfigSchema,
   OpenAiCompatibleProviderConfigSchema
 ]);
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
+
+export const HistoryConfigSchema = z
+  .object({
+    enabled: z.boolean().default(true),
+    directory: z.string().trim().min(1).max(4_096).default('.xerify/runs'),
+    archiveDirectory: z.string().trim().min(1).max(4_096).default('.xerify/archive'),
+    captureInput: z.enum(['full', 'metadata', 'none']).default('full'),
+    captureOutput: z.enum(['normalized', 'metadata', 'none']).default('normalized'),
+    sequencePadding: z.number().int().min(4).max(12).default(6)
+  })
+  .strict();
+export type HistoryConfig = z.infer<typeof HistoryConfigSchema>;
+
+export const DEFAULT_HISTORY_CONFIG: HistoryConfig = HistoryConfigSchema.parse({});
 
 export const DEFAULT_PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   codex: CodexProviderConfigSchema.parse({ kind: 'codex' }),
@@ -92,6 +118,7 @@ export const XerifyConfigSchema = z
   .object({
     providers: z.record(z.string().min(1), ProviderConfigSchema).default({}),
     limits: RequestLimitsSchema.default(DEFAULT_LIMITS),
+    history: HistoryConfigSchema.default(DEFAULT_HISTORY_CONFIG),
     logPath: z.string().min(1).max(4_096).nullable().default(null)
   })
   .strict();
@@ -99,9 +126,10 @@ export type XerifyConfig = z.infer<typeof XerifyConfigSchema>;
 
 export const FileConfigSchema = z
   .object({
-    $schema: z.string().url().optional(),
+    $schema: z.string().trim().min(1).max(4_096).optional(),
     providers: z.record(z.string().min(1), ProviderConfigSchema).optional(),
     limits: RequestLimitsSchema.partial().optional(),
+    history: HistoryConfigSchema.partial().optional(),
     logPath: z.string().min(1).max(4_096).nullable().optional()
   })
   .strict();

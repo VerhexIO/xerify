@@ -1,3 +1,7 @@
+import { chmod, mkdtemp, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+
 import { XerifyError } from '../core/errors.js';
 import { buildChildEnvironment } from '../process/environment.js';
 import { resolveExecutable } from '../process/executable-resolution.js';
@@ -96,33 +100,48 @@ export class CommandAdapter implements ProviderAdapter {
 
   async invoke(input: InvokeInput, signal: AbortSignal): Promise<InvokeResult> {
     const environment = this.#options.env ?? process.env;
-    const result = await runProcess(
-      {
-        executable: this.#options.executable,
-        args: expandArgs(this.#options.args ?? [], input),
-        stdin: input.prompt,
-        env: buildChildEnvironment(environment, this.#options.authEnvironment),
-        ...(this.#options.cwd === undefined ? {} : { cwd: this.#options.cwd }),
-        timeoutMs: input.limits.timeoutMs,
-        maxInputBytes: input.limits.maxInputBytes,
-        maxOutputBytes: input.limits.maxOutputBytes
-      },
-      signal
-    );
-
-    if (result.exitCode !== 0) {
-      throw new XerifyError('PROVIDER_FAILURE', 'Provider process exited unsuccessfully', {
-        retryable: true,
-        details: { exitCode: result.exitCode, signal: result.signal }
-      });
+    const temporaryDirectory =
+      this.#options.cwd === undefined
+        ? await mkdtemp(path.join(os.tmpdir(), 'xerify-command-'))
+        : null;
+    if (temporaryDirectory) await chmod(temporaryDirectory, 0o700);
+    const workingDirectory = this.#options.cwd ?? temporaryDirectory;
+    if (!workingDirectory) {
+      throw new XerifyError('PROVIDER_FAILURE', 'Unable to isolate the provider process');
     }
+    try {
+      const result = await runProcess(
+        {
+          executable: this.#options.executable,
+          args: expandArgs(this.#options.args ?? [], input),
+          stdin: input.prompt,
+          env: buildChildEnvironment(environment, this.#options.authEnvironment),
+          cwd: workingDirectory,
+          timeoutMs: input.limits.timeoutMs,
+          maxInputBytes: input.limits.maxInputBytes,
+          maxOutputBytes: input.limits.maxOutputBytes
+        },
+        signal
+      );
 
-    return {
-      output: result.stdout,
-      usage: null,
-      durationMs: result.durationMs,
-      inputTruncated: result.inputTruncated,
-      outputTruncated: result.outputTruncated
-    };
+      if (result.exitCode !== 0) {
+        throw new XerifyError('PROVIDER_FAILURE', 'Provider process exited unsuccessfully', {
+          retryable: true,
+          details: { exitCode: result.exitCode, signal: result.signal }
+        });
+      }
+
+      return {
+        output: result.stdout,
+        usage: null,
+        durationMs: result.durationMs,
+        inputTruncated: result.inputTruncated,
+        outputTruncated: result.outputTruncated
+      };
+    } finally {
+      if (temporaryDirectory) {
+        await rm(temporaryDirectory, { recursive: true, force: true });
+      }
+    }
   }
 }

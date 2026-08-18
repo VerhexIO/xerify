@@ -26,6 +26,11 @@ Pre-invocation or command error:
 
 `ask` and `verify` data use the same schemas as their MCP tools. Published Draft 2020-12 artifacts live in `schemas/` and are generated from the runtime Zod schemas.
 
+`provider` means the invocation/billing/control service. Cursor Agent is `cursor` for every exact
+model ID; direct Codex/OpenAI is `openai`; direct Claude/Anthropic is `anthropic`. This identity
+basis measures channel diversity, not upstream model independence. Health and MCP capabilities
+report `identityBasis: "invocation-provider"` explicitly.
+
 Successful verifier payloads may add `evidence`, `assumptions`, `limitations`, and `unverifiedClaims`. These fields are optional for compatibility. Structured provider adapters request all four fields; command adapters with older payloads remain accepted. Evidence entries are bounded verifier-reported references into supplied context, not independently validated citations.
 
 ## Verification outcomes

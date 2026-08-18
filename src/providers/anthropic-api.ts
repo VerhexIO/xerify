@@ -35,6 +35,7 @@ export interface AnthropicApiAdapterOptions {
   id?: string;
   endpoint?: string;
   apiKeyEnvironment?: string;
+  apiKey?: string;
   maxTokens?: number;
   env?: NodeJS.ProcessEnv;
   fetch?: FetchLike;
@@ -44,6 +45,7 @@ export class AnthropicApiAdapter implements ProviderAdapter {
   readonly id: string;
   readonly #endpoint: string;
   readonly #apiKeyEnvironment: string;
+  readonly #apiKey: string | undefined;
   readonly #maxTokens: number;
   readonly #env: NodeJS.ProcessEnv;
   readonly #fetch: FetchLike;
@@ -52,9 +54,16 @@ export class AnthropicApiAdapter implements ProviderAdapter {
     this.id = options.id ?? 'anthropic-api';
     this.#endpoint = options.endpoint ?? 'https://api.anthropic.com/v1/messages';
     this.#apiKeyEnvironment = options.apiKeyEnvironment ?? 'ANTHROPIC_API_KEY';
+    this.#apiKey = options.apiKey;
     this.#maxTokens = options.maxTokens ?? 4_096;
     this.#env = options.env ?? process.env;
     this.#fetch = options.fetch ?? fetch;
+  }
+
+  #credential(): { key: string; source: 'env' | 'config' } | null {
+    const environmentKey = this.#env[this.#apiKeyEnvironment];
+    if (environmentKey) return { key: environmentKey, source: 'env' };
+    return this.#apiKey ? { key: this.#apiKey, source: 'config' } : null;
   }
 
   capabilities(): ProviderCapabilities {
@@ -69,9 +78,9 @@ export class AnthropicApiAdapter implements ProviderAdapter {
   }
 
   async probe(input: ProbeInput): Promise<ProbeResult> {
-    const key = this.#env[this.#apiKeyEnvironment];
-    const headers = key
-      ? { 'x-api-key': key, 'anthropic-version': '2023-06-01' }
+    const credential = this.#credential();
+    const headers = credential
+      ? { 'x-api-key': credential.key, 'anthropic-version': '2023-06-01' }
       : { 'anthropic-version': '2023-06-01' };
     const reachable = input.network
       ? await probeHttpEndpoint(this.#endpoint, headers, input.timeoutMs, this.#fetch)
@@ -79,15 +88,15 @@ export class AnthropicApiAdapter implements ProviderAdapter {
     return {
       adapterId: this.id,
       provider: 'anthropic',
-      available: Boolean(key) && reachable !== false,
+      available: credential !== null && reachable !== false,
       executable: null,
       auth: {
         kind: 'api-key',
-        status: key ? 'present' : 'missing',
-        source: key ? 'env' : 'missing'
+        status: credential ? 'present' : 'missing',
+        source: credential?.source ?? 'missing'
       },
-      detail: !key
-        ? `${this.#apiKeyEnvironment} is missing`
+      detail: !credential
+        ? `${this.#apiKeyEnvironment} and config apiKey are missing`
         : reachable === false
           ? 'API endpoint is unreachable'
           : reachable === true
@@ -97,8 +106,8 @@ export class AnthropicApiAdapter implements ProviderAdapter {
   }
 
   async invoke(input: InvokeInput, signal: AbortSignal): Promise<InvokeResult> {
-    const key = this.#env[this.#apiKeyEnvironment];
-    if (!key) {
+    const credential = this.#credential();
+    if (!credential) {
       throw new XerifyError('AUTH_UNAVAILABLE', 'Anthropic API key is unavailable', {
         details: { environment: this.#apiKeyEnvironment }
       });
@@ -107,7 +116,7 @@ export class AnthropicApiAdapter implements ProviderAdapter {
     const response = await postJson(
       {
         endpoint: this.#endpoint,
-        headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+        headers: { 'x-api-key': credential.key, 'anthropic-version': '2023-06-01' },
         body: {
           model: input.model,
           max_tokens: this.#maxTokens,

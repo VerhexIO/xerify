@@ -1,10 +1,12 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
+import path from 'node:path';
 
 import { DEFAULT_LIMITS, type RequestLimits } from '../core/contracts.js';
 import { XerifyError } from '../core/errors.js';
 import { configPaths, type ConfigPaths } from './paths.js';
 import {
   DEFAULT_PROVIDER_CONFIGS,
+  DEFAULT_HISTORY_CONFIG,
   FileConfigSchema,
   XerifyConfigSchema,
   type FileConfig,
@@ -25,12 +27,30 @@ export interface ConfigOverrides {
   logPath?: string | null;
 }
 
-async function readConfig(path: string): Promise<FileConfig | null> {
+function containsLiteralApiKey(config: FileConfig): boolean {
+  return Object.values(config.providers ?? {}).some(
+    (provider) => 'apiKey' in provider && provider.apiKey !== undefined
+  );
+}
+
+async function readConfig(path: string, platform: NodeJS.Platform): Promise<FileConfig | null> {
   try {
     const raw = await readFile(path, 'utf8');
-    return FileConfigSchema.parse(JSON.parse(raw) as unknown);
+    const config = FileConfigSchema.parse(JSON.parse(raw) as unknown);
+    if (platform !== 'win32' && containsLiteralApiKey(config)) {
+      const metadata = await stat(path);
+      if ((metadata.mode & 0o077) !== 0) {
+        throw new XerifyError(
+          'CONFIG_INVALID',
+          'Config containing a literal API key must be owner-readable only (chmod 600)',
+          { details: { path, requiredMode: '0600' } }
+        );
+      }
+    }
+    return config;
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return null;
+    if (error instanceof XerifyError) throw error;
     throw new XerifyError('CONFIG_INVALID', `Invalid config file: ${path}`, {
       details: { path },
       cause: error
@@ -42,6 +62,7 @@ function applyFile(
   target: {
     providers: Record<string, ProviderConfig>;
     limits: RequestLimits;
+    history: typeof DEFAULT_HISTORY_CONFIG;
     logPath: string | null;
   },
   sources: Record<string, ConfigSource>,
@@ -57,6 +78,12 @@ function applyFile(
     const limit = key as keyof RequestLimits;
     target.limits[limit] = value;
     sources[`limits.${limit}`] = source;
+  }
+  for (const [key, value] of Object.entries(file.history ?? {})) {
+    if (value === undefined) continue;
+    const historyKey = key as keyof typeof DEFAULT_HISTORY_CONFIG;
+    Object.assign(target.history, { [historyKey]: value });
+    sources[`history.${historyKey}`] = source;
   }
   if (file.logPath !== undefined) {
     target.logPath = file.logPath;
@@ -90,27 +117,35 @@ export async function resolveConfig(
   } = {}
 ): Promise<ResolvedConfig> {
   const env = options.env ?? process.env;
+  const platform = options.platform ?? process.platform;
   const paths = configPaths(options);
   const sources: Record<string, ConfigSource> = {
     'limits.timeoutMs': 'default',
     'limits.maxInputBytes': 'default',
     'limits.maxOutputBytes': 'default',
+    'history.enabled': 'default',
+    'history.directory': 'default',
+    'history.archiveDirectory': 'default',
+    'history.captureInput': 'default',
+    'history.captureOutput': 'default',
+    'history.sequencePadding': 'default',
     logPath: 'default'
   };
   const merged = {
     providers: { ...DEFAULT_PROVIDER_CONFIGS } as Record<string, ProviderConfig>,
     limits: { ...DEFAULT_LIMITS },
+    history: { ...DEFAULT_HISTORY_CONFIG },
     logPath: null as string | null
   };
   const loaded: string[] = [];
   for (const id of Object.keys(DEFAULT_PROVIDER_CONFIGS)) sources[`providers.${id}`] = 'default';
 
-  const user = await readConfig(paths.user);
+  const user = await readConfig(paths.user, platform);
   if (user) {
     applyFile(merged, sources, user, 'user');
     loaded.push(paths.user);
   }
-  const project = await readConfig(paths.project);
+  const project = await readConfig(paths.project, platform);
   if (project) {
     applyFile(merged, sources, project, 'project');
     loaded.push(paths.project);
@@ -139,6 +174,21 @@ export async function resolveConfig(
   if (options.overrides?.logPath !== undefined) {
     merged.logPath = options.overrides.logPath;
     sources.logPath = 'flag';
+  }
+
+  if (merged.logPath !== null && !path.isAbsolute(merged.logPath)) {
+    const logBase =
+      sources.logPath === 'project'
+        ? path.dirname(path.dirname(paths.project))
+        : (options.cwd ?? process.cwd());
+    merged.logPath = path.resolve(logBase, merged.logPath);
+  }
+
+  const historyBase = path.dirname(path.dirname(paths.project));
+  for (const key of ['directory', 'archiveDirectory'] as const) {
+    if (!path.isAbsolute(merged.history[key])) {
+      merged.history[key] = path.resolve(historyBase, merged.history[key]);
+    }
   }
 
   return {

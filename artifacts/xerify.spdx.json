@@ -4,7 +4,7 @@
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "xerify@0.1.0",
   "documentNamespace": "https://spdx.org/spdxdocs/xerify-0.1.0-3e78d1d0d55fdd21dd732f6d",
-  "creationInfo": { "created": "2026-08-18T00:00:00.000Z", "creators": ["Tool: npm/cli-11.12.1"] },
+  "creationInfo": { "created": "2026-08-19T00:00:00.000Z", "creators": ["Tool: npm/cli-11.12.1"] },
   "documentDescribes": ["SPDXRef-Package-xerify-0.1.0"],
   "packages": [
     {
@@ -16,7 +16,7 @@
       "primaryPackagePurpose": "LIBRARY",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false,
-      "homepage": "NOASSERTION",
+      "homepage": "https://github.com/VerhexIO/xerify#readme",
       "licenseDeclared": "MIT",
       "externalRefs": [
         {

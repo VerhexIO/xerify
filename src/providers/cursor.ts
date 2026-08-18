@@ -6,7 +6,6 @@ import { z } from 'zod';
 
 import type { Usage } from '../core/contracts.js';
 import { XerifyError } from '../core/errors.js';
-import { VERIFICATION_JSON_SCHEMA } from '../core/structured-schema.js';
 import { buildChildEnvironment } from '../process/environment.js';
 import { resolveExecutable } from '../process/executable-resolution.js';
 import { runProcess } from '../process/spawn.js';
@@ -20,74 +19,83 @@ import type {
 } from './contract.js';
 import { parseProviderJson } from './response.js';
 
-const ClaudeOutputSchema = z.looseObject({
+const CursorOutputSchema = z.looseObject({
   type: z.string().optional(),
   subtype: z.string().optional(),
+  is_error: z.boolean().optional(),
   result: z.string().optional(),
-  structured_output: z.unknown().optional(),
-  total_cost_usd: z.number().nonnegative().optional(),
   usage: z
     .looseObject({
-      input_tokens: z.number().int().nonnegative().optional(),
-      output_tokens: z.number().int().nonnegative().optional()
+      inputTokens: z.number().int().nonnegative().optional(),
+      outputTokens: z.number().int().nonnegative().optional()
     })
     .optional()
 });
 
-export interface ClaudeAdapterOptions {
+export interface CursorAdapterOptions {
   id?: string;
   executable?: string;
   prefixArgs?: readonly string[];
   env?: NodeJS.ProcessEnv;
 }
 
-function parseOutput(raw: string, structured: boolean): { output: string; usage: Usage | null } {
-  const value = parseProviderJson(ClaudeOutputSchema, raw, 'Claude');
-  if (value.subtype && value.subtype !== 'success') {
-    throw new XerifyError('PROVIDER_FAILURE', 'Claude reported an unsuccessful result', {
+function assertExactCursorModel(model: string): void {
+  const baseModel = model.trim().split('[', 1)[0]?.toLowerCase() ?? '';
+  if (baseModel === 'auto') {
+    throw new XerifyError(
+      'INVALID_INPUT',
+      'Cursor auto selection cannot provide deterministic model provenance',
+      { details: { model, provider: 'cursor' } }
+    );
+  }
+}
+
+function parseOutput(raw: string): { output: string; usage: Usage | null } {
+  const value = parseProviderJson(CursorOutputSchema, raw, 'Cursor Agent');
+  if (value.is_error === true || (value.subtype && value.subtype !== 'success')) {
+    throw new XerifyError('PROVIDER_FAILURE', 'Cursor Agent reported an unsuccessful result', {
       retryable: true
     });
   }
-  const output = structured
-    ? value.structured_output === undefined
-      ? null
-      : JSON.stringify(value.structured_output)
-    : (value.result ?? null);
-  if (output === null) {
+  if (value.type && value.type !== 'result') {
     throw new XerifyError(
       'INVALID_PROVIDER_RESPONSE',
-      'Claude did not return the expected output',
+      'Cursor Agent returned an unexpected event',
       {
         retryable: true
       }
     );
   }
-  const inputTokens = value.usage?.input_tokens ?? null;
-  const outputTokens = value.usage?.output_tokens ?? null;
+  if (value.result === undefined) {
+    throw new XerifyError('INVALID_PROVIDER_RESPONSE', 'Cursor Agent did not return a result', {
+      retryable: true
+    });
+  }
+  const inputTokens = value.usage?.inputTokens ?? null;
+  const outputTokens = value.usage?.outputTokens ?? null;
   return {
-    output,
-    usage:
-      value.usage || value.total_cost_usd !== undefined
-        ? {
-            inputTokens,
-            outputTokens,
-            totalTokens:
-              inputTokens === null || outputTokens === null ? null : inputTokens + outputTokens,
-            costUsd: value.total_cost_usd ?? null
-          }
-        : null
+    output: value.result,
+    usage: value.usage
+      ? {
+          inputTokens,
+          outputTokens,
+          totalTokens:
+            inputTokens === null || outputTokens === null ? null : inputTokens + outputTokens,
+          costUsd: null
+        }
+      : null
   };
 }
 
-export class ClaudeAdapter implements ProviderAdapter {
+export class CursorAdapter implements ProviderAdapter {
   readonly id: string;
-  readonly #options: Required<Pick<ClaudeAdapterOptions, 'executable' | 'prefixArgs'>> &
-    Pick<ClaudeAdapterOptions, 'env'>;
+  readonly #options: Required<Pick<CursorAdapterOptions, 'executable' | 'prefixArgs'>> &
+    Pick<CursorAdapterOptions, 'env'>;
 
-  constructor(options: ClaudeAdapterOptions = {}) {
-    this.id = options.id ?? 'claude';
+  constructor(options: CursorAdapterOptions) {
+    this.id = options.id ?? 'cursor';
     this.#options = {
-      executable: options.executable ?? 'claude',
+      executable: options.executable ?? 'agent',
       prefixArgs: options.prefixArgs ?? [],
       ...(options.env === undefined ? {} : { env: options.env })
     };
@@ -95,10 +103,10 @@ export class ClaudeAdapter implements ProviderAdapter {
 
   capabilities(): ProviderCapabilities {
     return {
-      provider: 'anthropic',
+      provider: 'cursor',
       transports: ['command'],
       authKinds: ['subscription', 'api-key'],
-      structuredOutput: true,
+      structuredOutput: false,
       reportsUsage: true,
       supportsAbort: true
     };
@@ -110,29 +118,29 @@ export class ClaudeAdapter implements ProviderAdapter {
     if (!executable) {
       return {
         adapterId: this.id,
-        provider: 'anthropic',
+        provider: 'cursor',
         available: false,
         executable: null,
         auth: { kind: 'subscription', status: 'unknown', source: 'provider-cli' },
-        detail: 'Claude executable not found'
+        detail: 'Cursor Agent executable not found'
       };
     }
     const result = await runProcess(
       {
         executable,
-        args: [...this.#options.prefixArgs, 'auth', 'status', '--json'],
+        args: [...this.#options.prefixArgs, 'status'],
         stdin: '',
-        env: buildChildEnvironment(env, ['ANTHROPIC_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN']),
+        env: buildChildEnvironment(env, ['CURSOR_API_KEY', 'CURSOR_API_ENDPOINT']),
         timeoutMs: input.timeoutMs,
         maxInputBytes: 1,
         maxOutputBytes: 64 * 1024
       },
       new AbortController().signal
     );
-    const apiKey = Boolean(env.ANTHROPIC_API_KEY);
+    const apiKey = Boolean(env.CURSOR_API_KEY);
     return {
       adapterId: this.id,
-      provider: 'anthropic',
+      provider: 'cursor',
       available: result.exitCode === 0,
       executable,
       auth: apiKey
@@ -143,40 +151,39 @@ export class ClaudeAdapter implements ProviderAdapter {
             source: result.exitCode === 0 ? 'provider-cli' : 'missing'
           },
       detail:
-        result.exitCode === 0 ? 'Claude CLI auth is available' : 'Claude CLI is not authenticated'
+        result.exitCode === 0
+          ? 'Cursor Agent auth is available'
+          : 'Cursor Agent is not authenticated'
     };
   }
 
   async invoke(input: InvokeInput, signal: AbortSignal): Promise<InvokeResult> {
-    const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'xerify-claude-'));
+    assertExactCursorModel(input.model);
+    const temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), 'xerify-cursor-'));
     await chmod(temporaryDirectory, 0o700);
     try {
-      const args = [
-        ...this.#options.prefixArgs,
-        '-p',
-        '--model',
-        input.model,
-        '--output-format',
-        'json',
-        '--no-session-persistence',
-        '--safe-mode',
-        '--disable-slash-commands',
-        '--tools',
-        '',
-        '--permission-mode',
-        'dontAsk'
-      ];
-      if (input.operation === 'verify') {
-        args.push('--json-schema', JSON.stringify(VERIFICATION_JSON_SCHEMA));
-      }
       const result = await runProcess(
         {
           executable: this.#options.executable,
-          args,
+          args: [
+            ...this.#options.prefixArgs,
+            '-p',
+            '--trust',
+            '--mode',
+            'ask',
+            '--sandbox',
+            'enabled',
+            '--workspace',
+            temporaryDirectory,
+            '--model',
+            input.model,
+            '--output-format',
+            'json'
+          ],
           stdin: input.prompt,
           env: buildChildEnvironment(this.#options.env ?? process.env, [
-            'ANTHROPIC_API_KEY',
-            'CLAUDE_CODE_OAUTH_TOKEN'
+            'CURSOR_API_KEY',
+            'CURSOR_API_ENDPOINT'
           ]),
           cwd: temporaryDirectory,
           timeoutMs: input.limits.timeoutMs,
@@ -186,12 +193,12 @@ export class ClaudeAdapter implements ProviderAdapter {
         signal
       );
       if (result.exitCode !== 0) {
-        throw new XerifyError('PROVIDER_FAILURE', 'Claude CLI exited unsuccessfully', {
+        throw new XerifyError('PROVIDER_FAILURE', 'Cursor Agent exited unsuccessfully', {
           retryable: true,
           details: { exitCode: result.exitCode, signal: result.signal }
         });
       }
-      const parsed = parseOutput(result.stdout, input.operation === 'verify');
+      const parsed = parseOutput(result.stdout);
       return {
         output: parsed.output,
         usage: parsed.usage,

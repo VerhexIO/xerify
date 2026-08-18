@@ -44,6 +44,7 @@ export interface OpenAiApiAdapterOptions {
   id?: string;
   endpoint?: string;
   apiKeyEnvironment?: string;
+  apiKey?: string;
   env?: NodeJS.ProcessEnv;
   fetch?: FetchLike;
 }
@@ -52,6 +53,7 @@ export class OpenAiApiAdapter implements ProviderAdapter {
   readonly id: string;
   readonly #endpoint: string;
   readonly #apiKeyEnvironment: string;
+  readonly #apiKey: string | undefined;
   readonly #env: NodeJS.ProcessEnv;
   readonly #fetch: FetchLike;
 
@@ -59,8 +61,15 @@ export class OpenAiApiAdapter implements ProviderAdapter {
     this.id = options.id ?? 'openai-api';
     this.#endpoint = options.endpoint ?? 'https://api.openai.com/v1/responses';
     this.#apiKeyEnvironment = options.apiKeyEnvironment ?? 'OPENAI_API_KEY';
+    this.#apiKey = options.apiKey;
     this.#env = options.env ?? process.env;
     this.#fetch = options.fetch ?? fetch;
+  }
+
+  #credential(): { key: string; source: 'env' | 'config' } | null {
+    const environmentKey = this.#env[this.#apiKeyEnvironment];
+    if (environmentKey) return { key: environmentKey, source: 'env' };
+    return this.#apiKey ? { key: this.#apiKey, source: 'config' } : null;
   }
 
   capabilities(): ProviderCapabilities {
@@ -75,11 +84,11 @@ export class OpenAiApiAdapter implements ProviderAdapter {
   }
 
   async probe(input: ProbeInput): Promise<ProbeResult> {
-    const key = this.#env[this.#apiKeyEnvironment];
+    const credential = this.#credential();
     const reachable = input.network
       ? await probeHttpEndpoint(
           this.#endpoint,
-          key ? { authorization: `Bearer ${key}` } : {},
+          credential ? { authorization: `Bearer ${credential.key}` } : {},
           input.timeoutMs,
           this.#fetch
         )
@@ -87,15 +96,15 @@ export class OpenAiApiAdapter implements ProviderAdapter {
     return {
       adapterId: this.id,
       provider: 'openai',
-      available: Boolean(key) && reachable !== false,
+      available: credential !== null && reachable !== false,
       executable: null,
       auth: {
         kind: 'api-key',
-        status: key ? 'present' : 'missing',
-        source: key ? 'env' : 'missing'
+        status: credential ? 'present' : 'missing',
+        source: credential?.source ?? 'missing'
       },
-      detail: !key
-        ? `${this.#apiKeyEnvironment} is missing`
+      detail: !credential
+        ? `${this.#apiKeyEnvironment} and config apiKey are missing`
         : reachable === false
           ? 'API endpoint is unreachable'
           : reachable === true
@@ -105,8 +114,8 @@ export class OpenAiApiAdapter implements ProviderAdapter {
   }
 
   async invoke(input: InvokeInput, signal: AbortSignal): Promise<InvokeResult> {
-    const key = this.#env[this.#apiKeyEnvironment];
-    if (!key) {
+    const credential = this.#credential();
+    if (!credential) {
       throw new XerifyError('AUTH_UNAVAILABLE', 'OpenAI API key is unavailable', {
         details: { environment: this.#apiKeyEnvironment }
       });
@@ -115,7 +124,7 @@ export class OpenAiApiAdapter implements ProviderAdapter {
     const response = await postJson(
       {
         endpoint: this.#endpoint,
-        headers: { authorization: `Bearer ${key}` },
+        headers: { authorization: `Bearer ${credential.key}` },
         body: {
           model: input.model,
           input: prompt.text,

@@ -9,6 +9,7 @@ describe('provider factory', () => {
       providers: {
         codexLocal: { kind: 'codex' },
         claudeLocal: { kind: 'claude' },
+        cursor: { kind: 'cursor' },
         openaiDirect: {
           kind: 'openai-api',
           apiKeyEnvironment: 'TEST_OPENAI_KEY'
@@ -37,6 +38,7 @@ describe('provider factory', () => {
     expect(adapters.map((adapter) => adapter.id)).toEqual([
       'codexLocal',
       'claudeLocal',
+      'cursor',
       'openaiDirect',
       'anthropicDirect',
       'local',

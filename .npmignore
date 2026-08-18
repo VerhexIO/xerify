@@ -1,0 +1,13 @@
+.agents/
+.codex/
+.github/
+.xerify/
+artifacts/
+assets/
+coverage/
+src/
+tests/
+XERIFY.md
+*.log
+.env
+.env.*

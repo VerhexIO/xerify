@@ -1,6 +1,6 @@
 ---
 name: xerify
-description: Use the Xerify CLI or MCP tools to ask another AI provider for a bounded second opinion or to verify a claim with a provider organization different from its author. Trigger for cross-provider review of code, diffs, plans, answers, incident hypotheses, or other technical claims; for Xerify setup/provider diagnostics; and when interpreting Xerify JSON results or exit codes.
+description: Use the Xerify CLI or MCP tools to ask another AI provider for a bounded second opinion or to verify a claim with an invocation-provider identity different from its author. Trigger for cross-provider review of code, diffs, plans, answers, incident hypotheses, or other technical claims; for Xerify setup/provider diagnostics; and when interpreting Xerify JSON results or exit codes.
 ---
 
 # Xerify
@@ -9,13 +9,23 @@ Use Xerify for a cross-provider second opinion. Treat it as evidence, not formal
 
 ## Prepare the call
 
-1. Run `xerify --json doctor` and `xerify --json providers list` before the first call in an environment.
+1. A direct local npm install initializes `.xerify/` automatically; otherwise run `xerify init` once
+   in the project root. Start with `xerify --json health`, then use `doctor` and `providers list` for
+   detail. Project config is `.xerify/xverify-config.json`. Prefer named environment variables; if a
+   literal direct-API `apiKey` is unavoidable, keep the generated git-ignore, require owner-only
+   permissions, and never send the config as evidence.
 2. Probe the chosen adapter with `xerify --json providers probe --provider <adapter>`. Probes do not call a model.
-3. Identify the organization that produced the material. A host is not a provider: Claude in Cursor is `anthropic`; Codex in a terminal is `openai`.
-4. Select a target from a different provider organization. Do not use `verify` when provenance is unknown or when `from.provider` equals `to.provider`.
+3. Identify the invocation service that produced the material. Cursor Agent is `cursor` for every
+   exact model; direct Codex/OpenAI is `openai`; direct Claude/Anthropic is `anthropic`.
+4. Select a target with a different invocation-provider identity. Do not use `verify` when
+   provenance is unknown or when `from.provider` equals `to.provider`.
 5. Show the user what scoped context will leave the machine and obtain explicit approval before a live provider call. Calls can consume subscription quota or incur API charges.
 
 Do not guess a model ID. Use an exact model chosen by the user; Xerify configuration does not silently select one.
+For Cursor, use `agent models`, configure one `cursor` adapter, and target
+`cursor:EXACT_MODEL_ID`. Do not infer provider identity from the model prefix. Reject `auto` because
+it cannot preserve exact model provenance. Different invocation providers can still share the same
+upstream model or blind spots; never describe this as model independence.
 
 ## Choose the operation
 
@@ -67,4 +77,7 @@ Report the verifier identity, verdict, summary, material findings, evidence refe
 - Never pass prompts through a shell-evaluated provider command or execute model output.
 - Never expose API keys, bearer tokens, credential paths, or raw authorization headers in output or logs.
 - Never claim provider-independent truth, guaranteed correctness, or cross-platform support beyond recorded evidence.
-- Use `XERIFY_LIVE_CONFIRM_BILLABLE=YES` only after explicit user approval for the repository's opt-in live smoke.
+- Keep all `.xerify/` state untracked and outside npm/Docker artifacts. Audit JSONL is metadata only.
+  Run history is intentionally more detailed and may contain claims, context, and normalized findings;
+  use metadata/none capture modes for sensitive work and never commit or paste those records.
+- Use `XERIFY_LIVE_CONFIRM_BILLABLE=YES` only after explicit user approval for the repository's opt-in live smoke; also require exact `XERIFY_LIVE_ADAPTER`, `XERIFY_LIVE_FROM`, and `XERIFY_LIVE_TO` values.

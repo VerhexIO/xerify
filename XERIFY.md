@@ -2,7 +2,7 @@
 
 > Tarih: 2026-08-18
 >
-> Durum: `0.1.0` pre-release candidate; verification semantics hardening aktif, brand çalışması outsource
+> Durum: `0.1.0` pre-release candidate; Cursor/OpenAI invocation-provider bidirectional live matrix green, brand çalışması outsource, npm owner auth green/publish pending
 >
 > Authority: Bu dosya yeni Xerify session'ına taşınacak tek başlangıç kaynağıdır. Deckent
 > `DIRECTIVES.md`, sprint state'i, `.tasks/` veya XVerify implementation'ı Xerify authority'si
@@ -168,9 +168,11 @@ interface ProviderAdapter {
 Adapter sınıfları:
 
 1. Official CLI adapter: local subscription veya CLI-managed API auth.
-2. Direct API adapter: environment/vault üzerinden API key.
-3. Generic command adapter: kullanıcı tarafından tanımlanan executable + argv + structured output.
-4. Local model adapter: Ollama/OpenAI-compatible local endpoint.
+2. Aggregator/provider CLI adapter: invocation service identity'si adapter tarafından pinlenir;
+   exact model ID request'te taşınır.
+3. Direct API adapter: environment/vault üzerinden API key.
+4. Generic command adapter: kullanıcı tarafından tanımlanan executable + argv + structured output.
+5. Local model adapter: Ollama/OpenAI-compatible local endpoint.
 
 Credentials:
 
@@ -522,7 +524,9 @@ Top-level help bütün product surface'i göstermelidir:
 ```text
 xerify ask
 xerify verify
+xerify health
 xerify doctor
+xerify init
 xerify providers list
 xerify providers probe
 xerify config show
@@ -581,6 +585,18 @@ Kontroller:
 - STDIO safety ve temp directory.
 - API endpoint reachability yalnız explicit `--network` ile.
 
+### `xerify health`
+
+Model çağrısı yapmadan aggregate project readiness döndürür:
+
+```sh
+xerify --json health
+```
+
+Status `ready`, `degraded` veya `setup-required` olur. Project init/config discovery, configured ve
+linked adapter sayısı, invocation-provider identity listesi ve probe sonuçları tek stable envelope
+içinde yer alır. `--network` yalnız bounded endpoint reachability ekler; inference çağrısı yapmaz.
+
 ### Provider discovery
 
 ```sh
@@ -599,8 +615,8 @@ xerify config show
 xerify --json config validate
 ```
 
-Resolved config secret-free gösterilir. Source (`flag`, `env`, `project`, `user`, `default`) her alan
-için izlenebilir olmalıdır.
+Resolved config secret-redacted gösterilir. Source (`flag`, `env`, `project`, `user`, `default`) her
+alan için izlenebilir olmalıdır. Literal key yalnız `[REDACTED]` olarak görünür.
 
 ### MCP commands
 
@@ -683,28 +699,30 @@ Schema compatibility:
 
 ## 18. Config ve auth resolution
 
-Config Markdown değildir. Canonical format JSON veya TOML arasından implementation session'ında biri
-seçilir; TypeScript schema ile exact validate edilir. Working preference: `xerify.config.json`.
+Config Markdown değildir. Canonical format strict JSON'dur ve TypeScript schema ile exact validate
+edilir. Owner kararıyla project state root'u `.xerify/`, canonical project config dosyası
+`.xerify/xverify-config.json`'dır.
 
 Precedence, yüksekten düşüğe:
 
 1. Explicit CLI flag.
 2. Standard provider environment variable.
-3. Project config: `<project>/xerify.config.json`.
+3. Project config: `<project>/.xerify/xverify-config.json`.
 4. User config: platform-native config directory.
 5. Adapter default.
 
 Platform-native user config:
 
-- Linux: `$XDG_CONFIG_HOME/xerify/config.json`, fallback `~/.config/xerify/config.json`.
-- macOS: `~/Library/Application Support/Xerify/config.json`.
-- Windows: `%APPDATA%\Xerify\config.json`.
+- Linux: `$XDG_CONFIG_HOME/xerify/xverify-config.json`, fallback
+  `~/.config/xerify/xverify-config.json`.
+- macOS: `~/Library/Application Support/Xerify/xverify-config.json`.
+- Windows: `%APPDATA%\Xerify\xverify-config.json`.
 
 Config örneği:
 
 ```json
 {
-  "$schema": "https://xerify.dev/schemas/config-v1.json",
+  "$schema": "https://raw.githubusercontent.com/VerhexIO/xerify/main/schemas/config.schema.json",
   "providers": {
     "codex": {
       "kind": "codex",
@@ -713,17 +731,34 @@ Config örneği:
     "claude": {
       "kind": "claude",
       "executable": "claude"
+    },
+    "cursor": {
+      "kind": "cursor",
+      "provider": "cursor",
+      "executable": "agent"
     }
   },
   "limits": {
     "timeoutMs": 120000,
     "maxInputBytes": 1048576,
     "maxOutputBytes": 1048576
-  }
+  },
+  "logPath": ".xerify/logs/audit.jsonl"
 }
 ```
 
 Config model seçmez. Her live request exact `provider:model` taşır; Xerify model ID tahmin etmez.
+Direct HTTP adapter config'i basic local kullanım için optional literal `apiKey` kabul eder; named
+environment variable varsa her zaman önceliklidir. Diğer arbitrary `token`/`secret` alanları ve CLI
+adapter credential değerleri reddedilir. Literal key config'i POSIX'te mode `0600` değilse fail-closed
+reddedilir; Windows owner-only ACL operatör sorumluluğudur. `config show/validate`, `health`, `doctor`,
+error ve audit yüzeyleri değeri asla basmaz.
+
+Direct local npm install guarded `postinstall` ile existing dosyayı overwrite etmeden `.xerify/`,
+config, logs directory ve config/logları dışlayan `.gitignore` üretir. Global, nested-transitive,
+no-save ve `npx` install current project'e yazmaz; npm first-install hoisting directness ambiguity
+documented residual'dır ve `XERIFY_SKIP_AUTO_INIT=1` opt-out sunulur. `xerify init`
+explicit/idempotent fallback'tir.
 
 `xerify.dev` domain'i sahiplik doğrulanana kadar örnek schema URL'si publish edilmez; repository-local
 schema kullanılır.
@@ -733,8 +768,8 @@ Auth kuralları:
 - Standard environment variables tercih edilir.
 - Subscription adapter official CLI auth store'unu yalnız CLI üzerinden kullanır.
 - Credential dosyası parse edilmez, kopyalanmaz veya loglanmaz.
-- CLI raw API key flag kabul etmez; direct adapter yalnız named environment variable okur.
-- `doctor` yalnız `present/missing` ve source category gösterir.
+- CLI raw API key flag kabul etmez; direct adapter env-first, literal-config-fallback uygular.
+- `health` ve `doctor` yalnız `present/missing` ve source category (`env`/`config`) gösterir.
 
 ## 19. Process, safety ve resource contract
 
@@ -762,6 +797,9 @@ Zorunlu davranış:
 - `PATH`, provider-required auth vars ve explicit allowlist dışı secrets child'a taşınmaz.
 - Temp artifact atomic create, restrictive permission, finally cleanup kullanır.
 - Provider çıktısı hiçbir koşulda shell'e pipe edilip execute edilmez.
+- Codex, Claude ve Cursor model çağrıları user repository'sinden değil fresh restrictive temp
+  workspace'ten çalışır. Claude safe mode/no-tools, Cursor ask/read-only+sandbox kullanır. Cursor
+  CLI'nin account-level MCP'leri kategorik kapatan bayrağı olmadığı açık residual boundary'dir.
 
 Input/output limits config'ten resolve edilir ve result'a gerçek truncation metadata'sı yazılır.
 Sessiz truncation yoktur.
@@ -801,9 +839,21 @@ Built-in adapter admission standardı:
 - Linux/macOS/Windows/WSL proof matrix.
 - Hermetic fake-provider tests ve en az bir live opt-in smoke.
 
-Provider identity organization bazındadır; host adı değildir. Cursor author olup Claude model
-kullandıysa provider `anthropic` olarak kaydedilir. Aynı organization/model lineage farklı CLI'dan
-gelmiş olsa da different-provider sayılmaz.
+Provider identity invocation ve billing/control service bazındadır. Codex CLI/OpenAI API `openai`,
+Claude CLI/Anthropic API `anthropic`, Cursor Agent ise seçilen upstream modelden bağımsız olarak
+`cursor` kimliği taşır. Aynı exact model doğrudan OpenAI'dan çağrıldığında `openai:gpt-x`, Cursor
+üzerinden çağrıldığında `cursor:gpt-x` olur. Generic command ve compatible gateway label'ları
+owner-controlled declared identity'dir.
+
+Bu karar channel/control-plane diversity ölçer; model-vendor veya lineage bağımsızlığı garanti
+etmez. `openai:gpt-x → cursor:gpt-x` farklı invocation provider olarak admitted olabilir fakat aynı
+upstream modelin blind spot'larını paylaşabilir. Public dil bunu “independent truth” veya
+“independent model” olarak sunmaz.
+
+Tek Cursor adapter instance'ı `cursor` provider'ına pinlenir ve exact model ID'yi Agent'a geçirir.
+`auto`, terminal model provenance'ını deterministik kaydedemediği için pre-call reddedilir. Diğer
+exact Cursor model ID'leri upstream family tahmini yapılmadan opaque model identifier olarak kabul
+edilir. İki Cursor modelinin birbirini verify etmesi aynı-provider olduğu için reddedilir.
 
 ## 21. MCP SDK v2 implementation contract
 
@@ -913,12 +963,16 @@ Quality gates:
 Live provider tests opt-in ve billable olarak etiketlenir; normal PR CI provider account'a bağlı
 değildir.
 
+Live harness deterministik transport/contract invariant'ı ölçer; LLM prose byte determinism iddia
+etmez. Fixed synthetic contradiction + embedded injection evidence için exact provider/model echo,
+strict schema, `refuted`, exit `10`, typed failure absence ve truncation absence zorunludur.
+
 ## 23. Distribution ve release
 
 Primary distribution:
 
 ```sh
-npm install --global xerify
+npm install --global xerify@latest
 xerify --help
 ```
 
@@ -949,6 +1003,11 @@ Release gate:
 - SBOM/license inventory.
 - Linux/macOS/Windows install proof.
 - MCP v2 Inspector proof.
+
+Published npm allowlist compiled `dist`, schemas, public docs, companion skill, legal/security
+notices ve guarded postinstall entry ile sınırlıdır. `src`, tests, artifacts, `.xerify`, `XERIFY.md`
+ve bütün brand/review assetleri pakete girmez. `prepack` build/schema generation gerçek npm lifecycle
+script'idir; `smoke:install` forbidden path absence ve guarded auto-init davranışını test eder.
 
 Optional future channels aynı binary contract'ını sarar:
 
@@ -1095,6 +1154,8 @@ Voice:
 Public claim boundaries:
 
 - “Different-provider second opinion” denebilir.
+- “Different-provider” invocation/billing/control service farklılığı demektir; upstream model
+  üreticisi farklılığı demek değildir.
 - “Provider-independent truth” denemez.
 - “Works with every provider” yalnız capability matrix gerçekten kanıtlandığında denebilir.
 - “Cross-platform” yalnız yayınlanan OS matrix'i green olduğunda denebilir.
@@ -1132,13 +1193,34 @@ Shared chokepoints:
 - Bir adapter'ın “done” olması yalnız unit test değil, registry + CLI/MCP invocation + real-binary
   fixture chain'ini gerektirir.
 
+### 26.1 Project-local run record authority
+
+Her `ask` ve `verify`, CLI/library/MCP yüzeyinden bağımsız olarak aynı history wrapper üzerinden
+geçer. Default project state `.xerify/runs/<zero-padded-sequence>/`, archive state
+`.xerify/archive/<sequence>/` altındadır. Sequence aktif ve archive kayıtları birlikte taranarak
+monoton artar; content-free private reservation silinen highest sequence'in yeniden kullanılmasını
+engeller; public run ID `xrun_<sequence>` olur.
+
+Canonical record; `process.json`, `request.json`, append-only `events.jsonl`, content-addressed
+`evidence/manifest.json` ve policy izin veriyorsa evidence blob ile normalized `result.json` veya
+typed `error.json` içerir. Raw provider transport output, credential/auth store, full environment
+snapshot ve secret-safe audit'te yasak olan auth verisi kayıt contract'ına girmez. Crash sonrası
+`running` kaydı dürüstçe kalabilir; host terminal verdict uydurmaz.
+
+Default `captureInput=full`, `captureOutput=normalized` user-understandability kararıdır. Hassas
+projeler `metadata` veya `none` seçebilir. Root `.gitignore`, `.npmignore` ve `.dockerignore`
+`.xerify/` entry'sini non-overwriting/idempotent init ile alır. Archive/restore provider çağrısı
+yapmaz; permanent delete explicit `--yes` ister ve recoverable değildir.
+`running` kayıt archive/delete edilemez; in-flight terminal write path'i korunur.
+
 ## 27. Definition of Done
 
 Xerify public-ready sayılmadan önce:
 
 - `xerify --help`, `doctor`, `ask`, `verify`, provider discovery ve MCP commands wired.
 - CLI/MCP aynı schemas ve core function'ları kullanıyor.
-- Codex ve Claude official CLI adapters subscription-local çalışıyor.
+- Codex ve Claude official CLI adapters subscription-local çalışıyor; provider-pinned Cursor Agent
+  adapter exact opaque model ID ve `auto` reddi ile registry'ye bağlı.
 - En az bir direct API adapter ve generic command adapter çalışıyor.
 - Same-provider call fail-fast.
 - Timeout/cancel/invalid output honest typed result üretiyor.

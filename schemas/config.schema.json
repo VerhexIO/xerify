@@ -3,7 +3,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "$schema": { "type": "string", "format": "uri" },
+    "$schema": { "type": "string", "minLength": 1, "maxLength": 4096 },
     "providers": {
       "type": "object",
       "propertyNames": { "type": "string", "minLength": 1 },
@@ -80,6 +80,21 @@
           {
             "type": "object",
             "properties": {
+              "kind": { "type": "string", "const": "cursor" },
+              "provider": { "default": "cursor", "type": "string", "const": "cursor" },
+              "executable": {
+                "default": "agent",
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              }
+            },
+            "required": ["kind", "provider", "executable"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
               "kind": { "type": "string", "const": "openai-api" },
               "provider": { "default": "openai", "type": "string", "const": "openai" },
               "endpoint": {
@@ -91,7 +106,8 @@
                 "default": "OPENAI_API_KEY",
                 "type": "string",
                 "pattern": "^[A-Z_][A-Z0-9_]*$"
-              }
+              },
+              "apiKey": { "type": "string", "minLength": 1, "maxLength": 16384 }
             },
             "required": ["kind", "provider", "endpoint", "apiKeyEnvironment"],
             "additionalProperties": false
@@ -111,6 +127,7 @@
                 "type": "string",
                 "pattern": "^[A-Z_][A-Z0-9_]*$"
               },
+              "apiKey": { "type": "string", "minLength": 1, "maxLength": 16384 },
               "maxTokens": {
                 "default": 4096,
                 "type": "integer",
@@ -127,7 +144,8 @@
               "kind": { "type": "string", "const": "openai-compatible" },
               "provider": { "type": "string", "minLength": 1, "maxLength": 200 },
               "endpoint": { "type": "string", "format": "uri" },
-              "apiKeyEnvironment": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" }
+              "apiKeyEnvironment": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" },
+              "apiKey": { "type": "string", "minLength": 1, "maxLength": 16384 }
             },
             "required": ["kind", "provider", "endpoint"],
             "additionalProperties": false
@@ -141,6 +159,36 @@
         "timeoutMs": { "type": "integer", "exclusiveMinimum": 0, "maximum": 3600000 },
         "maxInputBytes": { "type": "integer", "exclusiveMinimum": 0, "maximum": 104857600 },
         "maxOutputBytes": { "type": "integer", "exclusiveMinimum": 0, "maximum": 104857600 }
+      },
+      "additionalProperties": false
+    },
+    "history": {
+      "type": "object",
+      "properties": {
+        "enabled": { "default": true, "type": "boolean" },
+        "directory": {
+          "default": ".xerify/runs",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "archiveDirectory": {
+          "default": ".xerify/archive",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "captureInput": {
+          "default": "full",
+          "type": "string",
+          "enum": ["full", "metadata", "none"]
+        },
+        "captureOutput": {
+          "default": "normalized",
+          "type": "string",
+          "enum": ["normalized", "metadata", "none"]
+        },
+        "sequencePadding": { "default": 6, "type": "integer", "minimum": 4, "maximum": 12 }
       },
       "additionalProperties": false
     },

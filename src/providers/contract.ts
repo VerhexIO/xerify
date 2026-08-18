@@ -2,6 +2,7 @@ import type { RequestLimits, Usage } from '../core/contracts.js';
 
 export type AuthKind = 'subscription' | 'api-key' | 'local' | 'unknown';
 export type ProviderTransport = 'command' | 'http';
+export type AuthSource = 'env' | 'config' | 'provider-cli' | 'local' | 'missing' | 'unknown';
 
 export interface ProviderCapabilities {
   provider: string;
@@ -25,7 +26,7 @@ export interface ProbeResult {
   auth: {
     kind: AuthKind;
     status: 'present' | 'missing' | 'managed' | 'unknown' | 'not-required';
-    source: 'env' | 'provider-cli' | 'local' | 'missing' | 'unknown';
+    source: AuthSource;
   };
   detail: string;
 }
