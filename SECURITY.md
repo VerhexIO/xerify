@@ -2,7 +2,10 @@
 
 ## Reporting
 
-Do not open a public issue for a suspected vulnerability or accidentally exposed credential. Until the canonical repository owner and dedicated address are finalized, use GitHub's private vulnerability reporting feature on the canonical repository. Include affected version, impact, reproduction, and any suggested mitigation; omit live credentials and sensitive production payloads.
+Do not open a public issue for a suspected vulnerability or accidentally exposed credential. Use
+[GitHub private vulnerability reporting](https://github.com/VerhexIO/xerify/security/advisories/new).
+Include the affected version, impact, reproduction, and any suggested mitigation; omit live
+credentials and sensitive production payloads.
 
 No version is publicly supported before the first signed release. After launch, the latest minor release line will receive security fixes; the support table will be updated here.
 

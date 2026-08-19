@@ -41,8 +41,8 @@ dependency or an explicit root `--save-dev/--save-prod` install. Global, nested 
 and `npx` installs do not write into the current project; run `xerify init` explicitly in those
 cases. Set `XERIFY_SKIP_AUTO_INIT=1` to opt out. See the documented npm hoisting limitation before
 using Xerify as another package's dependency.
-See [npm distribution and Verhex ownership](docs/npm-publishing.md) for project-local, global,
-`npx`, Trusted Publisher, and clean-install verification instructions.
+See [installation and upgrades](docs/installation.md) for project-local, global, `npx`, lifecycle,
+upgrade, removal, and clean-install verification instructions.
 
 ## Quick start
 
@@ -221,7 +221,7 @@ xerify mcp http --host 127.0.0.1 --port 8787
 
 A non-loopback bind requires both `--allow-public` and a bearer token supplied through `--token-env`. See [MCP operation and security](docs/mcp.md).
 
-## Development and evidence
+## Contributing and compatibility
 
 ```sh
 npm run check
@@ -229,12 +229,11 @@ npm run smoke:mcp
 npm run assets:logo
 ```
 
-Normal tests are hermetic and never require a provider account. The live smoke is separately gated by `XERIFY_LIVE_CONFIRM_BILLABLE=YES` and an explicit provider/model selection. Architecture, release evidence, and remaining host/OS gates are recorded in [the architecture guide](docs/architecture.md), [provider matrix](docs/provider-adapters.md), and [release guide](docs/release.md).
-
-The live smoke uses a fixed synthetic contradiction and asserts schema/verdict/exit invariants, not
-byte-identical LLM prose. Exact variables and both verification directions are documented in
-[testing and live verification](docs/testing.md). Injection defenses and residual boundaries are
-documented in [SECURITY.md](SECURITY.md); prompt instructions reduce risk but cannot make any LLM
+Normal tests are hermetic and never require a provider account. Source contributions follow the
+[contribution guide](https://github.com/VerhexIO/xerify/blob/main/CONTRIBUTING.md); the public
+runtime, host, schema, and provider support boundary is documented in
+[compatibility](docs/compatibility.md). Injection defenses and residual boundaries are documented
+in [SECURITY.md](SECURITY.md); prompt instructions reduce risk but cannot make any LLM
 prompt-injection-proof.
 
 ## Security and license

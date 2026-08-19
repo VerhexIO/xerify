@@ -1,2 +1,20 @@
-# Xerify local state must never enter a container build context.
+# Local state, credentials, dependencies, and development-only material must never enter a
+# container build context accidentally.
+.git/
+.agents/
+.codex/
+.cursor/
+.deckent/
 .xerify/
+.tasks/
+artifacts/
+coverage/
+design/
+dist/
+node_modules/
+assets/logos/review/
+.env
+.env.*
+*.log
+AGENTS.md
+XERIFY.md

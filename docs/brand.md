@@ -41,8 +41,9 @@ contains no blue.
 
 ## Distribution
 
-Brand sources, review material, and the portable `design/` workspace are repository assets, not npm
-runtime files. The package allowlist and `.npmignore` exclude them from published tarballs.
+Canonical production vectors and generated icon exports are repository assets, not npm runtime
+files. Local review sheets and design workspaces are ignored development material. The package
+allowlist and `.npmignore` exclude every brand asset from published tarballs.
 
 ## Approval status
 

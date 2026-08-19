@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, extname, join, relative, resolve } from 'node:path';
+import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, extname, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
@@ -59,7 +59,6 @@ async function writeJson(filename, value) {
 }
 
 function scanSecrets() {
-  const excludedDirectories = new Set(['.git', '.deckent', 'artifacts', 'dist', 'node_modules']);
   const ignoredExtensions = new Set(['.png', '.tgz', '.zip', '.ico']);
   const patterns = [
     /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
@@ -71,24 +70,35 @@ function scanSecrets() {
   ];
   const findings = [];
 
-  function visit(directory) {
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      if (entry.isDirectory() && excludedDirectories.has(entry.name)) continue;
-      const absolutePath = join(directory, entry.name);
-      if (entry.isDirectory()) {
-        visit(absolutePath);
-        continue;
-      }
-      if (!entry.isFile() || ignoredExtensions.has(extname(entry.name).toLowerCase())) continue;
-      if (statSync(absolutePath).size > 2 * 1024 * 1024) continue;
-      const content = readFileSync(absolutePath, 'utf8');
-      for (const pattern of patterns) {
-        if (pattern.test(content)) findings.push(relative(repositoryRoot, absolutePath));
-      }
+  const candidatePaths = execFileSync(
+    'git',
+    ['ls-files', '-z', '--cached', '--others', '--exclude-standard'],
+    {
+      cwd: repositoryRoot,
+      encoding: 'utf8',
+      maxBuffer: 16 * 1024 * 1024,
+      windowsHide: true
+    }
+  )
+    .split('\0')
+    .filter(Boolean);
+  for (const candidatePath of new Set(candidatePaths)) {
+    const absolutePath = resolve(repositoryRoot, candidatePath);
+    let metadata;
+    try {
+      metadata = statSync(absolutePath);
+    } catch (error) {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') continue;
+      throw error;
+    }
+    if (!metadata.isFile()) continue;
+    if (ignoredExtensions.has(extname(candidatePath).toLowerCase())) continue;
+    if (metadata.size > 2 * 1024 * 1024) continue;
+    const content = readFileSync(absolutePath, 'utf8');
+    for (const pattern of patterns) {
+      if (pattern.test(content)) findings.push(candidatePath);
     }
   }
-
-  visit(repositoryRoot);
   return [...new Set(findings)].sort();
 }
 
@@ -219,19 +229,32 @@ const requiredPaths = [
   'scripts/postinstall.mjs'
 ];
 const missingPaths = requiredPaths.filter((path) => !packedPaths.includes(path));
+const requiredConsumerDocs = [
+  'docs/compatibility.md',
+  'docs/configuration.md',
+  'docs/installation.md'
+];
+const missingConsumerDocs = requiredConsumerDocs.filter((path) => !packedPaths.includes(path));
 const forbiddenPaths = packedPaths.filter(
   (path) =>
+    path.startsWith('.agents/') ||
+    path.startsWith('.codex/') ||
+    path.startsWith('.cursor/') ||
+    path.startsWith('.deckent/') ||
     path.startsWith('.xerify/') ||
     path.startsWith('assets/') ||
     path.startsWith('design/') ||
     path.startsWith('src/') ||
     path.startsWith('tests/') ||
     path.startsWith('.github/') ||
-    path.startsWith('artifacts/')
+    path.startsWith('artifacts/') ||
+    path === 'AGENTS.md' ||
+    path === 'CONTRIBUTING.md' ||
+    path === 'XERIFY.md'
 );
-if (missingPaths.length > 0 || forbiddenPaths.length > 0) {
+if (missingPaths.length > 0 || missingConsumerDocs.length > 0 || forbiddenPaths.length > 0) {
   throw new Error(
-    `Package content audit failed: missing=${missingPaths.join(',') || 'none'} forbidden=${forbiddenPaths.join(',') || 'none'}`
+    `Package content audit failed: missing=${[...missingPaths, ...missingConsumerDocs].join(',') || 'none'} forbidden=${forbiddenPaths.join(',') || 'none'}`
   );
 }
 await writeJson('npm-pack-audit.json', {

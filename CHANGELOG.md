@@ -9,6 +9,9 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 - Replaced per-run sequence reservation directories with one atomic `runs/HEAD.json`, added
   capture-policy-safe run heads, and introduced an append-only searchable `archive/index.jsonl` for
   archived/restored/deleted verification history.
+- Separated consumer documentation from maintainer procedures, narrowed the npm documentation
+  allowlist, and removed local agent/design/review/generated-release material from the public source
+  boundary.
 
 ### Release gates
 

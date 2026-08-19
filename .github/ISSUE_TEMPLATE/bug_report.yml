@@ -1,0 +1,76 @@
+name: Bug report
+description: Report a reproducible Xerify failure or contract mismatch
+title: '[Bug]: '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not report vulnerabilities or exposed credentials here. Use private vulnerability reporting instead. Remove secrets, account identifiers, private prompts, raw provider responses, and `.xerify/` evidence before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: Xerify version
+      description: Output of `xerify --version` or the exact source commit.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation
+      options:
+        - Global npm package
+        - Project npm dependency
+        - npx
+        - Source checkout
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, architecture, Node version, shell, and CLI/MCP/library surface.
+      placeholder: Ubuntu 24.04, x64, Node 24.x, bash, CLI
+    validations:
+      required: true
+  - type: textarea
+    id: adapter
+    attributes:
+      label: Adapter and provider
+      description: Adapter ID, invocation provider, exact model ID, and provider CLI version when relevant. Do not include account or auth data.
+    validations:
+      required: false
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: List deterministic steps and a sanitized command or MCP request.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include exit/error codes and redacted normalized output. Do not attach raw provider output or evidence content.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checklist
+      options:
+        - label: I removed credentials, account identifiers, private prompts, customer data, and raw provider responses.
+          required: true
+        - label: This report is not a security vulnerability.
+          required: true
+        - label: I checked for an existing issue describing the same behavior.
+          required: true

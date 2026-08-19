@@ -150,13 +150,13 @@ Hermetic contract tests cover CLI event parsing, structured payloads, usage mapp
 HTTP request shape, timeout/cancellation, invalid output, output bounds, CRLF, Unicode and spaced
 paths. The process integration test also verifies POSIX descendant signalling.
 
-| Environment         | Hermetic evidence       | Official binary probe                         | Billable live smoke         |
-| ------------------- | ----------------------- | --------------------------------------------- | --------------------------- |
-| Linux x64, Node 24  | green locally and in CI | Codex, Claude, Cursor available/authenticated | identity-v2 both ways green |
-| Linux, Node 20      | public CI green         | CI/account independent                        | opt-in only                 |
-| macOS, Node 20/24   | public CI green         | host-specific                                 | opt-in only                 |
-| Windows, Node 20/24 | public CI green         | host-specific                                 | opt-in only                 |
-| WSL, Node 20/24     | dedicated proof pending | host-specific                                 | opt-in only                 |
+| Environment         | Hermetic package evidence | Official binary probe | Billable live smoke |
+| ------------------- | ------------------------- | --------------------- | ------------------- |
+| Linux, Node 20/24   | public CI                 | host/account-specific | opt-in only         |
+| macOS, Node 20/24   | public CI                 | host/account-specific | opt-in only         |
+| Windows, Node 20/24 | public CI                 | host/account-specific | opt-in only         |
+| WSL, Node 20/24     | verify on target host     | host/account-specific | opt-in only         |
 
 Normal tests never use a provider account. A live smoke must be explicitly enabled and clearly
-treated as potentially billable.
+treated as potentially billable. See [compatibility and support boundaries](compatibility.md) for
+the consumer-facing interpretation of these checks.

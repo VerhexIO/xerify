@@ -1,4 +1,14 @@
 dist/
 coverage/
 node_modules/
+.agents/
+.codex/
+.cursor/
+.deckent/
+.xerify/
+artifacts/
+assets/logos/review/
+design/
+AGENTS.md
+XERIFY.md
 package-lock.json

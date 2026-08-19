@@ -1,8 +1,18 @@
 # Contributing
 
-Xerify is developed against the public architecture guide, accepted ADRs, schemas, and tested
-contracts. Public code, documentation, and commit messages are English. Xerify is created and
-developed by Verhex; community contributions remain welcome under the project's MIT license.
+Xerify is created and maintained by Verhex. Bug reports, documentation corrections, and focused
+proposals are welcome. Opening an issue or pull request does not guarantee that a change will be
+accepted, scheduled, or supported; maintainers retain product scope and release decisions.
+
+Use the issue templates for reproducible bugs and feature proposals. Security vulnerabilities and
+accidentally exposed credentials must use private vulnerability reporting, never a public issue.
+Discuss a material feature, new provider, public contract change, dependency, or architectural
+direction in an issue before investing in an implementation. Small typo and narrowly scoped test
+fixes may go directly to a pull request.
+
+Public code, documentation, issue content, and commit messages are English. Remove credentials,
+account identifiers, customer data, private prompts, raw provider responses, and local `.xerify/`
+history before sharing logs or reproductions.
 
 ## Setup
 
@@ -27,4 +37,17 @@ Live provider tests are opt-in, potentially billable, and never part of normal P
 
 Keep core business semantics out of CLI and MCP handlers. Do not introduce shell-evaluated commands, blind parent-environment forwarding, silent truncation, guessed provider usage, or same-provider verification bypasses.
 
-By contributing, you agree that your contribution is licensed under the MIT License.
+## Pull-request expectations
+
+- Keep one coherent change per pull request and explain user-visible behavior.
+- Add or update tests in proportion to the risk and update consumer documentation when behavior
+  changes.
+- Complete the pull-request template, including provider-call and sensitive-data declarations.
+- Do not commit generated release artefacts, design workspaces, review images, local agent files,
+  `.deckent/`, `.xerify/`, credentials, auth stores, or raw provider output.
+- Do not run billable provider calls merely to strengthen a pull request. Maintainers decide whether
+  a separately approved live check is necessary.
+
+The project does not currently require a contributor license agreement. By submitting a
+contribution, you confirm that you have the right to provide it and license it under the project's
+MIT License. Do not submit code or content whose license is incompatible or unknown.

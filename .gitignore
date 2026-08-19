@@ -2,10 +2,20 @@ node_modules/
 .xerify/
 dist/
 coverage/
+artifacts/
+design/
+assets/logos/review/
 *.log
 .DS_Store
 .env
 .env.*
 !.env.example
+
+# Local editor, agent, and orchestration state.
 .deckent/
+.agents/
+.codex/
+.cursor/
+.tasks/
+AGENTS.md
 XERIFY.md

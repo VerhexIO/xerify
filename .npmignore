@@ -1,5 +1,7 @@
 .agents/
 .codex/
+.cursor/
+.deckent/
 .github/
 .xerify/
 artifacts/
@@ -8,6 +10,8 @@ coverage/
 design/
 src/
 tests/
+AGENTS.md
+XERIFY.md
 *.log
 .env
 .env.*

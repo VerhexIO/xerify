@@ -54,15 +54,35 @@ try {
   if (typeof packedFilename !== 'string') throw new Error('npm pack did not return a filename');
   const packedPaths = (packResult[0]?.files ?? []).map((entry) => entry.path);
   for (const forbiddenPrefix of [
+    '.agents/',
+    '.codex/',
+    '.cursor/',
+    '.deckent/',
+    '.github/',
+    '.xerify/',
     'assets/',
+    'artifacts/',
     'design/',
     'src/',
-    'tests/',
-    'artifacts/',
-    '.xerify/'
+    'tests/'
   ]) {
     if (packedPaths.some((packedPath) => packedPath.startsWith(forbiddenPrefix))) {
       throw new Error(`npm package contains forbidden development path: ${forbiddenPrefix}`);
+    }
+  }
+  for (const forbiddenFile of ['AGENTS.md', 'XERIFY.md', 'CONTRIBUTING.md']) {
+    if (packedPaths.includes(forbiddenFile)) {
+      throw new Error(`npm package contains forbidden development file: ${forbiddenFile}`);
+    }
+  }
+  for (const requiredDocument of [
+    'docs/installation.md',
+    'docs/configuration.md',
+    'docs/cli-reference.md',
+    'docs/compatibility.md'
+  ]) {
+    if (!packedPaths.includes(requiredDocument)) {
+      throw new Error(`npm package is missing consumer documentation: ${requiredDocument}`);
     }
   }
   if (!packedPaths.includes('scripts/postinstall.mjs')) {
