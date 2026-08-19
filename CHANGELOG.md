@@ -4,6 +4,12 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ## [Unreleased]
 
+### Added
+
+- Added seven bounded, observed verification examples across research, game production, website
+  selection, analytics, outbound-data policy, and Xerify dogfooding, plus a compact AI-readable
+  JSONL catalog and contract checks.
+
 ### Changed
 
 - Replaced per-run sequence reservation directories with one atomic `runs/HEAD.json`, added
@@ -15,8 +21,8 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ### Release gates
 
-- Legal/name review, owner logo approval, WSL evidence, Trusted Publisher setup, and signed release
-  artifacts are pending.
+- Legal/name review, WSL evidence, Trusted Publisher setup, and signed release artifacts are
+  pending.
 
 ## [0.1.0] - 2026-08-19
 

@@ -79,7 +79,9 @@ try {
     'docs/installation.md',
     'docs/configuration.md',
     'docs/cli-reference.md',
-    'docs/compatibility.md'
+    'docs/compatibility.md',
+    'docs/examples/README.md',
+    'docs/examples/index.jsonl'
   ]) {
     if (!packedPaths.includes(requiredDocument)) {
       throw new Error(`npm package is missing consumer documentation: ${requiredDocument}`);

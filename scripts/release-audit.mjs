@@ -232,6 +232,8 @@ const missingPaths = requiredPaths.filter((path) => !packedPaths.includes(path))
 const requiredConsumerDocs = [
   'docs/compatibility.md',
   'docs/configuration.md',
+  'docs/examples/README.md',
+  'docs/examples/index.jsonl',
   'docs/installation.md'
 ];
 const missingConsumerDocs = requiredConsumerDocs.filter((path) => !packedPaths.includes(path));

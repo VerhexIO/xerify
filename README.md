@@ -83,6 +83,11 @@ xerify --json providers list
 xerify --json providers probe --all --timeout 5000
 ```
 
+The [worked verification examples](docs/examples/README.md) include research, game-production,
+website, analytics, outbound-data, and Xerify dogfood cases. Each page shows the bounded evidence,
+exact command, observed normalized result, and exit decision; `docs/examples/index.jsonl` is the
+compact machine-readable catalog.
+
 ## Commands
 
 ```text
