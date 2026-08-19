@@ -42,18 +42,23 @@ probe do not call a model. `--network` adds bounded endpoint reachability only.
 
 ## Run history
 
-| Command                                           | Purpose                                      |
-| ------------------------------------------------- | -------------------------------------------- |
-| `xerify runs list [--archived] [--limit <count>]` | List active or archived records              |
-| `xerify runs show <run> [--archived]`             | Show one normalized record                   |
-| `xerify runs show <run> --include-evidence`       | Explicitly include captured evidence content |
-| `xerify runs archive <run>`                       | Move an active record into the archive       |
-| `xerify runs restore <run>`                       | Restore an archived record                   |
-| `xerify runs delete <run> --yes [--archived]`     | Permanently delete one record                |
+| Command                                           | Purpose                                               |
+| ------------------------------------------------- | ----------------------------------------------------- |
+| `xerify runs list [--archived] [--limit <count>]` | List active records or indexed archive summaries      |
+| `xerify runs search <query> [--limit <count>]`    | Search archived heads/provider/model/verdict metadata |
+| `xerify runs show <run> [--archived]`             | Show one normalized record                            |
+| `xerify runs show <run> --include-evidence`       | Explicitly include captured evidence content          |
+| `xerify runs archive <run>`                       | Move an active record into the archive                |
+| `xerify runs restore <run>`                       | Restore an archived record                            |
+| `xerify runs delete <run> --yes [--archived]`     | Permanently delete one record                         |
 
 `<run>` accepts the decimal sequence (`1`) or stable ID (`xrun_000001`). Archive, restore, and
 delete are local filesystem operations and never call a provider. A running record cannot be
 archived or deleted.
+
+Archived listing uses `.xerify/archive/index.jsonl` as its compact catalog. Each process summary
+contains a capture-policy-safe `head`, so humans and agents can identify likely matches before
+opening a full record. `runs search` performs this lookup without opening every archived run.
 
 ## MCP server
 

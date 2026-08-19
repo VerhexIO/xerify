@@ -278,10 +278,22 @@ describe('CLI contract', () => {
           {
             id: 'xrun_000001',
             operation: 'verify',
+            head: 'verify: safe',
             status: 'completed',
             outcome: { exitCode: 0, verdict: 'confirmed' }
           }
         ]
+      }
+    });
+    expect((await capture(['--json', 'runs', 'archive', '1'], { cwd: directory })).code).toBe(0);
+    const searched = await capture(['--json', 'runs', 'search', 'safe'], { cwd: directory });
+    expect(JSON.parse(searched.stdout)).toMatchObject({
+      ok: true,
+      command: 'runs.search',
+      data: {
+        location: 'archive',
+        query: 'safe',
+        runs: [{ id: 'xrun_000001', head: 'verify: safe' }]
       }
     });
   });

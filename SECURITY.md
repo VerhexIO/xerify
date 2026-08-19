@@ -46,7 +46,13 @@ Run history is intentionally more detailed than the secret-safe audit log. With 
 normalized results may contain provider-authored findings. Raw transport responses, auth data, and
 environment snapshots are never written. Use `metadata` or `none` capture modes for sensitive
 projects, restrict filesystem access, and apply a retention/deletion policy. `runs show` requires
-`--include-evidence` before printing evidence content.
+`--include-evidence` before printing evidence content. Each run also has a bounded discovery
+`head`: full capture contains a short claim/question preview, metadata capture contains only a
+digest, and none capture contains no input-derived content. Archived runs are discoverable through
+`.xerify/archive/index.jsonl`; that index contains the bounded head and operational metadata, never
+context, answers, findings, evidence bodies, or raw provider output. Its record digest helps locate
+and compare a snapshot, but the index is not a tamper-proof ledger against processes running as the
+same user. Prefer `xerify runs search` or the index before opening matching full records.
 The lifecycle is non-overwriting, makes no network/provider call, and skips global,
 nested-transitive, no-save, and `npx` installs. npm's first-install direct/transitive hoisting
 ambiguity remains documented; embedders can set `XERIFY_SKIP_AUTO_INIT=1`. Do not force-add project

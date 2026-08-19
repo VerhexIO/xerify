@@ -80,4 +80,7 @@ Report the verifier identity, verdict, summary, material findings, evidence refe
 - Keep all `.xerify/` state untracked and outside npm/Docker artifacts. Audit JSONL is metadata only.
   Run history is intentionally more detailed and may contain claims, context, and normalized findings;
   use metadata/none capture modes for sensitive work and never commit or paste those records.
+- For historical lookup, use `xerify --json runs search <query>` or read
+  `.xerify/archive/index.jsonl` first. Open a matching archived run only when its full record is
+  needed; do not recursively scan every archive directory.
 - Use `XERIFY_LIVE_CONFIRM_BILLABLE=YES` only after explicit user approval for the repository's opt-in live smoke; also require exact `XERIFY_LIVE_ADAPTER`, `XERIFY_LIVE_FROM`, and `XERIFY_LIVE_TO` values.

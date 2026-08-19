@@ -55,8 +55,10 @@ absent. After supplying bounded source plus tests explicitly, Cursor Gemini
 Grok `cursor-grok-4.6-high` reached the 115-second lifecycle timeout and remained typed
 `unclear`/exit `4`. Gemini's authored summary was then verified in the reverse direction by Cursor
 OpenAI `gpt-5.6-sol-high`, which returned `refuted`/exit `10` and identified sequence reuse after
-deletion plus unsafe archive/delete of running records. Both findings were fixed with persistent
+deletion plus unsafe archive/delete of running records. Both findings were initially fixed with
 content-free sequence reservations, running-state guards, and regression tests (126/126 green).
+The later archive-index redesign retained monotonicity in one atomic `runs/HEAD.json` and migrates
+those superseded reservation directories away.
 No post-fix live re-verification was attempted before the owner's scheduled power cutoff. Detailed
 normalized results remain only in ignored `.xerify/runs`; raw responses and auth data are not
 committed.
@@ -84,8 +86,9 @@ Cursor GPT first rejected overstated test coverage, then found unsafe JavaScript
 arithmetic. After tests and exact `BigInt` range handling were added, a Cursor-authored normalized
 result was sent to direct Codex/OpenAI. Codex rejected overly broad permanence wording and then
 found an `EEXIST` reservation time-of-check/time-of-use path. Xerify added collision revalidation,
-malformed reservation rejection, disjoint-root enforcement, explicit namespace/trust-boundary
-language, and boundary/concurrency/lifecycle regressions. The final bounded claim returned
+malformed metadata rejection, disjoint-root enforcement, explicit namespace/trust-boundary
+language, and boundary/concurrency/lifecycle regressions. The compact HEAD allocator that later
+superseded those reservations preserves the same fail-closed properties. The final bounded claim returned
 `confirmed`/exit `0` from Cursor `gpt-5.6-sol-high`, and its sanitized Cursor-authored result returned
 `confirmed`/exit `0` from direct Codex `gpt-5.6-sol`. Both final attempts had empty finding arrays,
 no truncation, and no typed provider failure. The resulting hermetic gate was 18 test files and 139

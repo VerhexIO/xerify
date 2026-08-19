@@ -21,6 +21,8 @@ SDK ─┘                    │                    │
 - `src/config` parses strict JSON from `.xerify/xverify-config.json`, records each resolved field's
   source, redacts optional literal API keys, and initializes private project state/log metadata
   without overwriting existing files.
+- `src/history` records active runs directly, allocates monotonic identities through one atomic
+  `HEAD.json`, and maintains a capture-policy-safe append-only archive index for human/agent lookup.
 - `src/cli` maps commands to the core and renders either human output or one stable JSON envelope.
 - `src/mcp` registers the same Zod schemas and core functions with MCP SDK v2. HTTP authentication remains at the transport boundary.
 

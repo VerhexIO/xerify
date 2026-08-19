@@ -473,6 +473,25 @@ export async function runCli(
       });
     });
   runs
+    .command('search')
+    .description('search compact archived run heads and metadata without opening every record')
+    .argument('<query>', 'text to match in archived run metadata')
+    .option('--limit <count>', 'maximum matches', positiveInteger, 50)
+    .action(async (query: string, options: { limit: number }) => {
+      await run('runs.search', async () => {
+        const resolved = await resolveConfig({ cwd: dependencies.cwd, env: dependencies.env });
+        const data = await new RunHistoryStore(resolved.config.history).searchArchive(
+          query,
+          options.limit
+        );
+        await emitSuccess(dependencies, json, 'runs.search', {
+          location: 'archive',
+          query,
+          runs: data
+        });
+      });
+    });
+  runs
     .command('archive')
     .description('move an active run into the local archive')
     .argument('<run>', 'sequence or xrun_<sequence>')

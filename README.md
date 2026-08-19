@@ -100,6 +100,7 @@ xerify request
 xerify init
 xerify runs list
 xerify runs show 1
+xerify runs search "race condition"
 xerify runs archive 1
 xerify runs restore 1
 xerify runs delete 1 --yes
@@ -179,7 +180,9 @@ The transparent default stores the claim/question, supplied context, SHA-256 evi
 normalized Xerify result, lifecycle events, and final exit outcome locally. It never stores raw
 transport output or credentials. Sensitive projects can select `captureInput: "metadata"` or
 `"none"`, and `captureOutput: "metadata"` or `"none"`. `runs show` does not print evidence content
-unless `--include-evidence` is explicit. See [local run history](docs/run-history.md).
+unless `--include-evidence` is explicit. One `runs/HEAD.json` preserves monotonic IDs without a
+per-run reservation tree; `archive/index.jsonl` lets humans and agents find archived verification
+heads without scanning every record. See [local run history](docs/run-history.md).
 
 Only `{model}` and `{operation}` are expanded for a command adapter. Xerify invokes an executable plus argument array with `shell: false` and sends prompt/context through stdin.
 

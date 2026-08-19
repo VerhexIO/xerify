@@ -36,7 +36,7 @@ afterEach(async () => {
 
 describe('deterministic local run history', () => {
   it('records content-addressed evidence and manages the run lifecycle', async () => {
-    const { store } = await makeStore();
+    const { root, store } = await makeStore();
     const from = parseProviderReference('openai:gpt-test');
     const to = parseProviderReference('anthropic:claude-test');
     const session = await store.start({
@@ -70,7 +70,11 @@ describe('deterministic local run history', () => {
     );
 
     const shown = await store.show('1', { includeEvidence: true });
-    expect(shown.process).toMatchObject({ status: 'completed', sequence: 1 });
+    expect(shown.process).toMatchObject({
+      status: 'completed',
+      sequence: 1,
+      head: 'verify: The bounded change is correct.'
+    });
     expect(shown.evidenceManifest.entries[0]).toMatchObject({
       evidenceId: 'E-001',
       locator: 'src/example.ts',
@@ -90,6 +94,23 @@ describe('deterministic local run history', () => {
       deleted: true,
       recoverable: false
     });
+    const indexRaw = await readFile(path.join(root, '.xerify', 'archive', 'index.jsonl'), 'utf8');
+    expect(indexRaw).not.toContain('const bounded = true');
+    expect(indexRaw).not.toContain('No material counterexample was found');
+    const indexLines = indexRaw
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line) as Record<string, unknown>);
+    expect(indexLines.map((entry) => entry.event)).toEqual(['archived', 'restored', 'deleted']);
+    expect(indexLines[0]).toMatchObject({
+      location: 'archive',
+      process: {
+        id: 'xrun_000001',
+        head: 'verify: The bounded change is correct.',
+        outcome: { verdict: 'confirmed', exitCode: 0 }
+      },
+      recordSha256: expect.stringMatching(/^sha256:[a-f0-9]{64}$/)
+    });
     const next = await store.start({
       operation: 'ask',
       surface: 'cli',
@@ -101,6 +122,9 @@ describe('deterministic local run history', () => {
       limits: DEFAULT_LIMITS
     });
     expect(next?.process.id).toBe('xrun_000002');
+    await expect(
+      readFile(path.join(root, '.xerify', 'runs', 'HEAD.json'), 'utf8').then(JSON.parse)
+    ).resolves.toMatchObject({ lastSequence: 2, lastRunId: 'xrun_000002' });
   });
 
   it('allocates monotonically while active and archived records exist', async () => {
@@ -159,7 +183,7 @@ describe('deterministic local run history', () => {
     await expect(store.list('archive')).resolves.toHaveLength(1);
   });
 
-  it('preserves a content-free reservation when an archived record is deleted', async () => {
+  it('preserves monotonic identity in one HEAD file when an archived record is deleted', async () => {
     const { root, store } = await makeStore();
     const to = parseProviderReference('anthropic:claude-test');
     const session = await store.start({
@@ -192,8 +216,8 @@ describe('deterministic local run history', () => {
       deleted: true
     });
     await expect(
-      readdir(path.join(root, '.xerify', 'runs', '.sequences', '000001'))
-    ).resolves.toEqual([]);
+      readFile(path.join(root, '.xerify', 'runs', 'HEAD.json'), 'utf8').then(JSON.parse)
+    ).resolves.toMatchObject({ lastSequence: 1, lastRunId: 'xrun_000001' });
 
     const next = await store.start({
       operation: 'ask',
@@ -208,7 +232,7 @@ describe('deterministic local run history', () => {
     expect(next?.process.id).toBe('xrun_000002');
   });
 
-  it('allocates unique content-free reservations for concurrent starts', async () => {
+  it('allocates concurrent starts through one bounded HEAD lock without reservation growth', async () => {
     const { root, store } = await makeStore();
     const to = parseProviderReference('anthropic:claude-test');
     const sessions = await Promise.all(
@@ -229,24 +253,36 @@ describe('deterministic local run history', () => {
     expect(ids).toEqual(
       Array.from({ length: 8 }, (_, index) => `xrun_${String(index + 1).padStart(6, '0')}`)
     );
-    const reservations = await readdir(path.join(root, '.xerify', 'runs', '.sequences'));
-    expect(reservations.sort()).toEqual(
-      Array.from({ length: 8 }, (_, index) => String(index + 1).padStart(6, '0'))
-    );
+    const runRootEntries = await readdir(path.join(root, '.xerify', 'runs'));
+    expect(runRootEntries.sort()).toEqual([
+      '000001',
+      '000002',
+      '000003',
+      '000004',
+      '000005',
+      '000006',
+      '000007',
+      '000008',
+      'HEAD.json'
+    ]);
     await expect(
-      Promise.all(
-        reservations.map((reservation) =>
-          readdir(path.join(root, '.xerify', 'runs', '.sequences', reservation))
-        )
-      )
-    ).resolves.toEqual(Array.from({ length: 8 }, () => []));
+      readFile(path.join(root, '.xerify', 'runs', 'HEAD.json'), 'utf8').then(JSON.parse)
+    ).resolves.toMatchObject({ lastSequence: 8, lastRunId: 'xrun_000008' });
   });
 
-  it('fails closed when a directory sequence exceeds safe integer precision', async () => {
+  it('fails closed when HEAD exceeds safe integer precision', async () => {
     const { root, store } = await makeStore();
-    await mkdir(path.join(root, '.xerify', 'runs', '.sequences', '9007199254740993'), {
-      recursive: true
-    });
+    await mkdir(path.join(root, '.xerify', 'runs'), { recursive: true });
+    await writeFile(
+      path.join(root, '.xerify', 'runs', 'HEAD.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        lastSequence: 9007199254740992,
+        lastDirectory: '9007199254740992',
+        lastRunId: 'xrun_9007199254740992',
+        updatedAt: new Date().toISOString()
+      })
+    );
 
     await expect(
       store.start({
@@ -262,18 +298,23 @@ describe('deterministic local run history', () => {
     ).rejects.toMatchObject({
       code: 'CONFIG_INVALID',
       message: 'Unable to initialize the Xerify run record',
-      cause: expect.objectContaining({
-        code: 'CONFIG_INVALID',
-        message: 'Run history directory is outside the supported sequence range'
-      })
+      cause: expect.anything()
     });
   });
 
   it('allocates the maximum safe sequence exactly and then fails closed', async () => {
     const { root, store } = await makeStore();
-    await mkdir(path.join(root, '.xerify', 'runs', '.sequences', '9007199254740990'), {
-      recursive: true
-    });
+    await mkdir(path.join(root, '.xerify', 'runs'), { recursive: true });
+    await writeFile(
+      path.join(root, '.xerify', 'runs', 'HEAD.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        lastSequence: 9007199254740990,
+        lastDirectory: '9007199254740990',
+        lastRunId: 'xrun_9007199254740990',
+        updatedAt: new Date().toISOString()
+      })
+    );
     const to = parseProviderReference('anthropic:claude-test');
     const maximum = await store.start({
       operation: 'ask',
@@ -307,38 +348,113 @@ describe('deterministic local run history', () => {
     });
   });
 
-  it('fails closed when a sequence reservation contains external content', async () => {
+  it('migrates valid legacy reservations into HEAD and removes the legacy tree', async () => {
     const { root, store } = await makeStore();
-    await mkdir(path.join(root, '.xerify', 'runs', '.sequences', '000001'), {
+    await mkdir(path.join(root, '.xerify', 'runs'), { recursive: true });
+    await writeFile(
+      path.join(root, '.xerify', 'runs', 'HEAD.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        lastSequence: 2,
+        lastDirectory: '000002',
+        lastRunId: 'xrun_000002',
+        updatedAt: new Date().toISOString()
+      })
+    );
+    await mkdir(path.join(root, '.xerify', 'runs', '.sequences', '000007'), {
       recursive: true
     });
-    await writeFile(
-      path.join(root, '.xerify', 'runs', '.sequences', '000001', 'unexpected.txt'),
-      'external content'
-    );
-
+    const session = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to: parseProviderReference('anthropic:claude-test'),
+      statementKind: 'question',
+      statement: 'Migrate without reusing identity.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    expect(session?.process.id).toBe('xrun_000008');
     await expect(
-      store.start({
-        operation: 'ask',
-        surface: 'library',
-        from: null,
-        to: parseProviderReference('anthropic:claude-test'),
-        statementKind: 'question',
-        statement: 'Do not trust a modified reservation.',
-        context: '',
-        limits: DEFAULT_LIMITS
-      })
-    ).rejects.toMatchObject({
-      code: 'CONFIG_INVALID',
-      cause: expect.objectContaining({ message: 'Run sequence reservation must be empty' })
+      readFile(path.join(root, '.xerify', 'runs', 'HEAD.json'), 'utf8')
+    ).resolves.toContain('xrun_000008');
+    await expect(readdir(path.join(root, '.xerify', 'runs', '.sequences'))).rejects.toMatchObject({
+      code: 'ENOENT'
     });
   });
 
-  it('fails closed when a numeric reservation entry is not a directory', async () => {
+  it('preserves existing identities when sequence padding changes', async () => {
+    const { root, store } = await makeStore();
+    const to = parseProviderReference('anthropic:claude-test');
+    const first = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Keep the original padded identity.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    const changedPadding = new RunHistoryStore({
+      enabled: true,
+      directory: path.join(root, '.xerify', 'runs'),
+      archiveDirectory: path.join(root, '.xerify', 'archive'),
+      captureInput: 'full',
+      captureOutput: 'normalized',
+      sequencePadding: 8
+    });
+    const second = await changedPadding.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Continue monotonically with the new padding.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+
+    expect(first?.process.id).toBe('xrun_000001');
+    expect(second?.process.id).toBe('xrun_00000002');
+    await expect(changedPadding.show('xrun_000001')).resolves.toMatchObject({
+      process: { sequence: 1, directory: '000001' }
+    });
+    await expect(changedPadding.show('2')).resolves.toMatchObject({
+      process: { sequence: 2, directory: '00000002' }
+    });
+  });
+
+  it('adds a searchable head when an older process record is first read', async () => {
+    const { store } = await makeStore();
+    const session = await store.start({
+      operation: 'verify',
+      surface: 'library',
+      from: parseProviderReference('openai:gpt-test'),
+      to: parseProviderReference('anthropic:claude-test'),
+      statementKind: 'claim',
+      statement: 'Legacy records become searchable.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    const processPath = path.join(session!.path, 'process.json');
+    const legacy = JSON.parse(await readFile(processPath, 'utf8')) as Record<string, unknown>;
+    delete legacy.head;
+    await writeFile(processPath, JSON.stringify(legacy));
+
+    await expect(store.show('1')).resolves.toMatchObject({
+      process: { head: 'verify: Legacy records become searchable.' }
+    });
+    await expect(readFile(processPath, 'utf8')).resolves.toContain(
+      'verify: Legacy records become searchable.'
+    );
+  });
+
+  it('fails closed when a legacy reservation contains external content', async () => {
     const { root, store } = await makeStore();
     const reservationRoot = path.join(root, '.xerify', 'runs', '.sequences');
-    await mkdir(reservationRoot, { recursive: true });
-    await writeFile(path.join(reservationRoot, '000001'), 'not a reservation directory');
+    await mkdir(path.join(reservationRoot, '000001'), { recursive: true });
+    await writeFile(path.join(reservationRoot, '000001', 'unexpected.txt'), 'external content');
 
     await expect(
       store.start({
@@ -354,7 +470,7 @@ describe('deterministic local run history', () => {
     ).rejects.toMatchObject({
       code: 'CONFIG_INVALID',
       cause: expect.objectContaining({
-        message: 'Numeric run history entry must be a real directory'
+        message: 'Run sequence reservation must be empty'
       })
     });
   });
@@ -396,6 +512,8 @@ describe('deterministic local run history', () => {
       statement: { capture: 'metadata', value: null },
       context: { capture: 'metadata', value: null, evidenceFile: null }
     });
+    expect(shown.process.head).toMatch(/^ask: sha256:[a-f0-9]{16}$/);
+    expect(shown.process.head).not.toContain('Review this');
     expect(shown.evidence).toEqual({});
     expect(session).not.toBeNull();
   });
@@ -440,8 +558,116 @@ describe('deterministic local run history', () => {
         statement: { capture: 'none', bytes: null, sha256: null, value: null },
         context: { capture: 'none', bytes: null, sha256: null, value: null }
       });
+      expect(shown.process.head).toBe('ask: input capture disabled');
     }
   );
+
+  it('lists an archive from its compact index without reopening every process record', async () => {
+    const { root, store } = await makeStore();
+    const to = parseProviderReference('anthropic:claude-test');
+    const session = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Find this archived verification quickly.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    await store.complete(
+      session,
+      {
+        schemaVersion: 1,
+        id: 'xrf_indexed',
+        from: null,
+        to,
+        answer: 'indexed',
+        usage: null,
+        durationMs: 1,
+        truncation: { input: false, output: false }
+      },
+      0
+    );
+    await store.archive('1');
+    await expect(store.searchArchive('archived verification')).resolves.toEqual([
+      expect.objectContaining({ id: 'xrun_000001' })
+    ]);
+    await expect(store.searchArchive('anthropic')).resolves.toHaveLength(1);
+    await expect(store.searchArchive('no-such-head')).resolves.toEqual([]);
+    await writeFile(
+      path.join(root, '.xerify', 'archive', '000001', 'process.json'),
+      'intentionally unreadable after indexing'
+    );
+
+    await expect(store.list('archive')).resolves.toEqual([
+      expect.objectContaining({
+        id: 'xrun_000001',
+        head: 'ask: Find this archived verification quickly.'
+      })
+    ]);
+  });
+
+  it('searches one thousand archived summaries without opening their run records', async () => {
+    const { root, store } = await makeStore();
+    const archiveRoot = path.join(root, '.xerify', 'archive');
+    await mkdir(archiveRoot, { recursive: true });
+    const timestamp = '2026-08-19T00:00:00.000Z';
+    const to = parseProviderReference('anthropic:claude-test');
+    const lines: string[] = [];
+    for (let offset = 0; offset < 1_000; offset += 50) {
+      await Promise.all(
+        Array.from({ length: 50 }, async (_, batchIndex) => {
+          const sequence = offset + batchIndex + 1;
+          const directory = String(sequence).padStart(6, '0');
+          await mkdir(path.join(archiveRoot, directory));
+          lines[sequence - 1] = JSON.stringify({
+            schemaVersion: 1,
+            timestamp,
+            event: 'archived',
+            location: 'archive',
+            source: 'command',
+            process: {
+              schemaVersion: 1,
+              id: `xrun_${directory}`,
+              sequence,
+              directory,
+              operation: 'ask',
+              head:
+                sequence === 777
+                  ? 'ask: needle historical verification'
+                  : `ask: historical verification ${sequence}`,
+              surface: 'library',
+              status: 'completed',
+              createdAt: timestamp,
+              updatedAt: timestamp,
+              archivedAt: timestamp,
+              from: null,
+              to,
+              adapterId: null,
+              outcome: {
+                exitCode: 0,
+                resultId: `xrf_${sequence}`,
+                verdict: null,
+                errorCode: null
+              }
+            },
+            recordSha256: `sha256:${'0'.repeat(64)}`
+          });
+        })
+      );
+    }
+    await writeFile(path.join(archiveRoot, 'index.jsonl'), `${lines.join('\n')}\n`);
+
+    await expect(store.list('archive', 3)).resolves.toMatchObject([
+      { id: 'xrun_001000' },
+      { id: 'xrun_000999' },
+      { id: 'xrun_000998' }
+    ]);
+    await expect(store.searchArchive('needle')).resolves.toMatchObject([
+      { id: 'xrun_000777', head: 'ask: needle historical verification' }
+    ]);
+  });
 
   it('rejects evidence whose bytes no longer match the manifest', async () => {
     const { store } = await makeStore();

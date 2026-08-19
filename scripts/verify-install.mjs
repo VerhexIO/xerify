@@ -241,6 +241,23 @@ try {
   if (runList.data?.runs?.length !== 1 || runList.data.runs[0]?.operation !== 'ask') {
     throw new Error('Installed binary did not persist the deterministic local run record');
   }
+  if (runList.data.runs[0]?.head !== 'ask: test') {
+    throw new Error('Installed binary did not persist the deterministic run head');
+  }
+  const archiveResult = JSON.parse(
+    runInstalledBinary(['--json', 'runs', 'archive', '1'], { cwd: externalProject })
+  );
+  if (archiveResult.data?.id !== 'xrun_000001') {
+    throw new Error('Installed binary did not archive the local run record');
+  }
+  const archiveSearch = JSON.parse(
+    runInstalledBinary(['--json', 'runs', 'search', 'test'], { cwd: externalProject })
+  );
+  if (archiveSearch.data?.runs?.length !== 1 || archiveSearch.data.runs[0]?.id !== 'xrun_000001') {
+    throw new Error('Installed binary did not search the compact archive index');
+  }
+  accessSync(join(externalProject, '.xerify', 'runs', 'HEAD.json'), constants.R_OK);
+  accessSync(join(externalProject, '.xerify', 'archive', 'index.jsonl'), constants.R_OK);
 
   const inspectorResult = JSON.parse(
     execFileSync(
@@ -274,6 +291,7 @@ try {
         '--json init',
         'ask fixture',
         'runs list',
+        'runs archive/search',
         'mcp modern',
         'mcp legacy'
       ],

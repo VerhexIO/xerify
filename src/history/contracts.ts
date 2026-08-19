@@ -87,6 +87,7 @@ export const RunProcessSchema = z
     sequence: z.number().int().positive(),
     directory: z.string().regex(/^\d+$/),
     operation: RunOperationSchema,
+    head: z.string().min(1).max(200).default('legacy: head unavailable'),
     surface: RunSurfaceSchema,
     status: RunStatusSchema,
     createdAt: z.iso.datetime(),
@@ -99,6 +100,30 @@ export const RunProcessSchema = z
   })
   .strict();
 export type RunProcess = z.infer<typeof RunProcessSchema>;
+
+export const HistoryHeadSchema = z
+  .object({
+    schemaVersion: z.literal(SCHEMA_VERSION),
+    lastSequence: z.number().int().safe().positive(),
+    lastDirectory: z.string().regex(/^\d+$/),
+    lastRunId: z.string().regex(/^xrun_\d+$/),
+    updatedAt: z.iso.datetime()
+  })
+  .strict();
+export type HistoryHead = z.infer<typeof HistoryHeadSchema>;
+
+export const ArchiveIndexEntrySchema = z
+  .object({
+    schemaVersion: z.literal(SCHEMA_VERSION),
+    timestamp: z.iso.datetime(),
+    event: z.enum(['archived', 'restored', 'deleted', 'missing']),
+    location: z.enum(['archive', 'active', 'deleted', 'missing']),
+    source: z.enum(['command', 'reconciled']),
+    process: RunProcessSchema,
+    recordSha256: DigestSchema
+  })
+  .strict();
+export type ArchiveIndexEntry = z.infer<typeof ArchiveIndexEntrySchema>;
 
 export const RunEventSchema = z
   .object({

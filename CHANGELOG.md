@@ -4,6 +4,12 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced per-run sequence reservation directories with one atomic `runs/HEAD.json`, added
+  capture-policy-safe run heads, and introduced an append-only searchable `archive/index.jsonl` for
+  archived/restored/deleted verification history.
+
 ### Release gates
 
 - Legal/name review, owner logo approval, WSL evidence, Trusted Publisher setup, and signed release
@@ -22,9 +28,9 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
   literal API-key fallback for basic local setups.
 - Sequential content-addressed `.xerify/runs` records shared by CLI and MCP, with configurable
   capture policy plus explicit list/show/archive/restore/delete lifecycle commands.
-- Adversarially hardened run sequencing with exact safe-range arithmetic, persistent empty
-  reservations, collision revalidation, malformed-entry rejection, disjoint history/archive roots,
-  and explicit fixed-namespace/external-mutation limits.
+- Adversarially hardened run sequencing with exact safe-range arithmetic, collision revalidation,
+  malformed-entry rejection, disjoint history/archive roots, and explicit
+  fixed-namespace/external-mutation limits.
 - Invocation-provider identity contract: every Cursor Agent model is `cursor`; direct vendor
   CLI/API calls retain their vendor provider, and health/MCP report the identity basis explicitly.
 - Minimal npm artifact allowlist excluding source, tests, internal authority, runtime state, and
