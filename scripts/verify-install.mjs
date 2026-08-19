@@ -77,12 +77,23 @@ try {
     }
   }
   for (const requiredDocument of [
+    'README.de.md',
+    'README.es.md',
+    'README.fr.md',
+    'README.tr.md',
+    'README.zh-CN.md',
+    'docs/README.md',
     'docs/installation.md',
     'docs/configuration.md',
     'docs/cli-reference.md',
     'docs/compatibility.md',
     'docs/examples/README.md',
-    'docs/examples/index.jsonl'
+    'docs/examples/index.jsonl',
+    'docs/i18n/de/README.md',
+    'docs/i18n/es/README.md',
+    'docs/i18n/fr/README.md',
+    'docs/i18n/tr/README.md',
+    'docs/i18n/zh-CN/README.md'
   ]) {
     if (!packedPaths.includes(requiredDocument)) {
       throw new Error(`npm package is missing consumer documentation: ${requiredDocument}`);

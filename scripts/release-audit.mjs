@@ -221,6 +221,11 @@ const requiredPaths = [
   'CHANGELOG.md',
   'LICENSE',
   'README.md',
+  'README.de.md',
+  'README.es.md',
+  'README.fr.md',
+  'README.tr.md',
+  'README.zh-CN.md',
   'SECURITY.md',
   'THIRD_PARTY_NOTICES.md',
   'dist/cli/entry.js',
@@ -230,11 +235,17 @@ const requiredPaths = [
 ];
 const missingPaths = requiredPaths.filter((path) => !packedPaths.includes(path));
 const requiredConsumerDocs = [
+  'docs/README.md',
   'docs/compatibility.md',
   'docs/configuration.md',
   'docs/examples/README.md',
   'docs/examples/index.jsonl',
-  'docs/installation.md'
+  'docs/installation.md',
+  'docs/i18n/de/README.md',
+  'docs/i18n/es/README.md',
+  'docs/i18n/fr/README.md',
+  'docs/i18n/tr/README.md',
+  'docs/i18n/zh-CN/README.md'
 ];
 const missingConsumerDocs = requiredConsumerDocs.filter((path) => !packedPaths.includes(path));
 const forbiddenPaths = packedPaths.filter(

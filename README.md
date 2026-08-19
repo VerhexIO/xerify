@@ -1,4 +1,13 @@
 <p align="center">
+  <strong>English</strong> ·
+  <a href="README.tr.md">Türkçe</a> ·
+  <a href="README.de.md">Deutsch</a> ·
+  <a href="README.zh-CN.md">简体中文</a> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.fr.md">Français</a>
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/VerhexIO/xerify/main/assets/logos/full-horizontal/xerify-horizontal-light.svg" alt="Xerify" width="360">
 </p>
 
@@ -43,6 +52,8 @@ cases. Set `XERIFY_SKIP_AUTO_INIT=1` to opt out. See the documented npm hoisting
 using Xerify as another package's dependency.
 See [installation and upgrades](docs/installation.md) for project-local, global, `npx`, lifecycle,
 upgrade, removal, and clean-install verification instructions.
+The [documentation index](docs/README.md) links the complete English reference and all localized
+consumer guides.
 
 ## Quick start
 

@@ -35,6 +35,8 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 - Renamed the public npm distribution from the rejected `xerify` candidate to `xverify-cli`; the
   Xerify product name, repository, MCP name, and `xerify` executable remain unchanged.
+- Added consumer README and consolidated manuals in English, Turkish, German, Simplified Chinese,
+  Spanish, and French, with CI-validated local document references.
 - Replaced per-run sequence reservation directories with one atomic `runs/HEAD.json`, added
   capture-policy-safe run heads, and introduced an append-only searchable `archive/index.jsonl` for
   archived/restored/deleted verification history.

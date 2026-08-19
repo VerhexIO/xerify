@@ -1,0 +1,120 @@
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README.tr.md">Türkçe</a> ·
+  <a href="README.de.md">Deutsch</a> ·
+  <strong>简体中文</strong> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.fr.md">Français</a>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/VerhexIO/xerify/main/assets/logos/full-horizontal/xerify-horizontal-light.svg" alt="Xerify" width="360">
+</p>
+
+<p align="center"><strong>向另一家提供方提问，获得清晰的第二意见。</strong></p>
+
+Xerify 是一个面向 shell 的开源工具，用于有边界的跨提供方提问和验证。它可以使用本机已登录的官方提供方 CLI、直接 API，或显式配置的可执行程序。CLI、JavaScript/TypeScript 库、本地 STDIO MCP 与 Streamable HTTP MCP 共用同一套核心逻辑和 Schema。
+
+Xerify 由 **Verhex** 创建和维护，并接受社区贡献，以 MIT 许可证发布。它提供的是第二意见，而不是形式化证明、安全认证或真相保证。提供方输出始终被视为不可信数据，绝不会被直接执行。
+
+> **发布状态：**`0.1.0` 是候选版本。npm 分发包名为 `xverify-cli`，产品名和安装后的命令仍为 `xerify`。
+
+## 安装
+
+首次公开发布到 npm 后：
+
+```sh
+npm install --global xverify-cli@latest
+xerify --version
+xerify --json health
+xerify init
+```
+
+固定为项目开发依赖：
+
+```sh
+npm install --save-dev --save-exact xverify-cli@0.1.0
+npx xerify --version
+```
+
+不保存依赖直接运行：
+
+```sh
+npx --yes --package=xverify-cli@latest xerify --json health
+```
+
+需要 Node.js 20 或更高版本；Node.js 24 是主要发布环境。请阅读[简体中文用户指南](docs/i18n/zh-CN/README.md)和规范的[英文安装文档](docs/installation.md)。
+
+## 快速开始
+
+请求开放式第二意见；管道输入会成为有边界的上下文：
+
+```sh
+git diff --cached | xerify ask \
+  --to anthropic:MODEL_ID \
+  --question "这项变更中风险最高的问题是什么？"
+```
+
+让不同调用提供方尝试反驳一项具体声明：
+
+```sh
+git diff --cached | xerify --json verify \
+  --from openai:AUTHOR_MODEL \
+  --to anthropic:VERIFIER_MODEL \
+  --claim "这项变更在不引入回归的情况下修复了竞态条件"
+```
+
+`--from` 和 `--to` 表示执行调用、计费和控制请求的服务。通过 Cursor Agent 选择的模型始终属于 `cursor`，即使模型 ID 中包含 GPT、Claude、Gemini 或 Grok。直接 Codex/OpenAI 为 `openai`，直接 Claude/Anthropic 为 `anthropic`。同一提供方的 `verify` 会在模型调用前被拒绝。
+
+这种分离衡量的是调用渠道多样性，并不证明模型权重、训练数据或盲点彼此独立。
+
+## 结果与退出码
+
+| 结果        | Exit | 调用方应采取的行动                         |
+| ----------- | ---: | ------------------------------------------ |
+| `confirmed` |    0 | 可作为继续候选；现有证据中未发现实质性反例 |
+| `refuted`   |   10 | 阻止该声明                                 |
+| `unclear`   |   11 | 补充证据、重试或进行人工审查               |
+
+超时、提供方失败、无效 Schema 和截断会以各自的非零退出码保持 fail-closed；`unclear` 不会被转换为成功。
+
+## 不产生模型费用的诊断
+
+```sh
+xerify --json health
+xerify --json doctor
+xerify --json providers list
+xerify --json providers probe --all --timeout 5000
+xerify --json config validate
+```
+
+这些命令不会调用模型。`--network` 只增加有边界的端点可达性检查。实时 `ask` 和 `verify` 可能消耗订阅额度或产生 API 费用。
+
+## 本地状态与 MCP
+
+`xerify init` 会以非覆盖方式创建 `.xerify/`，并为 Git、npm 和 Docker ignore 文件添加保护。活动记录位于 `runs/`，归档记录位于 `archive/`；`archive/index.jsonl` 是供人类和 AI 工具快速搜索的紧凑索引。
+
+固定 npm 版本的本地 STDIO MCP：
+
+```json
+{
+  "mcpServers": {
+    "xerify": {
+      "command": "npx",
+      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+    }
+  }
+}
+```
+
+服务器提供 `xerify_ask`、`xerify_verify` 和 `xerify_capabilities`。HTTP 默认只绑定 `127.0.0.1`；非 loopback 绑定必须同时使用 `--allow-public` 和来自命名环境变量的 bearer token。
+
+## 文档
+
+- [完整简体中文用户指南](docs/i18n/zh-CN/README.md)
+- [六种语言文档索引](docs/README.md)
+- [真实记录的验证示例](docs/examples/README.md)
+- [安全策略](SECURITY.md)
+- [MIT 许可证](LICENSE)
+
+若翻译与测试过的英文契约冲突，以规范英文 Schema 和文档为准。
