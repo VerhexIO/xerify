@@ -121,12 +121,15 @@ The recommended order is:
 3. Use literal `apiKey` only for a single-user local setup where environment management is
    impractical.
 
-When both are present, the environment variable wins. Literal values are redacted as
-`[REDACTED]` by `config show` and `config validate`; `health`, `doctor`, errors, prompts, and audit
-records never expose them. On POSIX, a config containing `apiKey` is rejected unless its permissions
-are owner-only (`chmod 600 .xerify/xverify-config.json`). The initializer creates this mode. On
-Windows, protect the file with an owner-only ACL. Never commit, paste into support output, or send
-this file as verification evidence.
+When both are present, the environment variable wins. Literal API keys and complete provider
+`endpoint` values are emitted as `[REDACTED]` by `config show` and `config validate`; partial URL
+masking is intentionally avoided because credentials can appear in userinfo, paths, arbitrary query
+keys, or fragments. `health`, `doctor`, errors, prompts, and audit records never expose these values.
+On POSIX, a config containing `apiKey` or an explicitly configured provider endpoint is rejected
+unless its permissions are owner-only (`chmod 600 .xerify/xverify-config.json`). The initializer
+creates this mode. An adapter's built-in default endpoint alone does not make an otherwise
+secret-free file private. On Windows, protect the file with an owner-only ACL. Never commit, paste
+into support output, or send this file as verification evidence.
 
 ## Resolution and environment variables
 
@@ -177,6 +180,13 @@ reports the resolved history paths and capture policy without reading evidence c
 does not call a model or probe API endpoints. `--network` adds bounded endpoint reachability checks;
 it still does not make an inference request. Use `doctor` for runtime/MCP details and `providers
 probe` for a selected adapter.
+
+For `openai-compatible`, only a plain loopback endpoint without explicit key configuration,
+userinfo, query parameters, or a fragment is reported as `local` / `not-required`. Inline URL
+material is reported as auth `unknown` with config provenance, even on loopback. A remote endpoint
+without `apiKeyEnvironment` or `apiKey` also remains `unknown`; Xerify does not infer from a URL
+whether a gateway is public, uses URL-carried credentials, or applies another authentication
+scheme. Prefer a named key environment over putting credential material in an endpoint URL.
 
 ## Audit log contract
 

@@ -18,6 +18,9 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 - Separated consumer documentation from maintainer procedures, narrowed the npm documentation
   allowlist, and removed local agent/design/review/generated-release material from the public source
   boundary.
+- Redacted complete provider endpoint URLs from config inspection, applied private POSIX mode checks
+  to explicit endpoints, and stopped classifying unauthenticated remote compatible endpoints as
+  definitely local/auth-free.
 
 ### Release gates
 

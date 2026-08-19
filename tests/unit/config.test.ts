@@ -157,6 +157,42 @@ describe('config precedence', () => {
     });
   });
 
+  itOnPosix('rejects an explicit endpoint in a group/world-readable POSIX config', async () => {
+    const root = await temporaryDirectory();
+    await writeProjectConfig(root, {
+      providers: {
+        gateway: {
+          kind: 'openai-compatible',
+          provider: 'vendor',
+          endpoint: 'https://api.example.test/v1/chat/completions?api-key=inline-secret'
+        }
+      }
+    });
+    await chmod(path.join(root, '.xerify', 'xverify-config.json'), 0o644);
+
+    await expect(
+      resolveConfig({ cwd: root, platform: 'linux', homeDirectory: root, env: {} })
+    ).rejects.toMatchObject({
+      code: 'CONFIG_INVALID',
+      message: expect.stringContaining('explicit endpoint'),
+      details: { requiredMode: '0600' }
+    });
+  });
+
+  itOnPosix('does not require private mode for an adapter default endpoint alone', async () => {
+    const root = await temporaryDirectory();
+    await writeProjectConfig(root, {
+      providers: { direct: { kind: 'openai-api', apiKeyEnvironment: 'OPENAI_API_KEY' } }
+    });
+    await chmod(path.join(root, '.xerify', 'xverify-config.json'), 0o644);
+
+    await expect(
+      resolveConfig({ cwd: root, platform: 'linux', homeDirectory: root, env: {} })
+    ).resolves.toMatchObject({
+      config: { providers: { direct: { endpoint: 'https://api.openai.com/v1/responses' } } }
+    });
+  });
+
   it('does not interpret Windows mode bits as POSIX secret permissions', async () => {
     const root = await temporaryDirectory();
     await writeProjectConfig(root, {

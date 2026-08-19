@@ -122,10 +122,11 @@ the invocation-provider-pinned Cursor `agent` adapter, `openai-api`, `anthropic-
 `openai-compatible`, and a shell-free generic `command` adapter.
 
 Direct API keys should be read from named environment variables. A literal `apiKey` is supported as
-an explicit fallback for basic local setups, but the config is git-ignored, must be owner-only on
-POSIX, and is always redacted from CLI diagnostics. Usage and cost are reported only when the
-provider supplies them. See [provider adapters](docs/provider-adapters.md) and [project
-configuration](docs/configuration.md).
+an explicit fallback for basic local setups. Literal keys and complete configured endpoint URLs are
+redacted from CLI diagnostics; files containing either must be owner-only on POSIX. Remote
+compatible endpoints without explicit key configuration report authentication as unknown rather
+than auth-free. Usage and cost are reported only when the provider supplies them. See [provider
+adapters](docs/provider-adapters.md) and [project configuration](docs/configuration.md).
 
 ## Configuration
 

@@ -33,19 +33,33 @@ function containsLiteralApiKey(config: FileConfig): boolean {
   );
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function containsExplicitEndpoint(value: unknown): boolean {
+  if (!isRecord(value) || !isRecord(value.providers)) return false;
+  return Object.values(value.providers).some(
+    (provider) => isRecord(provider) && Object.hasOwn(provider, 'endpoint')
+  );
+}
+
 async function readConfig(path: string, platform: NodeJS.Platform): Promise<FileConfig | null> {
   try {
     const raw = await readFile(path, 'utf8');
-    const config = FileConfigSchema.parse(JSON.parse(raw) as unknown);
+    const value = JSON.parse(raw) as unknown;
+    const config = FileConfigSchema.parse(value);
     // `platform` can be injected to resolve another platform's config paths in tests and hosts.
     // POSIX mode enforcement is valid only when both the selected platform and the real filesystem
     // support those permission bits. Windows relies on the documented owner-only ACL boundary.
-    if (platform !== 'win32' && process.platform !== 'win32' && containsLiteralApiKey(config)) {
+    const containsSensitiveValues =
+      containsLiteralApiKey(config) || containsExplicitEndpoint(value);
+    if (platform !== 'win32' && process.platform !== 'win32' && containsSensitiveValues) {
       const metadata = await stat(path);
       if ((metadata.mode & 0o077) !== 0) {
         throw new XerifyError(
           'CONFIG_INVALID',
-          'Config containing a literal API key must be owner-readable only (chmod 600)',
+          'Config containing a literal API key or explicit endpoint must be owner-readable only (chmod 600)',
           { details: { path, requiredMode: '0600' } }
         );
       }

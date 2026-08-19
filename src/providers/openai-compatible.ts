@@ -40,6 +40,23 @@ export interface OpenAiCompatibleAdapterOptions {
   fetch?: FetchLike;
 }
 
+function isLoopbackEndpoint(endpoint: string): boolean {
+  const hostname = new URL(endpoint).hostname.toLowerCase().replace(/\.$/, '');
+  if (hostname === 'localhost' || hostname.endsWith('.localhost')) return true;
+  if (hostname === '::1' || hostname === '[::1]') return true;
+  const octets = hostname.split('.');
+  return (
+    octets.length === 4 &&
+    octets[0] === '127' &&
+    octets.every((octet) => /^\d{1,3}$/.test(octet) && Number(octet) <= 255)
+  );
+}
+
+function hasInlineEndpointMaterial(endpoint: string): boolean {
+  const value = new URL(endpoint);
+  return value.username !== '' || value.password !== '' || value.search !== '' || value.hash !== '';
+}
+
 export class OpenAiCompatibleAdapter implements ProviderAdapter {
   readonly id: string;
   readonly #provider: string;
@@ -60,10 +77,16 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
   }
 
   capabilities(): ProviderCapabilities {
+    const explicitAuth = Boolean(this.#apiKeyEnvironment || this.#apiKey);
+    const inlineEndpointMaterial = hasInlineEndpointMaterial(this.#endpoint);
     return {
       provider: this.#provider,
       transports: ['http'],
-      authKinds: this.#apiKeyEnvironment || this.#apiKey ? ['api-key'] : ['local'],
+      authKinds: explicitAuth
+        ? ['api-key']
+        : isLoopbackEndpoint(this.#endpoint) && !inlineEndpointMaterial
+          ? ['local']
+          : ['unknown'],
       structuredOutput: true,
       reportsUsage: true,
       supportsAbort: true
@@ -84,6 +107,8 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
   async probe(input: ProbeInput): Promise<ProbeResult> {
     const credential = this.#credential();
     const authRequired = Boolean(this.#apiKeyEnvironment || this.#apiKey);
+    const loopback = isLoopbackEndpoint(this.#endpoint);
+    const inlineEndpointMaterial = hasInlineEndpointMaterial(this.#endpoint);
     const authPresent = !authRequired || credential !== null;
     const reachable = input.network
       ? await probeHttpEndpoint(this.#endpoint, this.#headers(), input.timeoutMs, this.#fetch)
@@ -99,14 +124,26 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
             status: credential ? 'present' : 'missing',
             source: credential?.source ?? 'missing'
           }
-        : { kind: 'local', status: 'not-required', source: 'local' },
+        : inlineEndpointMaterial
+          ? { kind: 'unknown', status: 'unknown', source: 'config' }
+          : loopback
+            ? { kind: 'local', status: 'not-required', source: 'local' }
+            : { kind: 'unknown', status: 'unknown', source: 'unknown' },
       detail: !authPresent
         ? `${this.#apiKeyEnvironment ?? 'Configured environment'} and config apiKey are missing`
         : reachable === false
           ? 'Compatible endpoint is unreachable'
-          : reachable === true
-            ? 'Compatible endpoint is reachable'
-            : 'Endpoint configured; network was not probed'
+          : inlineEndpointMaterial
+            ? reachable === true
+              ? 'Compatible endpoint is reachable; inline URL authentication requirements are unknown'
+              : 'Compatible endpoint contains inline URL material; authentication requirements are unknown'
+            : loopback
+              ? reachable === true
+                ? 'Local compatible endpoint is reachable'
+                : 'Local compatible endpoint configured; network was not probed'
+              : reachable === true
+                ? 'Remote compatible endpoint is reachable; authentication requirements are unknown'
+                : 'Remote compatible endpoint configured without explicit auth; requirements are unknown'
     };
   }
 

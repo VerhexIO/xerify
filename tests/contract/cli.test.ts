@@ -188,6 +188,42 @@ describe('CLI contract', () => {
     });
   });
 
+  it('reports remote compatible endpoint authentication as unknown without an explicit key', async () => {
+    const directory = await temporaryDirectory();
+    const stateDirectory = path.join(directory, '.xerify');
+    await mkdir(stateDirectory, { recursive: true });
+    await writeFile(
+      path.join(stateDirectory, 'xverify-config.json'),
+      JSON.stringify({
+        providers: {
+          gateway: {
+            kind: 'openai-compatible',
+            provider: 'vendor',
+            endpoint: 'https://api.example.test/v1/chat/completions?api-key=inline-secret'
+          }
+        }
+      })
+    );
+    await chmod(path.join(stateDirectory, 'xverify-config.json'), 0o600);
+
+    const result = await capture(['--json', 'providers', 'probe', '--provider', 'gateway'], {
+      cwd: directory
+    });
+    expect(result.code).toBe(0);
+    expect(result.stdout).not.toContain('inline-secret');
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      data: [
+        {
+          adapterId: 'gateway',
+          provider: 'vendor',
+          available: true,
+          auth: { kind: 'unknown', status: 'unknown', source: 'config' },
+          detail: expect.stringContaining('requirements are unknown')
+        }
+      ]
+    });
+  });
+
   it('redacts literal API keys from config output', async () => {
     const directory = await temporaryDirectory();
     const stateDirectory = path.join(directory, '.xerify');
@@ -212,6 +248,48 @@ describe('CLI contract', () => {
       }
     });
   });
+
+  it.each(['show', 'validate'] as const)(
+    'redacts the complete endpoint URL from config %s output',
+    async (subcommand) => {
+      const directory = await temporaryDirectory();
+      const stateDirectory = path.join(directory, '.xerify');
+      await mkdir(stateDirectory, { recursive: true });
+      await writeFile(
+        path.join(stateDirectory, 'xverify-config.json'),
+        JSON.stringify({
+          providers: {
+            gateway: {
+              kind: 'openai-compatible',
+              provider: 'vendor',
+              endpoint:
+                'https://visible-user:userinfo-secret@api.example.test/private/path-secret?api-key=query-secret#fragment-secret'
+            }
+          }
+        })
+      );
+      await chmod(path.join(stateDirectory, 'xverify-config.json'), 0o600);
+
+      const result = await capture(['--json', 'config', subcommand], { cwd: directory });
+      expect(result.code).toBe(0);
+      for (const secret of [
+        'visible-user',
+        'userinfo-secret',
+        'private/path-secret',
+        'query-secret',
+        'fragment-secret',
+        'api.example.test'
+      ]) {
+        expect(result.stdout).not.toContain(secret);
+      }
+      expect(JSON.parse(result.stdout)).toMatchObject({
+        data: {
+          secretsRedacted: true,
+          config: { providers: { gateway: { endpoint: '[REDACTED]' } } }
+        }
+      });
+    }
+  );
 
   it('emits a single stable doctor envelope without configured auth', async () => {
     const result = await capture(['--json', 'doctor']);

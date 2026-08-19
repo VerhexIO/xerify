@@ -30,11 +30,16 @@ inherits the security of that executable and its allowed environment.
 
 Direct API secrets should be read from named environment variables. For basic single-user setups,
 direct HTTP adapters also accept an explicit literal `apiKey` fallback; environment wins when both
-exist. The config is git-ignored by default, literal-key config is rejected on POSIX unless mode
-`0600`, and every config/health/doctor output redacts the value. Windows users must apply an
-owner-only ACL. Official CLI credential stores are used only through the official CLI. Optional
-audit JSONL excludes prompts, context, answers, findings, raw provider payloads, authorization data,
-and credential paths. New POSIX log files use mode `0600` and `O_NOFOLLOW`; every platform rejects
+exist. Provider endpoint URLs are also sensitive because credentials can be embedded in userinfo,
+paths, query values, or fragments. The config is git-ignored by default; literal-key or explicit
+endpoint config is rejected on POSIX unless mode `0600`; and config inspection replaces both
+literal keys and complete endpoint values with `[REDACTED]`. Windows users must apply an owner-only
+ACL. Prefer named key environments instead of URL-carried credentials. A compatible endpoint with
+userinfo, query parameters, or a fragment—and any remote endpoint without an explicit key
+declaration—reports authentication as unknown rather than claiming none is required. Official CLI
+credential stores are used only through the official CLI. Optional audit
+JSONL excludes prompts, context, answers, findings, raw provider payloads, authorization data, and
+credential paths. New POSIX log files use mode `0600` and `O_NOFOLLOW`; every platform rejects
 non-regular opened targets. Windows does not provide the same atomic no-follow guarantee, so place
 audit logs in an owner-controlled directory.
 

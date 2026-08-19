@@ -123,9 +123,47 @@ describe('direct API adapters', () => {
       new AbortController().signal
     );
 
-    expect(probe).toMatchObject({ available: true, auth: { status: 'not-required' } });
+    expect(adapter.capabilities()).toMatchObject({ authKinds: ['local'] });
+    expect(probe).toMatchObject({
+      available: true,
+      auth: { kind: 'local', status: 'not-required', source: 'local' }
+    });
     expect(result.output).toBe('local answer');
     expect(requestBody(request)).not.toHaveProperty('response_format');
+  });
+
+  it('does not claim that a remote compatible endpoint requires no authentication', async () => {
+    const adapter = new OpenAiCompatibleAdapter({
+      id: 'remote',
+      provider: 'remote-lab',
+      endpoint: 'https://api.example.test/v1/chat/completions?api-key=inline-value',
+      env: {},
+      fetch: vi.fn<typeof fetch>()
+    });
+
+    expect(adapter.capabilities()).toMatchObject({ authKinds: ['unknown'] });
+    await expect(adapter.probe({ network: false, timeoutMs: 100 })).resolves.toMatchObject({
+      available: true,
+      auth: { kind: 'unknown', status: 'unknown', source: 'config' },
+      detail: expect.stringContaining('requirements are unknown')
+    });
+  });
+
+  it('does not call a loopback endpoint auth-free when its URL carries inline material', async () => {
+    const adapter = new OpenAiCompatibleAdapter({
+      id: 'local-with-query',
+      provider: 'local-lab',
+      endpoint: 'http://127.0.0.1:1234/v1/chat/completions?api-key=inline-value',
+      env: {},
+      fetch: vi.fn<typeof fetch>()
+    });
+
+    expect(adapter.capabilities()).toMatchObject({ authKinds: ['unknown'] });
+    await expect(adapter.probe({ network: false, timeoutMs: 100 })).resolves.toMatchObject({
+      available: true,
+      auth: { kind: 'unknown', status: 'unknown', source: 'config' },
+      detail: expect.stringContaining('inline URL material')
+    });
   });
 
   it('rejects a missing API key before making a network request', async () => {

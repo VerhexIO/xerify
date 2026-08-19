@@ -121,6 +121,12 @@ literal `apiKey` only as a fallback for local basic-user setups. Such config is 
 default, must be mode `0600` on POSIX, and is redacted from `config show/validate`; keys are never
 returned by `health`/`doctor`, placed in provider prompts, or written to audit logs.
 
+Complete configured endpoint values are also redacted from config output and make the POSIX config
+mode-sensitive. This avoids unsafe partial masking of credentials embedded anywhere in a URL. For
+OpenAI-compatible adapters, only a plain loopback endpoint is `local` / `not-required`; userinfo,
+query parameters, or fragments make authentication `unknown` with config provenance. A remote
+endpoint without an explicit key declaration also reports authentication as `unknown`.
+
 ## Generic command
 
 The generic adapter never evaluates a shell string. Configuration provides one executable and an
