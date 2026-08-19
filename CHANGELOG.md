@@ -22,6 +22,9 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
   literal API-key fallback for basic local setups.
 - Sequential content-addressed `.xerify/runs` records shared by CLI and MCP, with configurable
   capture policy plus explicit list/show/archive/restore/delete lifecycle commands.
+- Adversarially hardened run sequencing with exact safe-range arithmetic, persistent empty
+  reservations, collision revalidation, malformed-entry rejection, disjoint history/archive roots,
+  and explicit fixed-namespace/external-mutation limits.
 - Invocation-provider identity contract: every Cursor Agent model is `cursor`; direct vendor
   CLI/API calls retain their vendor provider, and health/MCP report the identity basis explicitly.
 - Minimal npm artifact allowlist excluding source, tests, internal authority, runtime state, and

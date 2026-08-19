@@ -72,12 +72,44 @@ function safeRoot(root: string, name: string): string {
   return resolved;
 }
 
+function containsPath(parent: string, candidate: string): boolean {
+  const relative = path.relative(parent, candidate);
+  return (
+    relative !== '' &&
+    relative !== '..' &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+  );
+}
+
 async function ensurePrivateDirectory(directory: string): Promise<void> {
   await mkdir(directory, { recursive: true, mode: 0o700 });
   const metadata = await lstat(directory);
   if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
     throw new XerifyError('CONFIG_INVALID', 'Run history path must be a real directory', {
       details: { path: directory }
+    });
+  }
+}
+
+async function assertEmptyReservation(directory: string): Promise<void> {
+  try {
+    const metadata = await lstat(directory);
+    if (!metadata.isDirectory() || metadata.isSymbolicLink()) {
+      throw new XerifyError('CONFIG_INVALID', 'Run sequence reservation must be a real directory', {
+        details: { directory }
+      });
+    }
+    if ((await readdir(directory)).length > 0) {
+      throw new XerifyError('CONFIG_INVALID', 'Run sequence reservation must be empty', {
+        details: { directory: path.basename(directory) }
+      });
+    }
+  } catch (error) {
+    if (error instanceof XerifyError) throw error;
+    throw new XerifyError('CONFIG_INVALID', 'Unable to validate run sequence reservation', {
+      details: { directory },
+      cause: error
     });
   }
 }
@@ -138,12 +170,24 @@ function captureText(value: string, capture: HistoryConfig['captureInput']) {
   };
 }
 
-function runSelector(value: string): string {
+const MAX_SEQUENCE = BigInt(Number.MAX_SAFE_INTEGER);
+
+function parseSequence(value: string, source: string): bigint {
+  const sequence = BigInt(value);
+  if (sequence < 1n || sequence > MAX_SEQUENCE) {
+    throw new XerifyError('CONFIG_INVALID', `${source} is outside the supported sequence range`, {
+      details: { value, maximum: Number.MAX_SAFE_INTEGER }
+    });
+  }
+  return sequence;
+}
+
+function runSelector(value: string): bigint {
   const normalized = value.startsWith('xrun_') ? value.slice('xrun_'.length) : value;
   if (!/^\d+$/.test(normalized)) {
     throw new XerifyError('INVALID_INPUT', 'Run selector must be a sequence or xrun_<sequence>');
   }
-  return normalized;
+  return parseSequence(normalized, 'Run selector');
 }
 
 export class RunHistoryStore {
@@ -157,8 +201,12 @@ export class RunHistoryStore {
     this.#activeRoot = safeRoot(config.directory, 'history.directory');
     this.#archiveRoot = safeRoot(config.archiveDirectory, 'history.archiveDirectory');
     this.#sequenceRoot = path.join(this.#activeRoot, '.sequences');
-    if (this.#activeRoot === this.#archiveRoot) {
-      throw new XerifyError('CONFIG_INVALID', 'History and archive directories must be different');
+    if (
+      this.#activeRoot === this.#archiveRoot ||
+      containsPath(this.#activeRoot, this.#archiveRoot) ||
+      containsPath(this.#archiveRoot, this.#activeRoot)
+    ) {
+      throw new XerifyError('CONFIG_INVALID', 'History and archive directories must be disjoint');
     }
   }
 
@@ -166,11 +214,25 @@ export class RunHistoryStore {
     return this.#config.enabled;
   }
 
-  async #directories(root: string): Promise<string[]> {
+  async #directories(root: string, requireEmpty = false): Promise<string[]> {
     await ensurePrivateDirectory(root);
-    return (await readdir(root, { withFileTypes: true }))
-      .filter((entry) => entry.isDirectory() && /^\d+$/.test(entry.name))
-      .map((entry) => entry.name);
+    const entries = (await readdir(root, { withFileTypes: true })).filter((entry) =>
+      /^\d+$/.test(entry.name)
+    );
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.isSymbolicLink()) {
+        throw new XerifyError(
+          'CONFIG_INVALID',
+          'Numeric run history entry must be a real directory',
+          {
+            details: { entry: entry.name }
+          }
+        );
+      }
+      parseSequence(entry.name, 'Run history directory');
+      if (requireEmpty) await assertEmptyReservation(path.join(root, entry.name));
+    }
+    return entries.map((entry) => entry.name);
   }
 
   async #allocate(): Promise<{ sequence: number; directory: string; runPath: string }> {
@@ -182,16 +244,34 @@ export class RunHistoryStore {
     const all = [
       ...(await this.#directories(this.#activeRoot)),
       ...(await this.#directories(this.#archiveRoot)),
-      ...(await this.#directories(this.#sequenceRoot))
+      ...(await this.#directories(this.#sequenceRoot, true))
     ];
-    let sequence = all.reduce((maximum, value) => Math.max(maximum, Number(value)), 0) + 1;
-    for (let attempt = 0; attempt < 1_000; attempt += 1, sequence += 1) {
-      const directory = String(sequence).padStart(this.#config.sequencePadding, '0');
+    let sequence = all.reduce((maximum, value) => {
+      const candidate = parseSequence(value, 'Run history directory');
+      return candidate > maximum ? candidate : maximum;
+    }, 0n);
+    sequence += 1n;
+    for (let attempt = 0; attempt < 1_000; attempt += 1, sequence += 1n) {
+      if (sequence > MAX_SEQUENCE) {
+        throw new XerifyError('CONFIG_INVALID', 'Run history sequence space is exhausted', {
+          details: { maximum: Number.MAX_SAFE_INTEGER }
+        });
+      }
+      const directory = sequence.toString().padStart(this.#config.sequencePadding, '0');
       const runPath = path.join(this.#activeRoot, directory);
+      const reservationPath = path.join(this.#sequenceRoot, directory);
       try {
-        await mkdir(path.join(this.#sequenceRoot, directory), { mode: 0o700 });
+        await mkdir(reservationPath, { mode: 0o700 });
+      } catch (error) {
+        if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
+          await assertEmptyReservation(reservationPath);
+          continue;
+        }
+        throw error;
+      }
+      try {
         await mkdir(runPath, { mode: 0o700 });
-        return { sequence, directory, runPath };
+        return { sequence: Number(sequence), directory, runPath };
       } catch (error) {
         if (error instanceof Error && 'code' in error && error.code === 'EEXIST') continue;
         throw error;
@@ -368,9 +448,11 @@ export class RunHistoryStore {
   }
 
   async #resolve(selector: string, location: 'active' | 'archive') {
-    const wanted = Number(runSelector(selector));
+    const wanted = runSelector(selector);
     const root = location === 'active' ? this.#activeRoot : this.#archiveRoot;
-    const directory = (await this.#directories(root)).find((entry) => Number(entry) === wanted);
+    const directory = (await this.#directories(root)).find(
+      (entry) => parseSequence(entry, 'Run history directory') === wanted
+    );
     if (!directory) {
       throw new XerifyError('INVALID_INPUT', 'Run record was not found', {
         details: { selector, location }

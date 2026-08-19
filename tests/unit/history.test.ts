@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -101,6 +101,282 @@ describe('deterministic local run history', () => {
       limits: DEFAULT_LIMITS
     });
     expect(next?.process.id).toBe('xrun_000002');
+  });
+
+  it('allocates monotonically while active and archived records exist', async () => {
+    const { store } = await makeStore();
+    const to = parseProviderReference('anthropic:claude-test');
+    const active = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Keep this record active.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    const archived = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Archive this record.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    await store.complete(
+      archived,
+      {
+        schemaVersion: 1,
+        id: 'xrf_archived',
+        from: null,
+        to,
+        answer: 'complete',
+        usage: null,
+        durationMs: 1,
+        truncation: { input: false, output: false }
+      },
+      0
+    );
+    await store.archive('2');
+    const next = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Allocate after both locations are occupied.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+
+    expect(active?.process.id).toBe('xrun_000001');
+    expect(archived?.process.id).toBe('xrun_000002');
+    expect(next?.process.id).toBe('xrun_000003');
+    await expect(store.list()).resolves.toHaveLength(2);
+    await expect(store.list('archive')).resolves.toHaveLength(1);
+  });
+
+  it('preserves a content-free reservation when an archived record is deleted', async () => {
+    const { root, store } = await makeStore();
+    const to = parseProviderReference('anthropic:claude-test');
+    const session = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Archive and delete this record.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    await store.complete(
+      session,
+      {
+        schemaVersion: 1,
+        id: 'xrf_deleted_archive',
+        from: null,
+        to,
+        answer: 'complete',
+        usage: null,
+        durationMs: 1,
+        truncation: { input: false, output: false }
+      },
+      0
+    );
+    await store.archive('1');
+    await expect(store.delete('1', 'archive')).resolves.toMatchObject({
+      id: 'xrun_000001',
+      deleted: true
+    });
+    await expect(
+      readdir(path.join(root, '.xerify', 'runs', '.sequences', '000001'))
+    ).resolves.toEqual([]);
+
+    const next = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Do not reuse the deleted sequence.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    expect(next?.process.id).toBe('xrun_000002');
+  });
+
+  it('allocates unique content-free reservations for concurrent starts', async () => {
+    const { root, store } = await makeStore();
+    const to = parseProviderReference('anthropic:claude-test');
+    const sessions = await Promise.all(
+      Array.from({ length: 8 }, (_, index) =>
+        store.start({
+          operation: 'ask',
+          surface: 'library',
+          from: null,
+          to,
+          statementKind: 'question',
+          statement: `Concurrent request ${index + 1}`,
+          context: '',
+          limits: DEFAULT_LIMITS
+        })
+      )
+    );
+    const ids = sessions.map((session) => session?.process.id).sort();
+    expect(ids).toEqual(
+      Array.from({ length: 8 }, (_, index) => `xrun_${String(index + 1).padStart(6, '0')}`)
+    );
+    const reservations = await readdir(path.join(root, '.xerify', 'runs', '.sequences'));
+    expect(reservations.sort()).toEqual(
+      Array.from({ length: 8 }, (_, index) => String(index + 1).padStart(6, '0'))
+    );
+    await expect(
+      Promise.all(
+        reservations.map((reservation) =>
+          readdir(path.join(root, '.xerify', 'runs', '.sequences', reservation))
+        )
+      )
+    ).resolves.toEqual(Array.from({ length: 8 }, () => []));
+  });
+
+  it('fails closed when a directory sequence exceeds safe integer precision', async () => {
+    const { root, store } = await makeStore();
+    await mkdir(path.join(root, '.xerify', 'runs', '.sequences', '9007199254740993'), {
+      recursive: true
+    });
+
+    await expect(
+      store.start({
+        operation: 'ask',
+        surface: 'library',
+        from: null,
+        to: parseProviderReference('anthropic:claude-test'),
+        statementKind: 'question',
+        statement: 'Do not allocate around an imprecise sequence.',
+        context: '',
+        limits: DEFAULT_LIMITS
+      })
+    ).rejects.toMatchObject({
+      code: 'CONFIG_INVALID',
+      message: 'Unable to initialize the Xerify run record',
+      cause: expect.objectContaining({
+        code: 'CONFIG_INVALID',
+        message: 'Run history directory is outside the supported sequence range'
+      })
+    });
+  });
+
+  it('allocates the maximum safe sequence exactly and then fails closed', async () => {
+    const { root, store } = await makeStore();
+    await mkdir(path.join(root, '.xerify', 'runs', '.sequences', '9007199254740990'), {
+      recursive: true
+    });
+    const to = parseProviderReference('anthropic:claude-test');
+    const maximum = await store.start({
+      operation: 'ask',
+      surface: 'library',
+      from: null,
+      to,
+      statementKind: 'question',
+      statement: 'Allocate the maximum safe sequence.',
+      context: '',
+      limits: DEFAULT_LIMITS
+    });
+    expect(maximum?.process).toMatchObject({
+      id: 'xrun_9007199254740991',
+      sequence: Number.MAX_SAFE_INTEGER
+    });
+
+    await expect(
+      store.start({
+        operation: 'ask',
+        surface: 'library',
+        from: null,
+        to,
+        statementKind: 'question',
+        statement: 'Fail instead of overflowing.',
+        context: '',
+        limits: DEFAULT_LIMITS
+      })
+    ).rejects.toMatchObject({
+      code: 'CONFIG_INVALID',
+      cause: expect.objectContaining({ message: 'Run history sequence space is exhausted' })
+    });
+  });
+
+  it('fails closed when a sequence reservation contains external content', async () => {
+    const { root, store } = await makeStore();
+    await mkdir(path.join(root, '.xerify', 'runs', '.sequences', '000001'), {
+      recursive: true
+    });
+    await writeFile(
+      path.join(root, '.xerify', 'runs', '.sequences', '000001', 'unexpected.txt'),
+      'external content'
+    );
+
+    await expect(
+      store.start({
+        operation: 'ask',
+        surface: 'library',
+        from: null,
+        to: parseProviderReference('anthropic:claude-test'),
+        statementKind: 'question',
+        statement: 'Do not trust a modified reservation.',
+        context: '',
+        limits: DEFAULT_LIMITS
+      })
+    ).rejects.toMatchObject({
+      code: 'CONFIG_INVALID',
+      cause: expect.objectContaining({ message: 'Run sequence reservation must be empty' })
+    });
+  });
+
+  it('fails closed when a numeric reservation entry is not a directory', async () => {
+    const { root, store } = await makeStore();
+    const reservationRoot = path.join(root, '.xerify', 'runs', '.sequences');
+    await mkdir(reservationRoot, { recursive: true });
+    await writeFile(path.join(reservationRoot, '000001'), 'not a reservation directory');
+
+    await expect(
+      store.start({
+        operation: 'ask',
+        surface: 'library',
+        from: null,
+        to: parseProviderReference('anthropic:claude-test'),
+        statementKind: 'question',
+        statement: 'Do not ignore a malformed reservation.',
+        context: '',
+        limits: DEFAULT_LIMITS
+      })
+    ).rejects.toMatchObject({
+      code: 'CONFIG_INVALID',
+      cause: expect.objectContaining({
+        message: 'Numeric run history entry must be a real directory'
+      })
+    });
+  });
+
+  it.each([
+    ['archive nested under history', 'runs', path.join('runs', 'archive')],
+    ['history nested under archive', path.join('archive', 'runs'), 'archive']
+  ])('rejects %s', async (_label, historyDirectory, archiveDirectory) => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'xerify-history-layout-test-'));
+    temporaryDirectories.push(root);
+
+    expect(
+      () =>
+        new RunHistoryStore({
+          enabled: true,
+          directory: path.join(root, historyDirectory),
+          archiveDirectory: path.join(root, archiveDirectory),
+          captureInput: 'full',
+          captureOutput: 'normalized',
+          sequencePadding: 6
+        })
+    ).toThrowError('History and archive directories must be disjoint');
   });
 
   it('keeps hashes but not values in metadata mode', async () => {

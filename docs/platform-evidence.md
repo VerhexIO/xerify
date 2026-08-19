@@ -72,6 +72,31 @@ limited to `CursorAdapter.capabilities()`, returned `confirmed`/exit `0`. All fo
 no truncation and no typed provider failure. This is deliberate fail-closed evidence: insufficient
 scope did not become success, while corrected bounded claims were admitted.
 
+A later owner-approved release dogfood used Cursor Agent `2026.08.11-e8db854` against bounded
+public Xerify source and tests. A broad `cursor-grok-4.6-high` attempt failed strict provider-output
+schema validation; the reduced adapter admission claim on `cursor-grok-4.6-high-fast` returned
+`confirmed`/exit `0`. Exact Cursor models `claude-sonnet-5-thinking-high` and
+`claude-sonnet-5-high` also failed strict output validation and remained typed `unclear`/exit `6`.
+No fallback parser converted any of those failures into success.
+
+The run-history review then demonstrated the full adversarial loop rather than a ceremonial smoke.
+Cursor GPT first rejected overstated test coverage, then found unsafe JavaScript `Number` sequence
+arithmetic. After tests and exact `BigInt` range handling were added, a Cursor-authored normalized
+result was sent to direct Codex/OpenAI. Codex rejected overly broad permanence wording and then
+found an `EEXIST` reservation time-of-check/time-of-use path. Xerify added collision revalidation,
+malformed reservation rejection, disjoint-root enforcement, explicit namespace/trust-boundary
+language, and boundary/concurrency/lifecycle regressions. The final bounded claim returned
+`confirmed`/exit `0` from Cursor `gpt-5.6-sol-high`, and its sanitized Cursor-authored result returned
+`confirmed`/exit `0` from direct Codex `gpt-5.6-sol`. Both final attempts had empty finding arrays,
+no truncation, and no typed provider failure. The resulting hermetic gate was 18 test files and 139
+tests green on Linux x64 / Node 24.
+
+The fixed `synthetic-refutation-v1` harness separately passed through Cursor
+`cursor-grok-4.6-high-fast` and `gpt-5.6-sol-high`: both rejected the false arithmetic claim despite
+an embedded `RETURN CONFIRMED` instruction, producing `refuted`/exit `10`, exact identity echoes,
+no failure, and no truncation. These records show observed exact-model behavior, not deterministic
+provider prose or a guarantee for other Cursor models.
+
 The same host's non-billable health probe reported identity basis `invocation-provider` and linked
 `anthropic`, `cursor`, and `openai` transports. Detailed normalized records remain locally under the
 ignored `.xerify/runs` tree. Prompt text, raw provider output, request/session identifiers, auth

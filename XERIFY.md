@@ -2,7 +2,8 @@
 
 > Tarih: 2026-08-18
 >
-> Durum: `0.1.0` pre-release candidate; Cursor/OpenAI invocation-provider bidirectional live matrix green, brand çalışması outsource, npm owner auth green/publish pending
+> Durum: `0.1.0` pre-release candidate; Cursor/OpenAI adversarial bidirectional dogfood green,
+> history safety findings fixed, brand çalışması outsource, npm owner auth green/publish pending
 >
 > Authority: Bu dosya yeni Xerify session'ına taşınacak tek başlangıç kaynağıdır. Deckent
 > `DIRECTIVES.md`, sprint state'i, `.tasks/` veya XVerify implementation'ı Xerify authority'si
@@ -1197,9 +1198,12 @@ Shared chokepoints:
 
 Her `ask` ve `verify`, CLI/library/MCP yüzeyinden bağımsız olarak aynı history wrapper üzerinden
 geçer. Default project state `.xerify/runs/<zero-padded-sequence>/`, archive state
-`.xerify/archive/<sequence>/` altındadır. Sequence aktif ve archive kayıtları birlikte taranarak
-monoton artar; content-free private reservation silinen highest sequence'in yeniden kullanılmasını
-engeller; public run ID `xrun_<sequence>` olur.
+`.xerify/archive/<sequence>/` altındadır. Tek ve sabit bir history namespace içinde sequence aktif
+ve archive kayıtları birlikte taranarak monoton artar; content-free private reservation Xerify
+lifecycle'ının sildiği highest sequence'in yeniden kullanılmasını engeller; public run ID
+`xrun_<sequence>` olur. Reservation range ve boşluk bütünlüğü allocation sırasında fail-closed
+doğrulanır. Configured root değişikliği yeni bir namespace'tir; aynı user yetkisiyle eşzamanlı dış
+filesystem deletion/rename/mutation'a karşı integrity garantisi verilmez.
 
 Canonical record; `process.json`, `request.json`, append-only `events.jsonl`, content-addressed
 `evidence/manifest.json` ve policy izin veriyorsa evidence blob ile normalized `result.json` veya

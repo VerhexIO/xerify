@@ -70,8 +70,10 @@ idempotently. It appends a small marked entry and never replaces existing ignore
 History paths are resolved from the discovered project root. `captureInput` accepts `full`,
 `metadata`, or `none`; `captureOutput` accepts `normalized`, `metadata`, or `none`. The transparent
 defaults are intended for understandable local operation. Use metadata-only modes before handling
-customer data, proprietary source, or other material that must not persist. See
-[local run history](run-history.md) for the exact files and lifecycle commands.
+customer data, proprietary source, or other material that must not persist. Active and archive
+paths must be disjoint: they cannot be equal or nested inside one another. Changing either path
+starts a different sequence namespace. See [local run history](run-history.md) for the exact files
+and lifecycle commands.
 
 Empty `providers` keeps the built-in `codex` and `claude` adapters. Add only the transports you use.
 For example:

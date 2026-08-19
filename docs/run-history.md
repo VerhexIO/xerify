@@ -18,11 +18,13 @@ artifact.
 └── archive/
 ```
 
-Sequences increase across active and archived records. Private, content-free sequence reservations
-prevent a deleted highest-numbered run from reusing an old identity. The stable ID is `xrun_000001`; commands
-accept either that ID or `1`. Evidence entries carry a locator, byte count, and `sha256:` digest.
-Files are created with private POSIX modes where supported and written atomically. A crash can leave
-a truthful `running` record; Xerify does not invent a terminal outcome.
+Sequences increase across active and archived records in one fixed history namespace. Private,
+content-free sequence reservations prevent Xerify's own lifecycle deletion from reusing an old
+identity. Existing reservations are range-checked and must remain empty; a detected modification
+fails closed. The stable ID is `xrun_000001`; commands accept either that ID or `1`. Evidence entries
+carry a locator, byte count, and `sha256:` digest. Files are created with private POSIX modes where
+supported and written atomically. A crash can leave a truthful `running` record; Xerify does not
+invent a terminal outcome.
 
 ```sh
 xerify --json runs list
@@ -45,4 +47,6 @@ credentials, authentication stores, and environment dumps are never history fiel
 
 The generated root ignore rules keep `.xerify/` out of Git, npm packages, and Docker build context.
 They do not replace filesystem permissions or data classification. Review capture policy before
-sending or persisting sensitive evidence.
+sending or persisting sensitive evidence. Changing the configured history roots starts a different
+sequence namespace. Xerify does not claim integrity against a same-user process that concurrently
+deletes, renames, or mutates its private history tree.

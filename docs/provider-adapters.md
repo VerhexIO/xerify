@@ -98,6 +98,14 @@ trust boundary. Do not send secrets or run this adapter under a Cursor account w
 extensions/MCP configuration. `xerify providers probe --provider <cursor-adapter-id>` runs `agent
 status` without a model call and does not parse or print account identity.
 
+Structured-output compliance is model- and release-specific because Cursor exposes no schema
+enforcement flag. On Linux x64 with Cursor Agent `2026.08.11-e8db854`, exact models
+`cursor-grok-4.6-high-fast` and `gpt-5.6-sol-high` passed the fixed injection/refutation contract;
+`gpt-5.6-sol-high` also completed bounded core-code verification. In the same evidence window,
+`claude-sonnet-5-high` and `claude-sonnet-5-thinking-high` returned output that failed Xerify's
+strict schema and therefore remained typed `unclear`/exit `6`. This is an honest observed matrix,
+not a universal promise about a model family or future Cursor release.
+
 ## Direct APIs
 
 The OpenAI adapter posts to `/v1/responses` with `store: false`. The Anthropic adapter posts to
