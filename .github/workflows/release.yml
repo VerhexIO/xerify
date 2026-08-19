@@ -40,10 +40,20 @@ jobs:
         with:
           subject-path: ${{ steps.release.outputs.tarball }}
           sbom-path: artifacts/xerify.spdx.json
+      - name: Check whether the exact npm version already exists
+        id: registry
+        shell: bash
+        run: |
+          if npm view "${{ steps.release.outputs.package }}@${{ steps.release.outputs.version }}" version --json >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
       # Bootstrap only: npm requires the package to exist before Trusted Publishing can be
       # configured. Remove NODE_AUTH_TOKEN after xverify-cli@0.1.0 is published and release.yml is
       # registered as the package's trusted publisher.
       - name: Publish package
+        if: steps.registry.outputs.published != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish "${{ steps.release.outputs.tarball }}" --access public

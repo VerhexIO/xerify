@@ -14,4 +14,5 @@ if (actualTag !== expectedTag) {
 }
 
 process.stdout.write(`version=${packageJson.version}\n`);
+process.stdout.write(`package=${packageJson.name}\n`);
 process.stdout.write(`tarball=./artifacts/${tarballName}\n`);

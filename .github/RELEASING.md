@@ -36,7 +36,9 @@ the granular token. Ongoing releases must use the OIDC relationship rather than 
 2. Confirm the public package/version and MCP name are not conflicting.
 3. Tag the reviewed commit as `v<package-version>` and push the tag.
 4. The release workflow verifies the tag, reruns all non-billable gates, packs once, attests the
-   tarball/SBOM, publishes that exact tarball, and creates the GitHub release.
+   tarball/SBOM, publishes that exact tarball when the version is absent from npm, and creates the
+   GitHub release. For the owner-authenticated bootstrap only, publish the reviewed tarball first;
+   the subsequent tag workflow detects the exact existing version and skips a duplicate npm write.
 5. Verify from a clean external directory:
 
 ```sh
