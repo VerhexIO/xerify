@@ -254,6 +254,11 @@ describe('CLI contract', () => {
     async (subcommand) => {
       const directory = await temporaryDirectory();
       const stateDirectory = path.join(directory, '.xerify');
+      const sensitiveEndpoint = new URL(
+        'https://api.example.test/private/path-secret?api-key=query-secret#fragment-secret'
+      );
+      sensitiveEndpoint.username = 'visible-user';
+      sensitiveEndpoint.password = 'userinfo-secret';
       await mkdir(stateDirectory, { recursive: true });
       await writeFile(
         path.join(stateDirectory, 'xverify-config.json'),
@@ -262,8 +267,7 @@ describe('CLI contract', () => {
             gateway: {
               kind: 'openai-compatible',
               provider: 'vendor',
-              endpoint:
-                'https://visible-user:userinfo-secret@api.example.test/private/path-secret?api-key=query-secret#fragment-secret'
+              endpoint: sensitiveEndpoint.toString()
             }
           }
         })

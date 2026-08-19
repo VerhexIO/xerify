@@ -4,29 +4,6 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ## [Unreleased]
 
-### Added
-
-- Added seven bounded, observed verification examples across research, game production, website
-  selection, analytics, outbound-data policy, and Xerify dogfooding, plus a compact AI-readable
-  JSONL catalog and contract checks.
-
-### Changed
-
-- Replaced per-run sequence reservation directories with one atomic `runs/HEAD.json`, added
-  capture-policy-safe run heads, and introduced an append-only searchable `archive/index.jsonl` for
-  archived/restored/deleted verification history.
-- Separated consumer documentation from maintainer procedures, narrowed the npm documentation
-  allowlist, and removed local agent/design/review/generated-release material from the public source
-  boundary.
-- Redacted complete provider endpoint URLs from config inspection, applied private POSIX mode checks
-  to explicit endpoints, and stopped classifying unauthenticated remote compatible endpoints as
-  definitely local/auth-free.
-
-### Release gates
-
-- Legal/name review, WSL evidence, Trusted Publisher setup, and signed release artifacts are
-  pending.
-
 ## [0.1.0] - 2026-08-19
 
 ### Added
@@ -50,3 +27,18 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 - MCP SDK v2 STDIO and Streamable HTTP surfaces with modern and legacy negotiation.
 - Hermetic unit, contract, integration, Inspector, package, security, and release evidence tooling.
 - Exact monochrome SVG brand system, deterministic PNG exports, and companion agent skill.
+- Seven bounded, observed verification examples across research, game production, website
+  selection, analytics, outbound-data policy, and Xerify dogfooding, plus a compact AI-readable
+  JSONL catalog and contract checks.
+
+### Changed
+
+- Replaced per-run sequence reservation directories with one atomic `runs/HEAD.json`, added
+  capture-policy-safe run heads, and introduced an append-only searchable `archive/index.jsonl` for
+  archived/restored/deleted verification history.
+- Separated consumer documentation from maintainer procedures, narrowed the npm documentation
+  allowlist, and removed local agent/design/review/generated-release material from the public source
+  boundary.
+- Redacted complete provider endpoint URLs from config inspection, applied private POSIX mode checks
+  to explicit endpoints, and stopped classifying unauthenticated remote compatible endpoints as
+  definitely local/auth-free.
