@@ -1,0 +1,343 @@
+<!-- @dsCard group="Docs Site" viewport="1120x900" name="Marketing / Docs Home" subtitle="Click Ask / Verify to switch the walkthrough" -->
+<!-- @startingPoint section="Docs Site" subtitle="Corporate marketing/docs homepage for the CLI" viewport="1120x900" -->
+<link rel="stylesheet" href="../../styles.css" />
+<script
+  src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+  integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+  integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+  integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+  crossorigin="anonymous"
+></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body {
+    margin: 0;
+    background: var(--surface-page);
+  }
+</style>
+<div id="root"></div>
+<script type="text/babel">
+  const { Button, Badge, Tag, Terminal, CodeBlock, CommandTable, Callout, VerdictPill } =
+    window.XerifyDesignSystem_8cd4a2;
+
+  const EXAMPLES = {
+    ask: {
+      label: 'ask',
+      lines: [
+        {
+          prompt: true,
+          text: 'git diff --cached | xerify ask \\\n  --to anthropic:MODEL_ID \\\n  --question "What is the highest-risk issue in this change?"'
+        },
+        {
+          text: 'The retry loop has no backoff cap; a flaky dependency could spin it indefinitely.'
+        },
+        { dim: true, text: '// exit 0' }
+      ]
+    },
+    verify: {
+      label: 'verify',
+      lines: [
+        {
+          prompt: true,
+          text: 'git diff --cached | xerify --json verify \\\n  --from openai:MODEL_ID --to anthropic:MODEL_ID \\\n  --claim "This change closes the race without a regression"'
+        },
+        { text: 'CONFIRMED: the added mutex fully serializes the two writers.' },
+        { dim: true, text: '// exit 0' }
+      ]
+    }
+  };
+
+  const EYEBROW = {
+    fontFamily: 'var(--font-mono)',
+    fontSize: 'var(--text-xs)',
+    letterSpacing: 'var(--tracking-wider)',
+    textTransform: 'uppercase',
+    color: 'var(--text-secondary)',
+    marginBottom: '20px'
+  };
+  const SECTION = { padding: '0 80px 80px' };
+
+  function Nav() {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '26px 80px',
+          borderBottom: '1px solid var(--border-default)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img
+            src="../../assets/logos/icon-only/xerify-icon-light.svg"
+            alt="Xerify"
+            style={{ height: 28 }}
+          />
+          <span
+            style={{
+              fontSize: 'var(--text-md)',
+              fontWeight: 700,
+              letterSpacing: 'var(--tracking-tight)'
+            }}
+          >
+            Xerify
+          </span>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            gap: 36,
+            fontSize: 'var(--text-sm)',
+            color: 'var(--text-secondary)',
+            fontFamily: 'var(--font-mono)',
+            letterSpacing: 'var(--tracking-wide)',
+            textTransform: 'uppercase'
+          }}
+        >
+          <span>Docs</span>
+          <span>Providers</span>
+          <span>MCP</span>
+        </div>
+        <Button size="sm" variant="secondary">
+          GitHub
+        </Button>
+      </div>
+    );
+  }
+
+  function Hero() {
+    return (
+      <div style={{ padding: '96px 80px 64px', maxWidth: 820 }}>
+        <div style={EYEBROW}>Cross-provider verification · v0.1.0</div>
+        <h1
+          style={{
+            fontSize: 'var(--text-4xl)',
+            fontWeight: 700,
+            letterSpacing: 'var(--tracking-tight)',
+            lineHeight: 'var(--leading-tight)',
+            margin: '0 0 24px'
+          }}
+        >
+          Ask another provider.
+          <br />
+          Get a clear second opinion.
+        </h1>
+        <p
+          style={{
+            fontSize: 'var(--text-md)',
+            color: 'var(--text-secondary)',
+            lineHeight: 'var(--leading-normal)',
+            maxWidth: 600,
+            margin: 0
+          }}
+        >
+          Lightweight cross-provider verification for the shell and MCP. Xerify asks one invocation
+          provider, then can ask a different one for a bounded second opinion. It ships as a CLI, a
+          library, and MCP servers.
+        </p>
+        <div style={{ display: 'flex', gap: 16, marginTop: 40 }}>
+          <Button variant="primary">npm install --global xerify</Button>
+          <Button variant="ghost">Read the docs</Button>
+        </div>
+      </div>
+    );
+  }
+
+  function Walkthrough() {
+    const [tab, setTab] = React.useState('ask');
+    return (
+      <div style={SECTION}>
+        <div style={EYEBROW}>In the shell</div>
+        <div
+          style={{
+            display: 'flex',
+            gap: 0,
+            marginBottom: 24,
+            border: '1px solid var(--border-strong)',
+            borderRadius: 'var(--radius-md)',
+            overflow: 'hidden',
+            width: 'fit-content'
+          }}
+        >
+          {Object.keys(EXAMPLES).map((k) => (
+            <button
+              key={k}
+              onClick={() => setTab(k)}
+              aria-pressed={k === tab}
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-sm)',
+                padding: '10px 22px',
+                cursor: 'pointer',
+                border: 'none',
+                letterSpacing: 'var(--tracking-wide)',
+                background: k === tab ? 'var(--accent-verify)' : 'transparent',
+                color: k === tab ? 'var(--accent-verify-inverse)' : 'var(--text-secondary)'
+              }}
+            >
+              xerify {k}
+            </button>
+          ))}
+        </div>
+        <Terminal title={EXAMPLES[tab].label} lines={EXAMPLES[tab].lines} />
+      </div>
+    );
+  }
+
+  function Verdicts() {
+    return (
+      <div style={SECTION}>
+        <div style={EYEBROW}>Three outcomes, three exit codes</div>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <VerdictPill verdict="confirmed" />
+          <VerdictPill verdict="refuted" />
+          <VerdictPill verdict="unclear" />
+        </div>
+      </div>
+    );
+  }
+
+  function Commands() {
+    return (
+      <div style={SECTION}>
+        <div style={EYEBROW}>Commands</div>
+        <CommandTable
+          rows={[
+            {
+              command: 'xerify ask',
+              description: 'Open-ended second opinion from a configured provider.'
+            },
+            {
+              command: 'xerify verify',
+              description:
+                'Strict confirmed / refuted / unclear verdict from a different invocation provider.'
+            },
+            {
+              command: 'xerify doctor',
+              description: 'Non-billable environment and config diagnostics.'
+            },
+            { command: 'xerify providers list', description: 'Show configured provider adapters.' },
+            {
+              command: 'xerify providers probe',
+              description: 'Check adapter auth without a model call.'
+            },
+            { command: 'xerify mcp stdio', description: 'Local STDIO MCP server.' },
+            {
+              command: 'xerify mcp http',
+              description: 'Streamable HTTP MCP server, loopback by default.'
+            }
+          ]}
+        />
+      </div>
+    );
+  }
+
+  function McpSection() {
+    return (
+      <div
+        style={{
+          ...SECTION,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 48,
+          alignItems: 'start'
+        }}
+      >
+        <div>
+          <div style={EYEBROW}>Model Context Protocol</div>
+          <p
+            style={{
+              color: 'var(--text-secondary)',
+              lineHeight: 'var(--leading-normal)',
+              margin: '0 0 24px',
+              fontSize: 'var(--text-base)'
+            }}
+          >
+            Exposes <code>xerify_ask</code>, <code>xerify_verify</code>, and{' '}
+            <code>xerify_capabilities</code> over STDIO or Streamable HTTP.
+          </p>
+          <Callout tone="check" title="Trust boundary">
+            Provider output is untrusted data and is never executed.
+          </Callout>
+        </div>
+        <CodeBlock lang="json">{`{
+  "mcpServers": {
+    "xerify": {
+      "command": "xerify",
+      "args": ["mcp", "stdio"]
+    }
+  }
+}`}</CodeBlock>
+      </div>
+    );
+  }
+
+  function Footer() {
+    return (
+      <div
+        style={{
+          background: 'var(--surface-panel-2)',
+          padding: '48px 80px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img
+            src="../../assets/logos/icon-only/xerify-icon-dark.svg"
+            alt="Xerify"
+            style={{ height: 26 }}
+          />
+          <span
+            style={{
+              fontSize: 'var(--text-base)',
+              fontWeight: 700,
+              letterSpacing: 'var(--tracking-tight)',
+              color: '#f5f5f7'
+            }}
+          >
+            Xerify
+          </span>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            gap: 12,
+            fontFamily: 'var(--font-mono)',
+            fontSize: 'var(--text-xs)',
+            letterSpacing: 'var(--tracking-wider)',
+            textTransform: 'uppercase',
+            color: 'var(--text-inverse-muted)'
+          }}
+        >
+          <span>MIT License</span>
+          <span>·</span>
+          <span>Node.js ≥ 20</span>
+        </div>
+      </div>
+    );
+  }
+
+  ReactDOM.render(
+    <div style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
+      <Nav />
+      <Hero />
+      <Walkthrough />
+      <Verdicts />
+      <Commands />
+      <McpSection />
+      <Footer />
+    </div>,
+    document.getElementById('root')
+  );
+</script>

@@ -1,0 +1,26 @@
+import React from 'react';
+
+export function Badge({ children, tone = 'neutral' }) {
+  const tones = {
+    neutral: { background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-strong)' },
+    verify: { background: 'var(--accent-verify)', color: 'var(--accent-verify-inverse)', border: '1px solid var(--accent-verify)' },
+    check: { background: 'var(--accent-check)', color: '#fff', border: '1px solid var(--accent-check)' }
+  };
+  return React.createElement('span', {
+    style: {
+      fontFamily: 'var(--font-mono)', fontSize: 'var(--text-xs)', fontWeight: 500,
+      letterSpacing: 'var(--tracking-wider)', padding: '4px 10px', borderRadius: 'var(--radius-sm)',
+      display: 'inline-block', textTransform: 'uppercase', ...tones[tone]
+    }
+  }, children);
+}
+
+export function Tag({ children }) {
+  return React.createElement('span', {
+    style: {
+      fontFamily: 'var(--font-mono)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)',
+      background: 'var(--surface-sunken)', border: '1px solid var(--border-default)',
+      borderRadius: 'var(--radius-sm)', padding: '5px 12px', display: 'inline-block'
+    }
+  }, children);
+}

@@ -5,6 +5,7 @@
 artifacts/
 assets/
 coverage/
+design/
 src/
 tests/
 XERIFY.md

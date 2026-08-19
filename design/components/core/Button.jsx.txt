@@ -1,0 +1,29 @@
+import React from 'react';
+
+export function Button({ variant = 'primary', size = 'md', children, icon, disabled = false, onClick }) {
+  const sizes = {
+    sm: { padding: '8px 16px', fontSize: 'var(--text-sm)' },
+    md: { padding: '13px 26px', fontSize: 'var(--text-base)' }
+  };
+  const variants = {
+    primary: { background: 'var(--accent-verify)', color: 'var(--accent-verify-inverse)', border: '1px solid var(--accent-verify)' },
+    verify: { background: 'var(--accent-check)', color: '#fff', border: '1px solid var(--accent-check)' },
+    secondary: { background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)' },
+    ghost: { background: 'transparent', color: 'var(--text-secondary)', border: '1px solid transparent' }
+  };
+  const style = {
+    fontFamily: 'var(--font-sans)', fontWeight: 600, borderRadius: 'var(--radius-md)',
+    letterSpacing: '0.01em', display: 'inline-flex', alignItems: 'center', gap: '10px',
+    cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.4 : 1,
+    transition: 'opacity var(--duration-fast) var(--ease-standard)',
+    ...sizes[size], ...variants[variant]
+  };
+  return React.createElement('button', {
+    style, disabled, onClick,
+    onMouseEnter: e => { if (!disabled) e.currentTarget.style.opacity = 0.82; },
+    onMouseLeave: e => { if (!disabled) e.currentTarget.style.opacity = 1; }
+  },
+    icon ? React.createElement('span', { style: { display: 'inline-flex', width: 14, height: 14 } }, icon) : null,
+    children
+  );
+}

@@ -1,0 +1,13 @@
+export interface ButtonProps {
+  /** primary = solid ink, verify = solid emerald (verification actions only), secondary = outlined, ghost = text-only. */
+  variant?: 'primary' | 'verify' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md';
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+  onClick?: () => void;
+}
+/**
+ * @startingPoint section="Core" subtitle="Ink/emerald action button, four variants" viewport="700x160"
+ */
+export function Button(props: ButtonProps): JSX.Element;

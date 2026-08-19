@@ -53,7 +53,14 @@ try {
   const packedFilename = packResult[0]?.filename;
   if (typeof packedFilename !== 'string') throw new Error('npm pack did not return a filename');
   const packedPaths = (packResult[0]?.files ?? []).map((entry) => entry.path);
-  for (const forbiddenPrefix of ['assets/', 'src/', 'tests/', 'artifacts/', '.xerify/']) {
+  for (const forbiddenPrefix of [
+    'assets/',
+    'design/',
+    'src/',
+    'tests/',
+    'artifacts/',
+    '.xerify/'
+  ]) {
     if (packedPaths.some((packedPath) => packedPath.startsWith(forbiddenPrefix))) {
       throw new Error(`npm package contains forbidden development path: ${forbiddenPrefix}`);
     }

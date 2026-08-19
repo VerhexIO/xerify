@@ -1,0 +1,11 @@
+export interface CommandRow {
+  command: string;
+  description: string;
+}
+export interface CommandTableProps {
+  rows: CommandRow[];
+}
+/**
+ * @startingPoint section="Data" subtitle="Command reference rows — mono command, plain description" viewport="700x220"
+ */
+export function CommandTable(props: CommandTableProps): JSX.Element;

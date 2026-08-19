@@ -1,0 +1,15 @@
+export interface TerminalLine {
+  text: string;
+  /** Renders a "$ " prompt prefix in green. */
+  prompt?: boolean;
+  dim?: boolean;
+  color?: string;
+}
+export interface TerminalProps {
+  title?: string;
+  lines: TerminalLine[];
+}
+/**
+ * @startingPoint section="Code" subtitle="Fake terminal window for CLI walkthroughs" viewport="700x220"
+ */
+export function Terminal(props: TerminalProps): JSX.Element;

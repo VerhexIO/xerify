@@ -1,0 +1,8 @@
+export interface CodeBlockProps {
+  children: string;
+  lang?: string;
+}
+/**
+ * @startingPoint section="Code" subtitle="Dark panel for shell/JSON snippets" viewport="700x160"
+ */
+export function CodeBlock(props: CodeBlockProps): JSX.Element;

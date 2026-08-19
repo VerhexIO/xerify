@@ -1,0 +1,19 @@
+import React from 'react';
+
+const CONFIG = {
+  confirmed: { label: 'CONFIRMED', exit: 'exit 0', fg: 'var(--status-confirmed-fg)', bg: 'var(--status-confirmed-bg)' },
+  refuted: { label: 'REFUTED', exit: 'exit 10', fg: 'var(--status-refuted-fg)', bg: 'var(--status-refuted-bg)' },
+  unclear: { label: 'UNCLEAR', exit: 'exit 11', fg: 'var(--status-unclear-fg)', bg: 'var(--status-unclear-bg)' }
+};
+
+export function VerdictPill({ verdict = 'confirmed', showExit = true }) {
+  const c = CONFIG[verdict] || CONFIG.confirmed;
+  return React.createElement('span', {
+    style: {
+      fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 'var(--text-sm)',
+      letterSpacing: 'var(--tracking-wide)', color: c.fg, background: c.bg,
+      border: '1px solid ' + c.fg + '22', borderRadius: 'var(--radius-sm)', padding: '7px 14px',
+      display: 'inline-flex', alignItems: 'baseline', gap: '10px'
+    }
+  }, c.label, showExit ? React.createElement('span', { style: { fontWeight: 400, fontSize: 'var(--text-xs)' } }, c.exit) : null);
+}

@@ -8,7 +8,7 @@ Xerify is a shell-first, open-source tool for bounded cross-provider questions a
 
 Xerify provides a second opinion, not formal proof or guaranteed truth. Provider output is untrusted data and is never executed.
 
-> **Release status:** `0.1.0` is a pre-release candidate. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke. The invocation-provider identity contract has live Cursor/OpenAI proof in both directions. WSL, externally sourced brand approval, first npm publication/Trusted Publisher setup, and signed GitHub artifacts remain release gates.
+> **Release status:** `0.1.0` is a pre-release candidate. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke. The invocation-provider identity contract has live Cursor/OpenAI proof in both directions, and the logo geometry/palette are owner-approved. WSL, first npm publication/Trusted Publisher setup, and signed GitHub artifacts remain release gates.
 
 ## Install
 

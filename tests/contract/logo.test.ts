@@ -15,6 +15,13 @@ const requiredSvgAssets = [
   'assets/logos/monochrome/xerify-white.svg'
 ] as const;
 
+const iconSvgAssets = [
+  'assets/logos/icon-only/xerify-icon-dark.svg',
+  'assets/logos/icon-only/xerify-icon-light.svg',
+  'assets/logos/icon-only/xerify-icon-16.svg',
+  'assets/logos/icon-only/xerify-icon-32.svg'
+] as const;
+
 describe('logo asset contract', () => {
   it.each(requiredSvgAssets)(
     '%s is self-contained deterministic vector geometry',
@@ -30,11 +37,18 @@ describe('logo asset contract', () => {
     }
   );
 
-  it('joins the upper V and green inverted V at the same center', async () => {
+  it('uses the approved upper V and asymmetric emerald mirrored-check geometry', async () => {
     const master = await readFile(path.resolve('assets/logos/source/xerify-master.svg'), 'utf8');
-    expect(master).toContain('M170 130 500 590 830 130');
-    expect(master).toContain('M170 890 500 590 830 890');
-    expect(master).toContain('stroke="#15803d"');
+    expect(master).toContain('M333 250 500 480 667 250');
+    expect(master).toContain('M426 733 500 631 630 810');
+    expect(master).toContain('stroke="#0a0a0a"');
+    expect(master).toContain('stroke="#065f46"');
+    expect(master).toContain('viewBox="240 130 1830 800"');
+  });
+
+  it.each(iconSvgAssets)('%s uses a padded square export canvas', async (asset) => {
+    const svg = await readFile(path.resolve(asset), 'utf8');
+    expect(svg).toContain('viewBox="100 130 800 800"');
   });
 
   it.each([16, 24, 32, 64, 128, 256, 512, 1024])('exports a real %ipx square PNG', async (size) => {

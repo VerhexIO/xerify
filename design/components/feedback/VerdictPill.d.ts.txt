@@ -1,0 +1,8 @@
+export interface VerdictPillProps {
+  verdict?: 'confirmed' | 'refuted' | 'unclear';
+  showExit?: boolean;
+}
+/**
+ * @startingPoint section="Feedback" subtitle="Verification verdict — confirmed/refuted/unclear" viewport="700x120"
+ */
+export function VerdictPill(props: VerdictPillProps): JSX.Element;

@@ -1,0 +1,9 @@
+export interface CalloutProps {
+  tone?: 'neutral' | 'check' | 'caution';
+  title?: string;
+  children: React.ReactNode;
+}
+/**
+ * @startingPoint section="Feedback" subtitle="Left-rule note for docs — caution / confirmation" viewport="700x160"
+ */
+export function Callout(props: CalloutProps): JSX.Element;

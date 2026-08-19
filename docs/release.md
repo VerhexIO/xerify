@@ -26,7 +26,8 @@ accepted as evidence.
 
 - Record trademark/legal review, confusing-name review, domain/DNS ownership, and social-handle status.
 - Confirm the exact public GitHub owner/repository and reserve the npm package name immediately before publishing.
-- Record owner approval of the monochrome mark and final palette decision.
+- Preserve the owner-approved attached-center asymmetric mark and ink/emerald palette; rerun the
+  deterministic logo and small-size visual gates after any brand change.
 - Obtain explicit approval before a billable Codex, Claude, or Cursor smoke; record invocation
   provider, exact model, adapter/CLI version, date, contract outcome, and no prompt content/raw
   response.

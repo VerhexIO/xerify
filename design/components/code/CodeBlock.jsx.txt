@@ -1,0 +1,16 @@
+import React from 'react';
+
+export function CodeBlock({ children, lang }) {
+  return React.createElement('pre', {
+    style: {
+      background: 'var(--surface-panel-2)', color: '#e8e8ed', fontFamily: 'var(--font-mono)',
+      fontSize: 'var(--text-sm)', lineHeight: 'var(--leading-code)', borderRadius: 'var(--radius-md)',
+      padding: '22px 26px', overflowX: 'auto', margin: 0, border: '1px solid var(--border-panel)'
+    }
+  },
+    lang ? React.createElement('div', {
+      style: { color: 'var(--text-inverse-muted)', fontSize: 'var(--text-xs)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: 'var(--tracking-wider)' }
+    }, lang) : null,
+    React.createElement('code', null, children)
+  );
+}

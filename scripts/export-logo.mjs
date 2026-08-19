@@ -47,16 +47,16 @@ const iconStandard = dataUri(standardIcon);
 
 const contactSheet = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">
   <rect width="1600" height="1000" fill="#fff"/>
-  <text x="70" y="72" fill="#111827" font-family="sans-serif" font-size="36" font-weight="700">Xerify geometry and color review</text>
+  <text x="70" y="72" fill="#0a0a0a" font-family="sans-serif" font-size="36" font-weight="700">Xerify geometry and color review</text>
   <rect x="60" y="105" width="700" height="300" rx="16" fill="#f3f4f6"/>
   <image href="${horizontalLight}" x="95" y="150" width="630" height="252"/>
-  <rect x="840" y="105" width="700" height="300" rx="16" fill="#111827"/>
+  <rect x="840" y="105" width="700" height="300" rx="16" fill="#0a0a0a"/>
   <image href="${horizontalDark}" x="875" y="150" width="630" height="252"/>
-  <text x="70" y="485" fill="#111827" font-family="sans-serif" font-size="26" font-weight="700">Actual-size optical checks</text>
+  <text x="70" y="485" fill="#0a0a0a" font-family="sans-serif" font-size="26" font-weight="700">Actual-size optical checks</text>
   <g fill="#4b5563" font-family="sans-serif" font-size="18">
     <text x="70" y="550">16 px</text><text x="70" y="620">24 px</text><text x="70" y="700">32 px</text>
     <text x="320" y="550">16 px × 8 preview</text><text x="560" y="550">24 px × 8 preview</text><text x="880" y="550">32 px × 8 preview</text>
-    <text x="70" y="875">The dark upper V and green attached inverted V meet at one center to form the composite X.</text>
+    <text x="70" y="875">The ink upper V and asymmetric emerald mirrored check meet at one center to form the composite X.</text>
     <text x="70" y="910">No font, raster, gradient, filter, mask, shadow, or external asset is embedded in the master logos.</text>
   </g>
   <image href="${icon16}" x="170" y="526" width="16" height="16"/>

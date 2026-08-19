@@ -21,7 +21,8 @@ credential store. Global and `npx` users run `xerify init` explicitly.
 
 The published allowlist contains compiled `dist/`, schemas, public docs, the companion skill,
 license/security notices, and the guarded postinstall entry. It excludes source, tests, release
-artifacts, `.xerify/`, `XERIFY.md`, and all logo/brand review assets. Root `.npmignore`, the
+artifacts, `.xerify/`, `XERIFY.md`, the repository-only `design/` workspace, and all logo/brand
+review assets. Root `.npmignore`, the
 `package.json` `files` allowlist, and `smoke:install` enforce this boundary together.
 
 Package metadata identifies Verhex as the author and the source repository as

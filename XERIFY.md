@@ -3,7 +3,8 @@
 > Tarih: 2026-08-18
 >
 > Durum: `0.1.0` pre-release candidate; Cursor/OpenAI adversarial bidirectional dogfood green,
-> history safety findings fixed, brand çalışması outsource, npm owner auth green/publish pending
+> history safety findings fixed, logo geometry/palette owner-approved, npm owner auth green/publish
+> pending
 >
 > Authority: Bu dosya yeni Xerify session'ına taşınacak tek başlangıç kaynağıdır. Deckent
 > `DIRECTIVES.md`, sprint state'i, `.tasks/` veya XVerify implementation'ı Xerify authority'si
@@ -297,8 +298,9 @@ Wordmark: `Xerify`.
 
 1. Üst parça, X'in merkezde birleşen ve `V` gibi okunan iki üst koludur. Bu V-benzeri parça
    `erify` wordmark'ının hemen solunda/yanında yer alır.
-2. Alt parça, standard check `✓` işaretinin yatay aynası olan detached mirrored-check formudur.
-   V-benzeri üst parçanın altında konumlanır ve iki parça birlikte uzaktan tekrar `X` olarak okunur.
+2. Alt parça, standard check `✓` işaretinin yatay aynası olan asymmetric mirrored-check formudur.
+   V-benzeri üst parçayla merkezde tip-to-tip birleşir ve iki parça birlikte uzaktan `X` olarak
+   okunur.
 
 Anlam katmanları:
 
@@ -312,7 +314,8 @@ Logo üretim kuralları:
 - İlk master asset exact SVG/vector olarak çizilir; raster AI logo kullanılmaz.
 - Primary wordmark horizontal; icon-only composite X ayrıca üretilir.
 - 16px favicon'da X/check ayrımı kaybolmamalı.
-- Primary tasarım monochrome çalışmalıdır; renk paleti owner seçimi yapılana kadar `OPEN`.
+- Primary tasarım monochrome çalışır; owner-approved palette ink `#0a0a0a` ve dark emerald
+  `#065f46`, dark-background accent ise `#10b981` değeridir.
 - Gradient, shadow, 3D veya decorative effect yoktur.
 - Light/dark, monochrome ve icon-only variant zorunludur.
 - SVG path'leri pixel-grid ve optical alignment ile elle doğrulanır.
@@ -1006,9 +1009,10 @@ Release gate:
 - MCP v2 Inspector proof.
 
 Published npm allowlist compiled `dist`, schemas, public docs, companion skill, legal/security
-notices ve guarded postinstall entry ile sınırlıdır. `src`, tests, artifacts, `.xerify`, `XERIFY.md`
-ve bütün brand/review assetleri pakete girmez. `prepack` build/schema generation gerçek npm lifecycle
-script'idir; `smoke:install` forbidden path absence ve guarded auto-init davranışını test eder.
+notices ve guarded postinstall entry ile sınırlıdır. `src`, tests, artifacts, `.xerify`, `XERIFY.md`,
+repository-only `design/` workspace'i ve bütün brand/review assetleri pakete girmez. `prepack`
+build/schema generation gerçek npm lifecycle script'idir; `smoke:install` forbidden path absence ve
+guarded auto-init davranışını test eder.
 
 Optional future channels aynı binary contract'ını sarar:
 
@@ -1032,7 +1036,7 @@ Upper component:            Lower component:
     \  /
      \/
 
-Upper V + detached mirrored check = composite X
+Upper V + attached mirrored check = composite X
 Composite X + erify = Xerify
 ```
 
@@ -1044,33 +1048,22 @@ Kullanıcının exact art direction'ı:
 - Reverse-check “yanlış” veya “başarısız” ikonuna dönüşmemeli; yön cross-check/second-opinion
   hissini taşımalıdır.
 
-### First SVG exploration grid
+### Approved SVG geometry
 
-Bu koordinatlar approved final path değil, ilk vector exploration için deterministic başlangıçtır:
+2026-08-19 owner kararı attached-center asymmetric X yönünü seçti:
 
-- Icon viewBox: `0 0 1000 1000`.
-- Safe construction box: `120..880`.
-- Upper V endpoints: yaklaşık `(170, 170)` ve `(830, 170)`.
-- Upper V apex: yaklaşık `(500, 510)`.
-- Mirrored-check bounding box: yaklaşık `170..830 × 500..850`.
-- Upper/lower component optical gap: icon height'in `%4–7` aralığında test edilir.
-- Stroke visual weight: icon width'in `%10–13` aralığında.
-- Endpoint style: square veya subtly rounded iki varyant; decorative full-round yok.
-- Primary diagonal angles mümkün olduğunca ortak geometric family'de tutulur.
-
-Visual iteration üç geometry varyantı üretmelidir:
-
-1. **Unified X:** iki parça küçük gap ile tek X gibi baskın okunur.
-2. **Verify V:** upper V daha baskın, mirrored check secondary accent.
-3. **Cross-check:** iki parça eşit ağırlıkta, icon-only kullanım güçlü.
-
-Owner'ın tarifine en yakın varyant seçilmeden final asset adlandırılmaz.
+- Upper V path: `M333 250 500 480 667 250`.
+- Mirrored-check path: `M426 733 500 631 630 810`.
+- Standard stroke: `88`, square cap ve miter join.
+- Icon canvas: `100 130 800 800`; kare, padded ve deterministic PNG export'a uygun.
+- Horizontal canvas: `240 130 1830 800`; square/miter overshoot'u kırpmaz.
+- Mirrored check kısa sol ve uzun sağ kola sahiptir; symmetric chevron'a çevrilmez.
+- Path geometry owner yönü olmadan değiştirilmez. Canvas padding kırpılmayı önlemek için contract'tır.
 
 ### Wordmark
 
 - Custom mark + lowercase `erify`.
-- Geometric sans direction; public-license font veya converted custom outlines.
-- `erify` font license repository'de belgelenir.
+- `erify` custom SVG outline'dır; runtime font veya webfont dependency'si yoktur.
 - X mark ile `e` arasındaki optical gap, wordmark x-height'ının `%18–30` aralığında denenir.
 - V apex ile lowercase baseline ilişkisi optik olarak ayarlanır; yalnız matematiksel center kabul
   edilmez.
@@ -1092,7 +1085,7 @@ assets/logos/monochrome/xerify-white.svg
 
 PNG exports:
 
-- 32, 64, 128, 256, 512 ve 1024 px icon.
+- 16, 24, 32, 64, 128, 256, 512 ve 1024 px kare icon.
 - Transparent background.
 - Review/contact sheet white background üzerinde ayrıca üretilir.
 
@@ -1107,14 +1100,12 @@ PNG exports:
 
 ### Color
 
-Final palette owner kararı bekliyor. Logo önce monochrome proof'u geçer.
+Owner-approved palette:
 
-Color exploration ancak monochrome geometry kabulünden sonra:
-
-- Neutral/dark wordmark.
-- Mirrored check için optional single accent.
-- Light ve dark background WCAG-visible contrast.
-- Gradient, shadow, glow, bevel veya 3D yok.
+- Light background: ink `#0a0a0a`, mirrored check `#065f46`.
+- Dark background: white `#ffffff`, mirrored check `#10b981`.
+- Monochrome: pure black veya pure white.
+- Mark'ta mavi, gradient, shadow, glow, bevel veya 3D yok.
 
 ### Forbidden modifications
 
@@ -1133,7 +1124,7 @@ Color exploration ancak monochrome geometry kabulünden sonra:
 - Black-on-white ve white-on-black çalışıyor mu?
 - Color-blind kullanım accent olmadan anlamını koruyor mu?
 - SVG'de font dependency, embedded raster, mask/filter veya gereksiz metadata var mı?
-- Paths deterministic ve viewBox tight mı?
+- Paths deterministic, icon canvas kare ve viewBox stroke overshoot'u kırpmadan padded mı?
 
 ## 25. Brand messaging
 

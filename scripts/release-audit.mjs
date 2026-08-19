@@ -224,6 +224,7 @@ const forbiddenPaths = packedPaths.filter(
     path === 'XERIFY.md' ||
     path.startsWith('.xerify/') ||
     path.startsWith('assets/') ||
+    path.startsWith('design/') ||
     path.startsWith('src/') ||
     path.startsWith('tests/') ||
     path.startsWith('.github/') ||
