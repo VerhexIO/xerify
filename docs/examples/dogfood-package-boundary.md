@@ -3,6 +3,11 @@
 Xerify verified a sanitized, generated receipt from its own npm dry-run. The claim is deliberately
 about what the receipt reports, not an unsigned promise about future registry bytes.
 
+> Historical evidence note: this receipt predates npm's rejection of the unscoped `xerify` package
+> name. The public distribution was subsequently renamed to `xverify-cli`; the preserved claim and
+> provider result below still describe the original bounded receipt and are not installation
+> instructions.
+
 - Author declaration: `openai:gpt-5.6-sol`
 - Verifier: `anthropic:claude-fable-5` through the `claude` adapter
 - Evidence: [dogfood-package-boundary.md](evidence/dogfood-package-boundary.md)

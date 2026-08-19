@@ -18,7 +18,7 @@ Xerify provides a second opinion, not formal proof or guaranteed truth. Provider
 After the first public release:
 
 ```sh
-npm install --global xerify@latest
+npm install --global xverify-cli@latest
 xerify --help
 xerify --json health
 xerify init
@@ -35,8 +35,8 @@ xerify init
 ```
 
 Node.js 20 or newer is required. Node.js 24 is the primary development lane.
-For a project-local install after publication, use `npm install --save-dev xerify@latest` and invoke
-it with `npx xerify`. A guarded `postinstall` initializes `.xerify/` for a declared direct local
+For a project-local install after publication, use `npm install --save-dev xverify-cli@latest` and
+invoke its `xerify` binary with `npx xerify`. A guarded `postinstall` initializes `.xerify/` for a declared direct local
 dependency or an explicit root `--save-dev/--save-prod` install. Global, nested transitive, no-save,
 and `npx` installs do not write into the current project; run `xerify init` explicitly in those
 cases. Set `XERIFY_SKIP_AUTO_INIT=1` to opt out. See the documented npm hoisting limitation before

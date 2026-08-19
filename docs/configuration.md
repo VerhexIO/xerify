@@ -4,14 +4,14 @@ Xerify keeps project-specific state out of the repository root. Installing Xerif
 dependency initializes it automatically without overwriting existing files:
 
 ```sh
-npm install --save-dev xerify@latest
+npm install --save-dev xverify-cli@latest
 ```
 
 Global installs, nested transitive installs, no-save installs, `npx`, and installs with
 `XERIFY_SKIP_AUTO_INIT=1` do not write to the current project. Initialize explicitly in those cases:
 
 ```sh
-npx xerify init
+npx --yes --package=xverify-cli@latest xerify init
 ```
 
 The command is idempotent and never overwrites an existing config or `.gitignore`:
@@ -28,7 +28,7 @@ The command is idempotent and never overwrites an existing config or `.gitignore
 
 npm does not expose a categorical direct/transitive flag before the first dependency lifecycle.
 Xerify therefore accepts either an existing root manifest/lock declaration or the combination of an
-explicit save flag and the exact root `node_modules/xerify` location. A package manager could hoist
+explicit save flag and the exact root `node_modules/xverify-cli` location. A package manager could hoist
 a transitive Xerify dependency into that location; the initializer remains non-overwriting and
 git-ignored, but library authors should set `XERIFY_SKIP_AUTO_INIT=1` when embedding Xerify.
 
@@ -108,7 +108,7 @@ For example:
 ```
 
 `$schema` is an editor hint only; Xerify does not fetch or execute it. A project-local installation
-may replace it with `../node_modules/xerify/schemas/config.schema.json` for offline completion.
+may replace it with `../node_modules/xverify-cli/schemas/config.schema.json` for offline completion.
 
 Config is strict. Generic `token`, `secret`, silent `defaultModel`, and credential fields on command
 or CLI adapters are rejected. Direct `openai-api`, `anthropic-api`, and `openai-compatible` adapters

@@ -1,14 +1,14 @@
 # Installation and upgrades
 
 Xerify requires Node.js 20 or newer. Node.js 24 is the primary release runtime. The public npm
-package and CLI command are both named `xerify`.
+package is `xverify-cli`; the product and installed CLI command remain `xerify`.
 
 ## Choose an installation mode
 
 Install globally when Xerify is a workstation tool shared across projects:
 
 ```sh
-npm install --global xerify@latest
+npm install --global xverify-cli@latest
 xerify --version
 xerify init
 ```
@@ -16,23 +16,23 @@ xerify init
 Install as a project development dependency when the repository should pin Xerify:
 
 ```sh
-npm install --save-dev xerify@latest
+npm install --save-dev xverify-cli@latest
 npx xerify --version
 ```
 
 Run without retaining a dependency for a quick capability check:
 
 ```sh
-npx --yes xerify@latest --json health
+npx --yes --package=xverify-cli@latest xerify --json health
 ```
 
-Use `xerify@latest`, including the `@`. `npm install xerify latest` asks npm to install two package
-names and is not equivalent.
+Use `xverify-cli@latest`, including the `@`. `npm install xverify-cli latest` asks npm to install two
+package names and is not equivalent.
 
 For reproducible automation, pin an exact version instead of `latest`:
 
 ```sh
-npm install --save-dev --save-exact xerify@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.0
 ```
 
 ## Project initialization
@@ -67,9 +67,9 @@ bounded endpoint reachability is intended.
 Upgrade using the same installation mode:
 
 ```sh
-npm update --global xerify
+npm update --global xverify-cli
 # or, inside a pinned project
-npm install --save-dev xerify@latest
+npm install --save-dev xverify-cli@latest
 ```
 
 Removing the npm package does not delete project history or configuration. Review and remove
@@ -85,7 +85,7 @@ Local STDIO MCP uses the same package; there is no second server download:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "xerify@0.1.0", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
     }
   }
 }

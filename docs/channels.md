@@ -69,7 +69,7 @@ naturally preserves local CLI subscriptions:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "xerify@latest", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@latest", "xerify", "mcp", "stdio"]
     }
   }
 }
@@ -86,11 +86,12 @@ it must not become a relay for local subscription credentials.
 ## Free MCP distribution and future hosting
 
 The selected zero-hosting-cost distribution path is npm plus the official MCP Registry. The
-Registry stores discovery/launch metadata and points to the public `xerify` npm package; it does not
+Registry stores discovery/launch metadata and points to the public `xverify-cli` npm package; it does not
 host Xerify's code. The repository `server.json` fixes the package version, STDIO transport, and
 `mcp stdio` launch arguments. The package's matching `mcpName` proves the npm/Registry association.
-Because the Registry is in preview, a pinned `npx -y xerify@<version> mcp stdio` host entry remains
-the deterministic fallback. See the official [Registry
+Because the Registry is in preview, a pinned
+`npx -y --package=xverify-cli@<version> xerify mcp stdio` host entry remains the deterministic
+fallback. See the official [Registry
 quickstart](https://modelcontextprotocol.io/registry/quickstart) and [package type
 rules](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx).
 

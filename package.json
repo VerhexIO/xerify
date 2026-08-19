@@ -1,5 +1,5 @@
 {
-  "name": "xerify",
+  "name": "xverify-cli",
   "version": "0.1.0",
   "description": "Lightweight cross-provider verification for the shell and MCP.",
   "mcpName": "io.github.verhexio/xerify",
@@ -95,6 +95,7 @@
   },
   "keywords": [
     "verification",
+    "xverify",
     "ai",
     "cli",
     "mcp",

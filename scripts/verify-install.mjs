@@ -14,6 +14,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const sourcePackageJson = JSON.parse(readFileSync(resolve(repositoryRoot, 'package.json'), 'utf8'));
 const scratchDirectory = mkdtempSync(join(tmpdir(), 'xerify external smoke ü-'));
 const packDirectory = join(scratchDirectory, 'pack');
 const installPrefix = join(scratchDirectory, 'installed prefix');
@@ -92,6 +93,20 @@ try {
   }
   const tarballPath = join(packDirectory, packedFilename);
 
+  const npmExecVersion = runNpm(
+    ['exec', '--yes', '--package', tarballPath, '--', 'xerify', '--version'],
+    {
+      cwd: externalProject,
+      encoding: 'utf8',
+      maxBuffer: 8 * 1024 * 1024,
+      timeout: 120_000,
+      env: smokeEnvironment
+    }
+  );
+  if (npmExecVersion.trim() !== sourcePackageJson.version) {
+    throw new Error('npm exec did not resolve the xerify binary from the xverify-cli package');
+  }
+
   runNpm(
     ['install', '--global', '--prefix', installPrefix, '--no-audit', '--no-fund', tarballPath],
     {
@@ -149,8 +164,8 @@ try {
 
   const packageRoot =
     process.platform === 'win32'
-      ? join(installPrefix, 'node_modules', 'xerify')
-      : join(installPrefix, 'lib', 'node_modules', 'xerify');
+      ? join(installPrefix, 'node_modules', sourcePackageJson.name)
+      : join(installPrefix, 'lib', 'node_modules', sourcePackageJson.name);
   const installedEntry = join(packageRoot, 'dist', 'cli', 'entry.js');
   const installedBinary =
     process.platform === 'win32'
@@ -307,6 +322,7 @@ try {
       executableResolved: true,
       commands: [
         '--help',
+        'npm exec package/binary split',
         'postinstall auto-init',
         '--json health',
         '--json doctor',

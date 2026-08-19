@@ -18,7 +18,7 @@ inventory, SPDX SBOM, vulnerability audit, and secret-pattern scan. Live provide
 normal release gate; any such call requires explicit owner approval and a bounded, non-sensitive
 evidence scope.
 
-The unscoped package is `xerify`. npm requires a package to exist before a Trusted Publisher can be
+The unscoped package is `xverify-cli`; the installed executable remains `xerify`. npm requires a package to exist before a Trusted Publisher can be
 configured, so the designated Verhex release owner bootstraps `0.1.0` with an owner-controlled,
 package-write granular token that can satisfy the account's publish-time 2FA policy. Store it only
 as the repository Actions secret `NPM_TOKEN`; the bootstrap release workflow exposes it only as
@@ -40,8 +40,8 @@ the granular token. Ongoing releases must use the OIDC relationship rather than 
 5. Verify from a clean external directory:
 
 ```sh
-npm view xerify@latest name version dist.integrity --json
-npm install --global xerify@latest
+npm view xverify-cli@latest name version dist.integrity --json
+npm install --global xverify-cli@latest
 xerify --version
 xerify --json health
 xerify --json doctor

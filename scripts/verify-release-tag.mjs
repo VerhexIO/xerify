@@ -7,10 +7,11 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const packageJson = JSON.parse(readFileSync(resolve(repositoryRoot, 'package.json'), 'utf8'));
 const expectedTag = `v${packageJson.version}`;
 const actualTag = process.env.GITHUB_REF_NAME;
+const tarballName = `${packageJson.name.replace(/^@/, '').replace('/', '-')}-${packageJson.version}.tgz`;
 
 if (actualTag !== expectedTag) {
   throw new Error(`Release tag ${actualTag ?? '<missing>'} does not match ${expectedTag}`);
 }
 
 process.stdout.write(`version=${packageJson.version}\n`);
-process.stdout.write(`tarball=artifacts/xerify-${packageJson.version}.tgz\n`);
+process.stdout.write(`tarball=./artifacts/${tarballName}\n`);

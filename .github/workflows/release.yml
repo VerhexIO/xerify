@@ -41,7 +41,7 @@ jobs:
           subject-path: ${{ steps.release.outputs.tarball }}
           sbom-path: artifacts/xerify.spdx.json
       # Bootstrap only: npm requires the package to exist before Trusted Publishing can be
-      # configured. Remove NODE_AUTH_TOKEN after xerify@0.1.0 is published and release.yml is
+      # configured. Remove NODE_AUTH_TOKEN after xverify-cli@0.1.0 is published and release.yml is
       # registered as the package's trusted publisher.
       - name: Publish package
         env:

@@ -6,6 +6,10 @@ This is sanitized metadata from `npm pack --dry-run --json --ignore-scripts` aft
 paths were added. It contains public package paths only—no source text, credential, local run state,
 provider response, or release artifact content.
 
+This immutable example records the pre-publication `xerify` candidate name. npm later rejected that
+unscoped name; the current distribution is `xverify-cli`. The historical receipt is intentionally
+not rewritten as if the verifier had observed the renamed package.
+
 ```json
 {
   "package": "xerify@0.1.0",

@@ -28,7 +28,7 @@ describe('npm postinstall project initialization', () => {
   it('initializes only a direct local dependency and never overwrites config', async () => {
     const directory = await temporaryProject({
       name: 'consumer',
-      devDependencies: { xerify: '^0.1.0' }
+      devDependencies: { 'xverify-cli': '^0.1.0' }
     });
     const environment = { INIT_CWD: directory, npm_command: 'install' };
 
@@ -87,7 +87,9 @@ describe('npm postinstall project initialization', () => {
       path.join(directory, 'package-lock.json'),
       JSON.stringify({
         lockfileVersion: 3,
-        packages: { '': { name: 'consumer', devDependencies: { xerify: 'file:package.tgz' } } }
+        packages: {
+          '': { name: 'consumer', devDependencies: { 'xverify-cli': 'file:package.tgz' } }
+        }
       })
     );
 

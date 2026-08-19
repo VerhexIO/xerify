@@ -45,7 +45,7 @@ Without a global install, an MCP host may resolve the public npm package directl
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "xerify@0.1.0", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
     }
   }
 }
@@ -67,7 +67,7 @@ The test pins `protocolEra` to `modern` and `legacy` separately and requires all
 ## Official Registry metadata
 
 Xerify's repository contains `server.json`, and the npm manifest contains the matching
-`mcpName: "io.github.verhexio/xerify"`. The registry entry identifies `xerify` as an npm package,
+`mcpName: "io.github.verhexio/xerify"`. The registry entry identifies `xverify-cli` as the npm package,
 pins the package/server version, declares STDIO transport, and supplies the fixed `mcp stdio`
 arguments. A contract test prevents those fields from drifting.
 
