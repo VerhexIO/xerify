@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Date: 2026-08-18
-- Authority: `XERIFY.md` sections 3, 16, and 17
+- Authority: accepted architecture contract; see `docs/architecture.md` and the public result schemas
 
 ## Decision
 

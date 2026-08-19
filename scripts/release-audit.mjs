@@ -221,7 +221,6 @@ const requiredPaths = [
 const missingPaths = requiredPaths.filter((path) => !packedPaths.includes(path));
 const forbiddenPaths = packedPaths.filter(
   (path) =>
-    path === 'XERIFY.md' ||
     path.startsWith('.xerify/') ||
     path.startsWith('assets/') ||
     path.startsWith('design/') ||

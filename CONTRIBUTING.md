@@ -1,6 +1,8 @@
 # Contributing
 
-Xerify is developed against `XERIFY.md`, the canonical product and architecture authority. Public code, documentation, and commit messages are English.
+Xerify is developed against the public architecture guide, accepted ADRs, schemas, and tested
+contracts. Public code, documentation, and commit messages are English. Xerify is created and
+developed by Verhex; community contributions remain welcome under the project's MIT license.
 
 ## Setup
 

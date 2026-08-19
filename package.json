@@ -2,6 +2,7 @@
   "name": "xerify",
   "version": "0.1.0",
   "description": "Lightweight cross-provider verification for the shell and MCP.",
+  "mcpName": "io.github.verhexio/xerify",
   "author": {
     "name": "Verhex",
     "url": "https://github.com/VerhexIO"

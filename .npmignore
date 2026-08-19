@@ -8,7 +8,6 @@ coverage/
 design/
 src/
 tests/
-XERIFY.md
 *.log
 .env
 .env.*

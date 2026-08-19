@@ -33,6 +33,9 @@ accepted as evidence.
   response.
 - Complete Ubuntu Node 20/24, macOS Node 20/24, Windows Node 20/24, and WSL evidence. CI must not claim a lane that did not run.
 - Review the generated tarball, SBOM, license inventory, changelog, and vulnerability audit.
+- Keep `package.json` `mcpName`, `server.json` server/package versions, npm identifier, and fixed
+  `mcp stdio` arguments synchronized. MCP Registry publication must follow, never precede, the exact
+  npm version it references.
 
 ## Publish
 
@@ -44,3 +47,8 @@ The public package is unscoped `xerify`, so npm requires an individual release-o
 though package metadata and release control belong to Verhex. The exact bootstrap, Trusted Publisher,
 and `xerify@latest` verification flow is documented in [npm distribution and Verhex
 ownership](npm-publishing.md).
+
+After the npm package and clean-install checks succeed, publish the matching repository
+`server.json` through the official `mcp-publisher` using the VerhexIO GitHub namespace. The MCP
+Registry is a preview discovery channel and hosts metadata only; a Registry result is not a second
+package publication or a remote Xerify service.

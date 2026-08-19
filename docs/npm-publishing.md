@@ -20,13 +20,15 @@ is the documented residual ambiguity. The lifecycle performs no network/provider
 credential store. Global and `npx` users run `xerify init` explicitly.
 
 The published allowlist contains compiled `dist/`, schemas, public docs, the companion skill,
-license/security notices, and the guarded postinstall entry. It excludes source, tests, release
-artifacts, `.xerify/`, `XERIFY.md`, the repository-only `design/` workspace, and all logo/brand
-review assets. Root `.npmignore`, the
+license/security notices, and the guarded postinstall entry. It excludes source, tests, internal
+handoff material, release artifacts, `.xerify/`, the repository-only `design/` workspace, and all
+logo/brand review assets. Root `.npmignore`, the
 `package.json` `files` allowlist, and `smoke:install` enforce this boundary together.
 
-Package metadata identifies Verhex as the author and the source repository as
-`VerhexIO/xerify`. npm's ownership model has an important limitation: only individual npm user
+Xerify is created and developed by Verhex and distributed under the MIT License. Package metadata
+identifies Verhex as the author and the source repository as `VerhexIO/xerify`; this is the product's
+creator/developer attribution. The license describes reuse rights and does not replace that
+attribution. npm's ownership model has an important limitation: only individual npm user
 accounts can create/manage an unscoped package. An npm organization can own only scoped packages
 such as `@verhex/xerify`. See npm's official [scope/access
 matrix](https://docs.npmjs.com/package-scope-access-level-and-visibility/).
@@ -91,3 +93,15 @@ xerify init
 The published package is not considered usable merely because `npm publish` returned success; the
 external install, initialized project state, CLI doctor, MCP Inspector, exact version, and registry
 integrity must all agree.
+
+## MCP Registry after npm
+
+The public package contains `mcpName: "io.github.verhexio/xerify"`. Repository `server.json` uses
+the same name and exact version, points to npm package `xerify`, and declares the fixed STDIO launch
+arguments `mcp stdio`. The contract test fails if these identities drift.
+
+The official MCP Registry hosts metadata rather than npm artifacts. Publish npm first, complete the
+clean external checks above, then authenticate the owner-controlled `mcp-publisher` with GitHub and
+publish the matching `server.json`. Do not publish Registry metadata that references an absent or
+different npm version. The Registry remains in preview; direct pinned npm installation is the
+fallback discovery/install path.

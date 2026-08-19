@@ -22,7 +22,7 @@ The command is idempotent and never overwrites an existing config or `.gitignore
 ├── xverify-config.json
 ├── logs/
 │   └── audit.jsonl   # created on the first logged command
-├── runs/             # sequential active ask/verify records
+├── runs/             # sequential active ask/verify records and private .sequences reservations
 └── archive/          # records moved with `xerify runs archive`
 ```
 

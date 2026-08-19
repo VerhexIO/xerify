@@ -6,6 +6,9 @@
 
 Xerify is a shell-first, open-source tool for bounded cross-provider questions and verification. It can use provider CLIs already authenticated on your machine, direct APIs, or an explicitly configured executable. The same core and schemas power the CLI, library, local STDIO MCP server, and Streamable HTTP MCP server.
 
+Xerify is created and developed by **Verhex**, with community contributions, and distributed under
+the MIT License.
+
 Xerify provides a second opinion, not formal proof or guaranteed truth. Provider output is untrusted data and is never executed.
 
 > **Release status:** `0.1.0` is a pre-release candidate. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke. The invocation-provider identity contract has live Cursor/OpenAI proof in both directions, and the logo geometry/palette are owner-approved. WSL, first npm publication/Trusted Publisher setup, and signed GitHub artifacts remain release gates.
@@ -102,7 +105,7 @@ xerify runs restore 1
 xerify runs delete 1 --yes
 ```
 
-Global `--json`, `--timeout`, and `--log` options may appear before or after a subcommand. JSON mode writes one undecorated envelope to stdout. Important verification exits are `0` confirmed, `10` refuted, and `11` unclear; transport and schema failures have separate typed exits. See [the JSON contract](docs/json-contract.md).
+Global `--json`, `--timeout`, and `--log` options may appear before or after a subcommand. JSON mode writes one undecorated envelope to stdout. Important verification exits are `0` confirmed, `10` refuted, and `11` unclear; transport and schema failures have separate typed exits. See the [complete CLI reference](docs/cli-reference.md) and [JSON contract](docs/json-contract.md).
 
 `xerify request` is a bounded adapter-debug escape hatch. Even when its envelope uses `operation: "verify"`, it does not enforce author provenance, provider separation, verdict parsing, or verification exit semantics.
 
@@ -235,5 +238,6 @@ prompt-injection-proof.
 
 Read [SECURITY.md](SECURITY.md) before reporting a vulnerability or operating the HTTP server.
 Subscription, direct API, Cursor, CLI, and MCP combinations are mapped in [provider and access
-channels](docs/channels.md). Xerify is developed by **Verhex** and released under the [MIT
-License](LICENSE); third-party notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+channels](docs/channels.md). Xerify is created and developed by **Verhex**, with community
+contributions, and distributed under the [MIT License](LICENSE). Third-party notices are in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -1,5 +1,9 @@
 # Architecture
 
+This guide, the accepted records under `docs/decisions/`, the public schemas, and their tested
+contracts are Xerify's living product and architecture authority. A behavior is not public merely
+because it appears in an internal note; documentation must match the implemented and tested path.
+
 Xerify is one ESM package with four public surfaces—CLI, library, STDIO MCP, and Streamable HTTP MCP—over one core execution path.
 
 ```text

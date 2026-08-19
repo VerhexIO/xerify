@@ -83,14 +83,22 @@ Loopback Streamable HTTP is also free to operate on the user's machine. Internet
 TLS, authentication, authorization, rate limiting, secret custody, and an API-only provider policy;
 it must not become a relay for local subscription credentials.
 
-## Free remote MCP hosting decision
+## Free MCP distribution and future hosting
 
-The safe default is the existing local STDIO MCP: no hosting account, no public ingress, and no
-central credential store. If Verhex later needs a public API-backed MCP, Cloudflare Workers is the
-selected evaluation target because its official Agents SDK supports stateless Streamable HTTP MCP
-and the Workers Free plan currently provides a bounded free request tier. See Cloudflare's official
-[remote MCP guide](https://developers.cloudflare.com/agents/model-context-protocol/guides/remote-mcp-server/),
-[SDK v2 handler API](https://developers.cloudflare.com/agents/model-context-protocol/apis/handler-api/),
+The selected zero-hosting-cost distribution path is npm plus the official MCP Registry. The
+Registry stores discovery/launch metadata and points to the public `xerify` npm package; it does not
+host Xerify's code. The repository `server.json` fixes the package version, STDIO transport, and
+`mcp stdio` launch arguments. The package's matching `mcpName` proves the npm/Registry association.
+Because the Registry is in preview, a pinned `npx -y xerify@<version> mcp stdio` host entry remains
+the deterministic fallback. See the official [Registry
+quickstart](https://modelcontextprotocol.io/registry/quickstart) and [package type
+rules](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx).
+
+This distribution channel is local execution: no hosting account, no public ingress, and no central
+credential store. If Verhex later needs a public API-backed MCP, Cloudflare Workers remains the
+selected evaluation target because its official Agents SDK supports Streamable HTTP MCP and the
+Workers Free plan provides a bounded free tier. See Cloudflare's official [remote MCP
+guide](https://developers.cloudflare.com/agents/model-context-protocol/guides/remote-mcp-server/)
 and [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/). This is a
 deployment roadmap item, not a claim that the present Node listener can be uploaded unchanged.
 

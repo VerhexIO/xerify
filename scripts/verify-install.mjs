@@ -65,9 +65,6 @@ try {
       throw new Error(`npm package contains forbidden development path: ${forbiddenPrefix}`);
     }
   }
-  if (packedPaths.includes('XERIFY.md')) {
-    throw new Error('npm package contains the internal product authority document');
-  }
   if (!packedPaths.includes('scripts/postinstall.mjs')) {
     throw new Error('npm package is missing the guarded postinstall initializer');
   }

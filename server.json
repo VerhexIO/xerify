@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.verhexio/xerify",
+  "title": "Xerify",
+  "description": "Bounded cross-provider AI verification through a local MCP server.",
+  "repository": {
+    "url": "https://github.com/VerhexIO/xerify",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "xerify",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        },
+        {
+          "type": "positional",
+          "value": "stdio"
+        }
+      ]
+    }
+  ]
+}

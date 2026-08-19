@@ -7,6 +7,8 @@ artifact.
 ```text
 .xerify/
 ├── runs/
+│   ├── .sequences/
+│   │   └── 000001/         # empty private identity reservation
 │   └── 000001/
 │       ├── process.json
 │       ├── request.json
@@ -16,15 +18,34 @@ artifact.
 │           ├── manifest.json
 │           └── 001-<sha256>.txt
 └── archive/
+    └── 000002/             # same record layout after archive
 ```
 
 Sequences increase across active and archived records in one fixed history namespace. Private,
-content-free sequence reservations prevent Xerify's own lifecycle deletion from reusing an old
-identity. Existing reservations are range-checked and must remain empty; a detected modification
-fails closed. The stable ID is `xrun_000001`; commands accept either that ID or `1`. Evidence entries
-carry a locator, byte count, and `sha256:` digest. Files are created with private POSIX modes where
-supported and written atomically. A crash can leave a truthful `running` record; Xerify does not
-invent a terminal outcome.
+content-free `.sequences/<number>/` reservations prevent Xerify's own lifecycle deletion from
+reusing an old identity. They are implementation metadata, not runs: do not place files in them or
+delete them manually. Existing reservations are range-checked and must remain empty; a detected
+modification fails closed. The display directory uses the configured zero padding (six digits by
+default), while the stable ID is `xrun_000001`; commands accept either that ID or `1`. Deleting run
+`000001` therefore does not cause the next operation to become `000001` again.
+
+## Record files
+
+| Path                        | Meaning                                                                                                                                            |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `process.json`              | Stable run ID, sequence, operation/surface, lifecycle state, timestamps, target adapter/provider/model, and terminal exit/verdict or typed failure |
+| `request.json`              | Normalized ask/verify request metadata, author/target provenance, limits, context label, capture policy, byte counts, and digests                  |
+| `events.jsonl`              | Append-only lifecycle events: `started`, then `completed` or `failed`; archive/restore events are added without rewriting history                  |
+| `result.json`               | Parsed normalized Xerify result, or a metadata-only result summary according to `captureOutput`; absent for `none`                                 |
+| `error.json`                | Secret-safe typed error when no terminal normalized result can be stored                                                                           |
+| `evidence/manifest.json`    | Evidence IDs, labels/locators, byte counts, SHA-256 digests, and optional stored filenames                                                         |
+| `evidence/001-<sha256>.txt` | Bounded input context only when `captureInput` is `full`; numbering is evidence order, not a second run counter                                    |
+
+Evidence entries carry a locator, byte count, and `sha256:` digest. Files are created with private
+POSIX modes where supported and written atomically. A crash can leave a truthful `running` record;
+Xerify does not invent a terminal outcome. The run directory is the human/agent inspection unit;
+the JSON schemas stay deliberately smaller than Deckent's orchestration task records because
+Xerify records one provider request, not a worker plan or project mutation lifecycle.
 
 ```sh
 xerify --json runs list

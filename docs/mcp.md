@@ -38,6 +38,22 @@ Build or globally install Xerify, then configure a host with an executable and a
 }
 ```
 
+Without a global install, an MCP host may resolve the public npm package directly:
+
+```json
+{
+  "mcpServers": {
+    "xerify": {
+      "command": "npx",
+      "args": ["-y", "xerify@0.1.0", "mcp", "stdio"]
+    }
+  }
+}
+```
+
+Pin an exact reviewed version in durable host configuration; use `@latest` only when automatic
+upgrades are an intentional policy.
+
 No banner or diagnostic is written to stdout. Diagnostics go to stderr so JSON-RPC framing remains intact.
 
 The pinned smoke validates the compiled server with Inspector `2.2.0` in both protocol eras:
@@ -47,6 +63,20 @@ npm run smoke:mcp
 ```
 
 The test pins `protocolEra` to `modern` and `legacy` separately and requires all three tool schemas to be discoverable. Modern clients negotiate `server/discover` and `2026-07-28`; legacy clients use the initialize-era path.
+
+## Official Registry metadata
+
+Xerify's repository contains `server.json`, and the npm manifest contains the matching
+`mcpName: "io.github.verhexio/xerify"`. The registry entry identifies `xerify` as an npm package,
+pins the package/server version, declares STDIO transport, and supplies the fixed `mcp stdio`
+arguments. A contract test prevents those fields from drifting.
+
+The official MCP Registry is a free discovery metadata channel, not an execution host or package
+mirror. npm must contain the exact Xerify version first; only then may the release owner authenticate
+and publish `server.json` with `mcp-publisher`. The Registry is currently preview software, so
+clients should retain a direct pinned npm configuration as the stable fallback. See the official
+[Registry quickstart](https://modelcontextprotocol.io/registry/quickstart) and [npm package
+rules](https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/package-types.mdx).
 
 ## Streamable HTTP
 

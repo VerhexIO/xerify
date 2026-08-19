@@ -1,7 +1,7 @@
 # Upstream association
 
 - Repository: `https://github.com/VerhexIO/xerify`
-- Product and architecture authority: `XERIFY.md`
+- Product and architecture authority: `docs/architecture.md`, accepted ADRs, public schemas, and tested contracts
 - Canonical brand contract: `docs/brand.md`
 - Canonical logo assets: `assets/logos/`
 - Design workspace: `design/` (repository-only; excluded from the npm package)

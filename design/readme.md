@@ -7,7 +7,7 @@ Design system for **Xerify** — a shell-first, open-source tool for bounded cro
 
 Xerify has one product surface today: the CLI/library/MCP core and its documentation. There is no GUI application — the UI kit here recreates the marketing/docs site, because that (plus the terminal itself) is what developers actually see.
 
-**Source:** built from [github.com/VerhexIO/xerify](https://github.com/VerhexIO/xerify) (branch `main`). Explore the repo for detail this system doesn't cover — `XERIFY.md` (product/architecture authority), `docs/` (architecture, MCP, provider adapters, brand), `schemas/` (JSON contracts), `src/` (CLI, core, providers, MCP).
+**Source:** built from [github.com/VerhexIO/xerify](https://github.com/VerhexIO/xerify) (branch `main`). Explore the repo for detail this system doesn't cover — `docs/` (architecture, decisions, MCP, provider adapters, brand), `schemas/` (JSON contracts), `src/` (CLI, core, providers, MCP), and their tests.
 
 ## Index
 
