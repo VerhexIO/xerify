@@ -40,7 +40,13 @@ jobs:
         with:
           subject-path: ${{ steps.release.outputs.tarball }}
           sbom-path: artifacts/xerify.spdx.json
-      - run: npm publish "${{ steps.release.outputs.tarball }}" --access public
+      # Bootstrap only: npm requires the package to exist before Trusted Publishing can be
+      # configured. Remove NODE_AUTH_TOKEN after xerify@0.1.0 is published and release.yml is
+      # registered as the package's trusted publisher.
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish "${{ steps.release.outputs.tarball }}" --access public
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

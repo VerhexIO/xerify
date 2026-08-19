@@ -18,10 +18,17 @@ inventory, SPDX SBOM, vulnerability audit, and secret-pattern scan. Live provide
 normal release gate; any such call requires explicit owner approval and a bounded, non-sensitive
 evidence scope.
 
-The unscoped package is `xerify`. The designated Verhex release owner bootstraps the first public
-version from an owner-controlled npm account. Ongoing releases should use npm Trusted Publishing
-bound to `VerhexIO/xerify`, workflow `release.yml`, environment `npm`. Never commit or paste npm
-tokens, OTPs, recovery codes, or auth-store contents into issues, prompts, logs, or repository files.
+The unscoped package is `xerify`. npm requires a package to exist before a Trusted Publisher can be
+configured, so the designated Verhex release owner bootstraps `0.1.0` with an owner-controlled,
+package-write granular token that can satisfy the account's publish-time 2FA policy. Store it only
+as the repository Actions secret `NPM_TOKEN`; the bootstrap release workflow exposes it only as
+`NODE_AUTH_TOKEN` on the `npm publish` step. Never commit or paste npm tokens, OTPs, recovery codes,
+or auth-store contents into issues, prompts, logs, or repository files.
+
+Immediately after `0.1.0` exists, configure npm Trusted Publishing for repository
+`VerhexIO/xerify`, workflow `release.yml`, environment `npm`, with publish permission. Then remove
+the `NODE_AUTH_TOKEN` mapping from `release.yml`, delete the `NPM_TOKEN` Actions secret, and revoke
+the granular token. Ongoing releases must use the OIDC relationship rather than a long-lived token.
 
 ## Publish
 
