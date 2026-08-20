@@ -1,0 +1,977 @@
+<title>Xerify</title>
+<meta
+  name="description"
+  content="Ask another provider. Get a clear second opinion. A cross-provider verification CLI for the shell and MCP."
+/>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Ubuntu+Sans:ital,wght@0,300..800;1,300..800&family=Ubuntu+Sans+Mono:wght@400..700&display=swap"
+/>
+
+<style>
+  /* Approved Xerify system. Light palette is the ground truth; the dark set is the brand's own
+     inversion (white/#10b981 on ink) rather than a naive flip. */
+  :root {
+    --ink: #0a0a0a;
+    --paper: #f2f0e9;
+    --surface: #ece9e0;
+    --emerald: #065f46;
+    --signal: #b42318;
+    --text: #0a0a0a;
+    --muted: #595a54;
+    --faint: #77766e;
+    --rule: #cfccc2;
+    --rule-strong: #a9a79e;
+    --code-bg: #e7e3d8;
+    --shadow: 0 6px 28px rgba(10, 10, 10, 0.09);
+
+    --display: 'Ubuntu Sans', 'Ubuntu', system-ui, sans-serif;
+    --mono: 'Ubuntu Sans Mono', 'Ubuntu Mono', ui-monospace, monospace;
+    --measure: 66ch;
+    --gutter: clamp(1.25rem, 5vw, 4rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --ink: #f2f0e9;
+      --paper: #0a0a0a;
+      --surface: #141412;
+      --emerald: #10b981;
+      --signal: #f0685a;
+      --text: #f2f0e9;
+      --muted: #a9a79e;
+      --faint: #8b8981;
+      --rule: #2b2b28;
+      --rule-strong: #45443f;
+      --code-bg: #161614;
+      --shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --ink: #f2f0e9;
+    --paper: #0a0a0a;
+    --surface: #141412;
+    --emerald: #10b981;
+    --signal: #f0685a;
+    --text: #f2f0e9;
+    --muted: #a9a79e;
+    --faint: #8b8981;
+    --rule: #2b2b28;
+    --rule-strong: #45443f;
+    --code-bg: #161614;
+    --shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: var(--display);
+    font-size: 17px;
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+  .col {
+    max-width: var(--measure);
+  }
+
+  a {
+    color: inherit;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 3px;
+  }
+  a:hover {
+    text-decoration-color: var(--emerald);
+  }
+  a:focus-visible {
+    outline: 2px solid var(--emerald);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  /* The eyebrow carries a real exit code, so it is set in the machine face. */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+  .eyebrow b {
+    color: var(--emerald);
+    font-weight: 700;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.75rem 0;
+    flex-wrap: wrap;
+  }
+  .logo {
+    height: 30px;
+    width: auto;
+    color: var(--ink);
+  }
+  .logo .accent {
+    stroke: var(--emerald);
+  }
+  .masthead nav {
+    display: flex;
+    gap: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+  }
+  .masthead nav a {
+    text-decoration: none;
+    color: var(--muted);
+  }
+  .masthead nav a:hover {
+    color: var(--emerald);
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    padding: clamp(2.5rem, 7vw, 5.5rem) 0 clamp(2rem, 5vw, 3.5rem);
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 6.4vw, 4.4rem);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+    max-width: 18ch;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--emerald);
+  }
+  .lede {
+    margin: 1.6rem 0 0;
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 54ch;
+  }
+
+  .install {
+    margin-top: 2.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem 1.4rem;
+    align-items: center;
+  }
+  .install code {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    padding: 0.62rem 0.95rem;
+    white-space: nowrap;
+  }
+  .install .ver {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+  }
+
+  figure.flow {
+    margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+  }
+  figure.flow img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+  }
+  figure.flow figcaption {
+    margin-top: 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- generic section ---------- */
+  section {
+    padding: clamp(3rem, 7vw, 5rem) 0;
+    border-top: 1px solid var(--rule);
+  }
+  section h2 {
+    font-size: clamp(1.55rem, 3.2vw, 2.15rem);
+    line-height: 1.15;
+    max-width: 22ch;
+  }
+  section .col p {
+    color: var(--muted);
+  }
+  section .col p:first-of-type {
+    margin-top: 1.1rem;
+  }
+
+  /* ---------- command pair ---------- */
+  .commands {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2.4rem;
+  }
+  @media (min-width: 60rem) {
+    .commands {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .cmd {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+  }
+  .cmd header {
+    padding: 0.7rem 1.1rem;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .cmd pre {
+    margin: 0;
+    padding: 1.1rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.86rem;
+    line-height: 1.75;
+    color: var(--text);
+  }
+  .cmd pre .flag {
+    color: var(--emerald);
+  }
+  .cmd pre .dim {
+    color: var(--faint);
+  }
+  .cmd p {
+    margin: 0;
+    padding: 0 1.1rem 1.1rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+
+  /* ---------- verdicts ---------- */
+  .verdicts {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 2.4rem;
+  }
+  @media (min-width: 48rem) {
+    .verdicts {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .verdict {
+    background: var(--paper);
+    padding: 1.5rem 1.4rem;
+  }
+  .verdict .code {
+    font-family: var(--mono);
+    font-size: 2.1rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .verdict .name {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 0.55rem;
+    letter-spacing: 0.02em;
+  }
+  .verdict p {
+    margin: 0.6rem 0 0;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .v-confirmed .code,
+  .v-confirmed .name {
+    color: var(--emerald);
+  }
+  .v-refuted .code,
+  .v-refuted .name {
+    color: var(--signal);
+  }
+  .v-unclear .code,
+  .v-unclear .name {
+    color: var(--muted);
+  }
+
+  table.codes {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2.2rem;
+    font-size: 0.92rem;
+  }
+  table.codes th,
+  table.codes td {
+    text-align: left;
+    padding: 0.62rem 0.9rem 0.62rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  table.codes th {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 600;
+  }
+  table.codes td:first-child {
+    font-family: var(--mono);
+    font-weight: 700;
+    width: 4.5rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--emerald);
+  }
+  table.codes td:last-child {
+    color: var(--muted);
+  }
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  /* ---------- ledger ---------- */
+  .ledger {
+    margin-top: 2.4rem;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+  }
+  .ledger-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.2rem;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .tally {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+  }
+  @media (min-width: 42rem) {
+    .tally {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .tally div {
+    background: var(--surface);
+    padding: 1.3rem 1.2rem;
+  }
+  .tally .n {
+    font-family: var(--mono);
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .tally .l {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    margin-top: 0.4rem;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+  .tally .t-c .n {
+    color: var(--emerald);
+  }
+  .tally .t-r .n {
+    color: var(--signal);
+  }
+  .tally .t-u .n {
+    color: var(--muted);
+  }
+
+  blockquote.note {
+    margin: 2.2rem 0 0;
+    padding: 1.3rem 1.5rem;
+    border-left: 3px solid var(--signal);
+    background: var(--surface);
+  }
+  blockquote.note p {
+    margin: 0;
+    font-size: 1rem;
+  }
+  blockquote.note p + p {
+    margin-top: 0.85rem;
+  }
+  blockquote.note cite {
+    display: block;
+    margin-top: 0.9rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-style: normal;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- docs ---------- */
+  .docs-grid {
+    display: grid;
+    gap: 2.4rem;
+    margin-top: 2.4rem;
+  }
+  @media (min-width: 54rem) {
+    .docs-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .doc-group h3 {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 600;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .doc-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .doc-group li {
+    border-bottom: 1px solid var(--rule);
+  }
+  .doc-group a {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.62rem 0;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+  .doc-group a span {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--faint);
+    text-align: right;
+  }
+  .doc-group a:hover {
+    color: var(--emerald);
+  }
+  .doc-group a:hover span {
+    color: var(--emerald);
+  }
+
+  .langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.6rem;
+  }
+  .langs a {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    text-decoration: none;
+    border: 1px solid var(--rule-strong);
+    padding: 0.34rem 0.7rem;
+    color: var(--muted);
+  }
+  .langs a:hover {
+    border-color: var(--emerald);
+    color: var(--emerald);
+  }
+
+  /* ---------- limits ---------- */
+  .limits {
+    border: 1px solid var(--rule-strong);
+    padding: clamp(1.4rem, 3vw, 2rem);
+    margin-top: 2.4rem;
+  }
+  .limits h3 {
+    font-size: 1.05rem;
+    margin-bottom: 0.8rem;
+  }
+  .limits ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .limits li + li {
+    margin-top: 0.5rem;
+  }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 2.5rem 0 3.5rem;
+  }
+  .foot-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .foot-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.84rem;
+  }
+  .foot-links a {
+    text-decoration: none;
+    color: var(--muted);
+  }
+  .foot-links a:hover {
+    color: var(--emerald);
+  }
+  .foot-meta {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--faint);
+    line-height: 1.9;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <svg class="logo" viewBox="240 130 1830 800" role="img" aria-label="Xerify">
+      <g fill="none" stroke-width="88" stroke-linecap="square" stroke-linejoin="miter">
+        <path d="M333 250 500 480 667 250" stroke="currentColor" />
+        <path class="accent" d="M426 733 500 631 630 810" />
+      </g>
+      <g
+        fill="none"
+        stroke="currentColor"
+        stroke-width="70"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M1035 555 A150 150 0 1 0 967 681" />
+        <path d="M735 555H1035" />
+        <path d="M1155 705V405" />
+        <path d="M1155 505Q1155 405 1270 405" />
+        <path d="M1390 705V405" />
+        <path d="M1560 705V368Q1560 288 1660 302" />
+        <path d="M1510 470H1635" />
+        <path d="M1780 405 1890 645" />
+        <path d="M2000 405 1873 785" />
+      </g>
+      <circle cx="1390" cy="322" r="35" fill="currentColor" />
+    </svg>
+    <nav>
+      <a href="#how">How it works</a>
+      <a href="#verdicts">Verdicts</a>
+      <a href="#proof">Proof</a>
+      <a href="#docs">Docs</a>
+      <a href="https://github.com/VerhexIO/xerify">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>Ask another provider. Get a <em>clear second opinion.</em></h1>
+    <p class="lede">
+      Xerify takes a claim one model already made and puts it through an independent check by a
+      different provider. What comes back is a typed verdict and an exit code your shell can branch
+      on — not a second opinion buried in prose.
+    </p>
+    <div class="install">
+      <code>npm install --global xverify-cli</code>
+      <span class="ver">v0.2.0 &middot; MIT &middot; Node 20 or 24</span>
+    </div>
+    <figure class="flow">
+      <img
+        src="./xerify-verification-flow.gif"
+        alt="A claim from provider A passes through bounded evidence and a different-provider gate; provider B checks it independently; Xerify returns a typed confirmed, refuted, or unclear result."
+        width="960"
+        height="540"
+      />
+      <figcaption>One claim, one independent check, one typed result.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<div class="wrap">
+  <section id="how">
+    <div class="col">
+      <p class="eyebrow"><b>ask</b> &amp; <b>verify</b></p>
+      <h2>Two commands, and a rule that no model checks its own work.</h2>
+      <p>
+        <code>ask</code> puts a question to a model. <code>verify</code> takes a claim that already
+        exists and checks it against the evidence you supply. The provider that wrote the claim is
+        refused as its own checker, so a second opinion is genuinely second.
+      </p>
+    </div>
+
+    <div class="commands">
+      <div class="cmd">
+        <header><span>ask</span><span>exit 0</span></header>
+        <pre>git diff --cached | xerify ask \
+  <span class="flag">--to</span> anthropic:MODEL_ID \
+  <span class="flag">--question</span> <span class="dim">"What is the highest-risk
+  issue in this change?"</span></pre>
+        <p>An answer, with usage and truncation reported honestly.</p>
+      </div>
+      <div class="cmd">
+        <header><span>verify</span><span>exit 0 / 10 / 11</span></header>
+        <pre>git diff --cached | xerify <span class="flag">--json</span> verify \
+  <span class="flag">--from</span> openai:AUTHOR_MODEL \
+  <span class="flag">--to</span> anthropic:VERIFIER_MODEL \
+  <span class="flag">--claim</span> <span class="dim">"This closes the race
+  without a regression"</span></pre>
+        <p>A verdict, findings, and the evidence the verifier actually used.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="verdicts">
+    <div class="col">
+      <p class="eyebrow">The typed contract</p>
+      <h2>Three verdicts, and an exit code for everything that is not one.</h2>
+      <p>
+        Scripts branch on numbers, not sentences. A verification that never reached a model exits
+        differently from one that reached it and came back unconvinced — so a pipeline can retry the
+        first and must not retry the second.
+      </p>
+    </div>
+
+    <div class="verdicts">
+      <div class="verdict v-confirmed">
+        <div class="code">0</div>
+        <div class="name">confirmed</div>
+        <p>
+          A second provider checked the claim against the evidence and found nothing against it.
+        </p>
+      </div>
+      <div class="verdict v-refuted">
+        <div class="code">10</div>
+        <div class="name">refuted</div>
+        <p>The check found something in the evidence that contradicts the claim.</p>
+      </div>
+      <div class="verdict v-unclear">
+        <div class="code">11</div>
+        <div class="name">unclear</div>
+        <p>The evidence does not settle it. Not a failure — an honest abstention.</p>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table class="codes">
+        <thead>
+          <tr>
+            <th scope="col">Exit</th>
+            <th scope="col">Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2</td>
+            <td>Invalid input or config, same provider, or unprovable provenance</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Provider executable, endpoint, or authentication unavailable</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Timeout or cancellation</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Provider, process, or API transport failure</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Invalid, incomplete, or schema-nonconforming provider response</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="proof">
+    <div class="col">
+      <p class="eyebrow">Dogfooding record</p>
+      <h2>We put our own claims about it through the same check. Two did not hold.</h2>
+      <p>
+        Five findings about Xerify were put through <code>xerify verify</code> against both the
+        Codex and Cursor channels, twenty-six rounds in total. Only one finding passed on the first
+        attempt. The full log, including every rejected envelope, ships with the docs.
+      </p>
+    </div>
+
+    <div class="ledger">
+      <div class="ledger-head">
+        <span>26 rounds &middot; codex + cursor</span>
+        <span>docs/examples/dogfooding.md</span>
+      </div>
+      <div class="tally">
+        <div class="t-c">
+          <div class="n">9</div>
+          <div class="l">confirmed</div>
+        </div>
+        <div class="t-r">
+          <div class="n">2</div>
+          <div class="l">refuted</div>
+        </div>
+        <div class="t-u">
+          <div class="n">15</div>
+          <div class="l">unclear</div>
+        </div>
+      </div>
+    </div>
+
+    <blockquote class="note">
+      <p>
+        One of those checks overturned a claim we had already written down as fact. A scan had
+        reported that all 86 source maps set a <code>sourceRoot</code> prefix. Two independent
+        checks disagreed, and they were right: the scan used a truthiness test, and every one of the
+        86 values was the empty string.
+      </p>
+      <p>
+        Releasing 0.2.0 went the same way. Five rounds of independent checks sent the work back, and
+        every round found something real — a credential shape that survived redaction, a token count
+        that double-counted, a documented guarantee the code did not actually provide.
+      </p>
+      <cite>— from the shipped verification log</cite>
+    </blockquote>
+  </section>
+
+  <section id="channels">
+    <div class="col">
+      <p class="eyebrow">Channels</p>
+      <h2>Bring the providers you already pay for.</h2>
+      <p>
+        Xerify shells out to the CLIs you have logged into, or calls an API with your key. It stores
+        no credentials of its own. Codex CLI, Claude CLI, Cursor Agent, the OpenAI and Anthropic
+        APIs, any OpenAI-compatible endpoint, and an explicitly configured command.
+      </p>
+      <p>
+        It also runs as an MCP server over stdio and Streamable HTTP, so an agent can call
+        <code>xerify_verify</code> as a tool.
+      </p>
+    </div>
+
+    <div class="limits">
+      <h3>What it does not claim</h3>
+      <ul>
+        <li>This is a bounded cross-provider second opinion, not a formal proof.</li>
+        <li>
+          <code>confirmed</code> means a second provider checked the claim against the evidence and
+          found nothing against it. It does not mean the claim is true.
+        </li>
+        <li>
+          Provider identity measures channel diversity, not upstream model independence. Every
+          Cursor Agent model is <code>cursor</code>, whatever it runs underneath.
+        </li>
+        <li>Truncated evidence can never produce <code>confirmed</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="docs">
+    <div class="col">
+      <p class="eyebrow">Documentation</p>
+      <h2>Every guide, in six languages.</h2>
+      <p>
+        English is canonical. Turkish, German, Simplified Chinese, Spanish, and French are full
+        translations held to the English structure by a contract test, not summaries.
+      </p>
+    </div>
+
+    <div class="docs-grid">
+      <div class="doc-group">
+        <h3>Guides</h3>
+        <ul>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/installation.md"
+              >Installation<span>install</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/cli-reference.md"
+              >CLI reference<span>commands</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/configuration.md"
+              >Configuration<span>config</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/provider-adapters.md"
+              >Provider adapters<span>adapters</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/channels.md"
+              >Channels<span>identity</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/json-contract.md"
+              >JSON contract<span>schema</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/run-history.md"
+              >Run history<span>records</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/mcp.md"
+              >MCP operation<span>server</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/architecture.md"
+              >Architecture<span>internals</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/SECURITY.md"
+              >Security policy<span>security</span></a
+            >
+          </li>
+        </ul>
+      </div>
+      <div class="doc-group">
+        <h3>Worked examples</h3>
+        <ul>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/dogfooding.md"
+              >Dogfooding log<span>26 rounds</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/failure-modes.md"
+              >Failure catalogue<span>every non-confirmed</span></a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/no-account-walkthrough.md"
+              >Zero-quota walkthrough<span>no account</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/research-paper.md"
+              >Research paper<span>claim</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/game-design.md"
+              >Game production<span>claim</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/website-decision.md"
+              >Website selection<span>claim</span></a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/data-analysis.md"
+              >Analytics<span>claim</span></a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/VerhexIO/xerify/blob/main/docs/examples/outbound-data-policy.md"
+              >Outbound-data policy<span>claim</span></a
+            >
+          </li>
+        </ul>
+        <div class="langs">
+          <a href="https://github.com/VerhexIO/xerify/blob/main/README.md">EN</a>
+          <a href="https://github.com/VerhexIO/xerify/blob/main/README.tr.md">TR</a>
+          <a href="https://github.com/VerhexIO/xerify/blob/main/README.de.md">DE</a>
+          <a href="https://github.com/VerhexIO/xerify/blob/main/README.zh-CN.md">ZH</a>
+          <a href="https://github.com/VerhexIO/xerify/blob/main/README.es.md">ES</a>
+          <a href="https://github.com/VerhexIO/xerify/blob/main/README.fr.md">FR</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-row">
+      <div class="foot-links">
+        <a href="https://www.npmjs.com/package/xverify-cli">npm</a>
+        <a href="https://github.com/VerhexIO/xerify">GitHub</a>
+        <a href="https://github.com/VerhexIO/xerify/releases/tag/v0.2.0">Releases</a>
+        <a href="https://github.com/VerhexIO/xerify/blob/main/CHANGELOG.md">Changelog</a>
+        <a href="https://github.com/VerhexIO/xerify/blob/main/LICENSE">MIT</a>
+      </div>
+      <div class="foot-meta">
+        xverify-cli v0.2.0 &middot; published with SLSA provenance<br />
+        Built by Verhex &middot; Xerify is a bounded second opinion, not a proof.
+      </div>
+    </div>
+  </footer>
+</div>

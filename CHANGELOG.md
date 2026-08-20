@@ -155,7 +155,7 @@ change something a consumer opts into.
 
 - `docs/examples/dogfooding.md`: a log of 26 verification rounds spent putting five findings about
   Xerify through `xerify verify` against both the `codex` and `cursor` channels. Nine came back
-  `confirmed`, two came back `refuted` because a claim was wrong, and twelve came back `unclear`
+  `confirmed`, two came back `refuted` because a claim was wrong, and fifteen came back `unclear`
   because the evidence did not establish what the claim asserted. The page names the four rejection
   classes, quotes the verifier objections verbatim, shows the envelope shape that finally passed,
   and records what this channel structurally cannot verify.
