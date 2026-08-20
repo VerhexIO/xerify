@@ -1,25 +1,29 @@
-# Generated public evidence: Xerify npm dry-run package receipt
+# Generated public evidence: xverify-cli npm dry-run package receipt
 
-Evidence set: `dogfood-package-boundary-2026-08-19-r3`
+Evidence set: `dogfood-package-boundary-2026-08-20`
 
-This is sanitized metadata from `npm pack --dry-run --json --ignore-scripts` after the worked-example
-paths were added. It contains public package paths only—no source text, credential, local run state,
-provider response, or release artifact content.
+This is sanitized metadata from `npm pack --dry-run --json --ignore-scripts`, taken after the
+package was published to npm as `xverify-cli`. It contains public package paths and counts only —
+no source text, credential, local run state, provider response, or release artifact content.
 
-This immutable example records the pre-publication `xerify` candidate name. npm later rejected that
-unscoped name; the current distribution is `xverify-cli`. The historical receipt is intentionally
-not rewritten as if the verifier had observed the renamed package.
+The pre-publication candidate name was `xerify`; npm rejected that unscoped name and the published
+distribution is `xverify-cli`. The installed executable is still `xerify`.
 
 ```json
 {
-  "package": "xerify@0.1.0",
-  "filename": "xerify-0.1.0.tgz",
-  "entryCount": 217,
-  "unpackedSize": 598652,
+  "package": "xverify-cli@0.1.0",
+  "filename": "xverify-cli-0.1.0.tgz",
+  "entryCount": 229,
+  "unpackedSize": 706272,
   "topLevelEntries": [
     "CHANGELOG.md",
     "LICENSE",
+    "README.de.md",
+    "README.es.md",
+    "README.fr.md",
     "README.md",
+    "README.tr.md",
+    "README.zh-CN.md",
     "SECURITY.md",
     "THIRD_PARTY_NOTICES.md",
     "dist",
@@ -35,7 +39,9 @@ not rewritten as if the verifier had observed the renamed package.
     "skills/xerify/SKILL.md": true,
     "scripts/postinstall.mjs": true,
     "docs/examples/README.md": true,
-    "docs/examples/index.jsonl": true
+    "docs/examples/index.jsonl": true,
+    "docs/examples/tools/mock-provider.mjs": true,
+    "docs/i18n/tr/README.md": true
   },
   "forbiddenPathRules": [
     ".agents/",
@@ -53,27 +59,10 @@ not rewritten as if the verifier had observed the renamed package.
     "XERIFY.md",
     "CONTRIBUTING.md"
   ],
-  "forbiddenMatches": [],
-  "exampleFiles": [
-    "docs/examples/README.md",
-    "docs/examples/data-analysis.md",
-    "docs/examples/dogfood-cursor-adapter.md",
-    "docs/examples/dogfood-package-boundary.md",
-    "docs/examples/evidence/data-analysis.md",
-    "docs/examples/evidence/dogfood-cursor-adapter.md",
-    "docs/examples/evidence/dogfood-package-boundary.md",
-    "docs/examples/evidence/game-design.md",
-    "docs/examples/evidence/outbound-data-policy.md",
-    "docs/examples/evidence/research-paper.md",
-    "docs/examples/evidence/website-decision.md",
-    "docs/examples/game-design.md",
-    "docs/examples/index.jsonl",
-    "docs/examples/outbound-data-policy.md",
-    "docs/examples/research-paper.md",
-    "docs/examples/website-decision.md"
-  ]
+  "forbiddenMatches": []
 }
 ```
 
 The bounded claim is about what this dry-run receipt reports. It does not attest that the registry
-serves the same bytes, and the byte count can change when documentation prose changes.
+serves the same bytes, and both `entryCount` and `unpackedSize` change whenever documentation prose
+changes.

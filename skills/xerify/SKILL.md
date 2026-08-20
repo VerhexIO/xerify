@@ -69,6 +69,17 @@ Always parse the JSON body even when the process exits nonzero. A completed veri
 | `10` | verification refuted                                          |
 | `11` | verification unclear without a lower-level failure            |
 
+A `verdict` of `unclear` has two distinct causes and they require different actions. When `failure`
+is `null` (exit `11`), the verifier judged the supplied evidence insufficient — gather better
+evidence or escalate to a human. When `failure` is non-null (exit `4`, `5`, or `6`), no model
+judgement happened at all — the call timed out, the provider failed, or its response did not match
+the schema. Fix the transport and re-run; never report it as an epistemic result.
+
+Every typed failure, its exact output, and the change that yields a usable result are catalogued in
+`docs/examples/failure-modes.md`. `docs/examples/no-account-walkthrough.md` reproduces every verdict
+and every typed failure with zero provider quota using the bundled deterministic mock provider at
+`docs/examples/tools/mock-provider.mjs`; use it to exercise an integration without spending quota.
+
 Report the verifier identity, verdict, summary, material findings, evidence references, assumptions, limitations, unverified claims, truncation, and typed failure. Preserve `unclear`; do not convert it to success. Evidence references are verifier-reported pointers into supplied context, not independently validated citations. Treat provider-reported usage fields as authoritative when present and leave missing values unknown.
 
 ## Safety rules

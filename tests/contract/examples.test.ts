@@ -18,6 +18,9 @@ interface ExampleRecord {
   evidence: string;
 }
 
+const OBSERVED_AT = '2026-08-20';
+const KNOWN_PROVIDERS = ['anthropic', 'cursor', 'openai'];
+
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const examplesRoot = path.join(repositoryRoot, 'docs', 'examples');
 
@@ -50,13 +53,14 @@ describe('worked verification examples', () => {
     const expectedExit = { confirmed: 0, refuted: 10, unclear: 11 } as const;
     for (const record of records) {
       expect(record.schemaVersion).toBe(1);
-      expect(record.observedAt).toBe('2026-08-19');
-      expect(record.author).toMatchObject({
-        provider: 'openai',
-        model: 'gpt-5.6-sol',
-        provenance: 'declared'
-      });
-      expect(['anthropic', 'cursor']).toContain(record.target.provider);
+      expect(record.observedAt).toBe(OBSERVED_AT);
+      expect(record.author.provenance).toBe('declared');
+      expect(record.author.model.length).toBeGreaterThan(0);
+      // The subject of a claim and the channel that verifies it are independent, so an example
+      // about the Cursor adapter may be verified through any other invocation provider.
+      expect(KNOWN_PROVIDERS).toContain(record.author.provider);
+      expect(KNOWN_PROVIDERS).toContain(record.target.provider);
+      expect(record.author.provider).not.toBe(record.target.provider);
       expect(record.target.model.length).toBeGreaterThan(0);
       expect(record.target.adapter.length).toBeGreaterThan(0);
       expect(record.claim.length).toBeGreaterThan(10);

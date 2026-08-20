@@ -116,7 +116,7 @@ xerify request
 xerify init
 xerify runs list
 xerify runs show 1
-xerify runs search "race condition"
+xerify runs search "race condition"   # searches the archive
 xerify runs archive 1
 xerify runs restore 1
 xerify runs delete 1 --yes

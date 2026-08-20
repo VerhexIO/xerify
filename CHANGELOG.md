@@ -4,6 +4,34 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ## [Unreleased]
 
+### Added
+
+- Complete six-language documentation set under `docs/i18n/<lang>/`. Every consumer guide, the
+  security policy, and every worked-example page is now available in Turkish, German, Simplified
+  Chinese, Spanish, and French. English remains canonical; `docs/examples/evidence/` stays
+  English-only because those files are hash-anchored verification artifacts.
+- `docs/examples/failure-modes.md`: a catalogue of every non-`confirmed` outcome with its observed
+  output, cause, and the change that yields a usable result. Covers a missing provider CLI, an
+  unauthenticated provider CLI, same-provider rejection, Cursor `auto`, prose and off-schema
+  responses, nonzero provider exits, timeouts, output truncation, adapter-selection ambiguity, and
+  observed run-to-run flakiness.
+- `docs/examples/no-account-walkthrough.md`: reproduces every verdict and every typed failure with
+  zero provider quota.
+- `docs/examples/tools/mock-provider.mjs`: a deterministic mock provider that makes the walkthrough
+  and the failure catalogue reproducible without a provider account.
+
+### Changed
+
+- Reran every worked example against live providers and rewrote each page with the observed result
+  plus "why this verdict" and "what would change it" sections.
+- Retargeted the Cursor adapter dogfood example at the schema-enforcing `codex` adapter after two
+  consecutive Cursor attempts returned exit `6`; the page documents both attempts.
+- Regenerated the npm package-boundary example evidence against the published `xverify-cli@0.1.0`.
+- The worked-example contract test now asserts that an example's author and target invocation
+  providers differ, instead of pinning a single author provider.
+- `skills/xerify/SKILL.md` now distinguishes the two causes of an `unclear` verdict and points at
+  the failure catalogue and the zero-quota walkthrough.
+
 ## [0.1.0] - 2026-08-19
 
 ### Added
