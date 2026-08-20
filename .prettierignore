@@ -3,6 +3,7 @@ coverage/
 node_modules/
 .agents/
 .codex/
+.claude/
 .cursor/
 .deckent/
 .xerify/

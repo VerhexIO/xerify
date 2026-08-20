@@ -1,6 +1,7 @@
 # Contributing
 
-Xerify is created and maintained by Verhex. Bug reports, documentation corrections, and focused
+Xerify is built and maintained by Verhex, and is the standalone open-source form of the
+cross-provider verification layer used by Deckent, the Verhex agentic operating system. Bug reports, documentation corrections, and focused
 proposals are welcome. Opening an issue or pull request does not guarantee that a change will be
 accepted, scheduled, or supported; maintainers retain product scope and release decisions.
 

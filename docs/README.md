@@ -23,6 +23,8 @@ please report the translation drift.
 - [Compatibility and support boundaries](compatibility.md)
 - [Architecture](architecture.md)
 - [Worked verification examples](examples/README.md)
+- [No-account walkthrough](examples/no-account-walkthrough.md) — every outcome with zero provider quota
+- [Failure modes](examples/failure-modes.md) — every typed failure, its cause, and its fix
 - [Security policy](../SECURITY.md)
 
 ## Normative and machine-readable material
@@ -30,7 +32,8 @@ please report the translation drift.
 - [Accepted architecture decisions](decisions/)
 - [Published JSON Schemas](../schemas/)
 - [Machine-readable example index](examples/index.jsonl)
-- [Immutable example evidence](examples/evidence/)
+- [Immutable example evidence](examples/evidence/) — English-only, hash-anchored
+- [Deterministic mock provider](../tools/mock-provider.mjs)
 
 The product is **Xerify**, the npm distribution is **`xverify-cli`**, and the installed executable
 is **`xerify`**.

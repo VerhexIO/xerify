@@ -19,9 +19,11 @@ explizit konfiguriertes Programm verwenden. CLI, JavaScript/TypeScript-Bibliothe
 und Streamable-HTTP-MCP nutzen denselben Kern und dieselben Schemas.
 
 Xerify wird von **Verhex** entwickelt, mit Beiträgen der Community, und unter der MIT-Lizenz
-veröffentlicht. Das Ergebnis ist eine Zweitmeinung, kein formaler Beweis, kein Sicherheitszertifikat
-und keine Wahrheitsgarantie. Provider-Ausgaben sind nicht vertrauenswürdige Daten und werden niemals
-ausgeführt.
+veröffentlicht. Es ist die anbieterübergreifende Verifikationsschicht von **Deckent**, dem
+agentischen Betriebssystem von Verhex, hier als eigenständiges Werkzeug bereitgestellt — Xerify
+läuft für sich allein und hat keine Abhängigkeit von Deckent. Das Ergebnis ist eine Zweitmeinung,
+kein formaler Beweis, kein Sicherheitszertifikat und keine Wahrheitsgarantie. Provider-Ausgaben
+sind nicht vertrauenswürdige Daten und werden niemals ausgeführt.
 
 > **Release-Status:** `0.1.0` ist ein Release Candidate. Das npm-Paket heißt `xverify-cli`; Produkt
 > und installiertes Kommando heißen weiterhin `xerify`.
@@ -127,6 +129,18 @@ Lokales STDIO-MCP:
 Die Tools heißen `xerify_ask`, `xerify_verify` und `xerify_capabilities`. HTTP bindet standardmäßig
 an `127.0.0.1`; ein Bind außerhalb von Loopback erfordert `--allow-public` und ein Bearer-Token aus
 einer benannten Umgebungsvariable.
+
+## Wer Xerify entwickelt
+
+Xerify wird von **[Verhex](https://github.com/VerhexIO)** entworfen, gebaut und gepflegt.
+
+Es stammt aus **Deckent**, dem agentischen Betriebssystem von Verhex, wo das Einholen einer
+Zweitmeinung von einem weiteren Anbieter zu den Fähigkeiten gehört, auf die der Orchestrator
+angewiesen ist. Xerify ist genau diese Fähigkeit in eigenständiger Open-Source-Form: Es
+installiert sich für sich allein, braucht kein Deckent und trägt keine Abhängigkeit davon.
+
+In diesem Repository steht ausschließlich Xerify unter der [MIT-Lizenz](LICENSE). Deckent ist
+ein eigenständiges Verhex-Produkt und wird hier nicht lizenziert.
 
 ## Dokumentation
 

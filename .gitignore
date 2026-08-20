@@ -15,6 +15,7 @@ assets/logos/review/
 .deckent/
 .agents/
 .codex/
+.claude/
 .cursor/
 .tasks/
 AGENTS.md

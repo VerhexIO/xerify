@@ -1,49 +1,76 @@
-# Dogfood: Cursor adapter identity and `auto` rejection
+# Dogfood: verifying Xerify's own Cursor adapter
 
-Xerify verified one of its own adapter invariants. The live record predates this documentation edit,
-and the public evidence page is a trimmed view of the same relevant code/test behavior.
+Xerify checking a claim about its own source. The interesting part is not the verdict — it is that
+the first two attempts never produced one.
 
-- Recorded run: local `xrun_000013` (not distributed in the npm package)
-- Author declaration: `openai:gpt-5.6-sol`
-- Verifier: `cursor:cursor-grok-4.6-high-fast` through the `cursor` adapter
-- Recorded evidence SHA-256:
-  `88c9bb902dd37727fc604092d8e3942c605096c291a9c20d51d2e0ac565ef367`
-- Public review evidence: [dogfood-cursor-adapter.md](evidence/dogfood-cursor-adapter.md)
-- Observed: `confirmed`, exit `0`
+- Author declaration: `anthropic:claude-opus-5`
+- Verifier: `openai:gpt-5.6-sol` through the `codex` adapter
+- Evidence: [dogfood-cursor-adapter.md](evidence/dogfood-cursor-adapter.md)
+- Observed on 2026-08-20: `confirmed`, exit `0`
 
 ## Claim
 
-> `CursorAdapter` has two specific deterministic behaviors: `capabilities()` returns provider
-> `cursor` without inspecting the requested model ID, and `invoke()` rejects model `auto` before
+> CursorAdapter reports provider cursor without model-prefix inference and rejects model auto before
 > starting the Cursor process.
 
-## Reproduce against the public review surface
+## Reproduce
 
 ```sh
-cat docs/examples/evidence/dogfood-cursor-adapter.md | xerify --json --timeout 180000 verify \
-  --adapter cursor \
-  --from openai:gpt-5.6-sol \
-  --to cursor:cursor-grok-4.6-high-fast \
+cat docs/examples/evidence/dogfood-cursor-adapter.md | xerify --json --timeout 300000 verify \
+  --adapter codex \
+  --from anthropic:claude-opus-5 \
+  --to openai:gpt-5.6-sol \
   --claim "CursorAdapter reports provider cursor without model-prefix inference and rejects model auto before starting the Cursor process." \
   --context-label docs/examples/evidence/dogfood-cursor-adapter.md
 ```
 
-## Recorded normalized result
+## Observed normalized result
 
 ```json
 {
   "verdict": "confirmed",
   "exitCode": 0,
-  "summary": "capabilities() returns a constant cursor provider and invoke() calls the exact-model guard before temporary workspace or process creation.",
-  "materialEvidence": [
-    "The capability method has no requested-model input and returns provider cursor literally.",
-    "assertExactCursorModel(input.model) is the first invoke statement.",
-    "The must-not-run hermetic test receives INVALID_INPUT/exit 2 for model auto."
-  ],
-  "failure": null
+  "failure": null,
+  "summary": "The supplied snippets adequately support the bounded claim: provider identity is returned explicitly as \"cursor\", and the exact \"auto\" model is rejected before temporary-workspace creation or the documented process-invocation point. No material counterexample appears within the supplied evidence.",
+  "materialFindings": [
+    "[low] The model normalization is narrower than it may appear: values such as \"auto [suffix]\" leave trailing whitespace before comparison and may bypass the gate. This does not contradict rejection of the exact tested value \"auto\", but it could be a regression path if annotated model strings are valid inputs.",
+    "[info] The process-prevention test indirectly demonstrates non-execution because the configured executable cannot resolve, while the source ordering directly places validation before workspace and process creation."
+  ]
 }
 ```
 
-Decision: this bounded invariant is a proceed candidate, not formal proof of every Cursor adapter
-behavior. The verifier explicitly noted that the test does not call `capabilities()` and that the
-record contained source rather than an executed test receipt.
+## Why this verdict
+
+`confirmed` here means something narrow and worth stating precisely: _within the supplied excerpts_,
+no counterexample to the bounded claim was found. It is not an audit of the adapter, and it is not a
+proof.
+
+The valuable output is the `low` finding, which nobody asked for. The verifier noticed that model
+normalization splits on `[` and trims, so a value such as `auto [something]` may not normalize to the
+exact string the gate compares against. That is a hypothetical regression path, not a present bug —
+but it is precisely the kind of observation a second opinion exists to surface.
+
+Read `confirmed` as _"no counterexample found in what you sent"_, never as _"correct"_.
+
+## What would change it
+
+- **Toward `refuted`:** a source path where `CursorAdapter` derives its provider identity from the
+  model ID, or where the `auto` rejection runs after process spawn.
+- **Toward `unclear`:** supplying only prose descriptions of the adapter rather than primary source
+  excerpts. During preparation, a prose-only dogfood attempt returned `unclear` for exactly this
+  reason — Xerify does not turn a plausible architectural description into proof.
+
+## A note on the verifier choice
+
+This claim is about the Cursor adapter, so verifying it _through_ Cursor was the original design.
+That did not work. Two consecutive attempts against `cursor:cursor-grok-4.6-high-fast` returned exit
+`6` (`INVALID_PROVIDER_RESPONSE`); the model never emitted the required JSON. The claim was
+re-targeted at the schema-enforcing `codex` adapter, which produced a verdict on the first attempt.
+
+The subject of a claim and the channel that verifies it are independent choices. When a verdict must
+be machine-consumed, prefer an adapter that pins the output schema at the provider. See
+[failure modes](failure-modes.md#5-the-provider-answers-in-prose-instead-of-json--exit-6).
+
+## Decision
+
+Proceed as a candidate. Track the `low` finding as a potential hardening item rather than a defect.

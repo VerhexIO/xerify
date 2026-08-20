@@ -5,6 +5,7 @@ export default tseslint.config(
   {
     ignores: [
       '.agents/**',
+      '.claude/**',
       '.codex/**',
       '.cursor/**',
       '.deckent/**',

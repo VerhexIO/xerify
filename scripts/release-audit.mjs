@@ -234,27 +234,17 @@ const requiredPaths = [
   'scripts/postinstall.mjs'
 ];
 const missingPaths = requiredPaths.filter((path) => !packedPaths.includes(path));
-const requiredConsumerDocs = [
-  'docs/README.md',
-  'docs/compatibility.md',
-  'docs/configuration.md',
-  'docs/examples/README.md',
-  'docs/examples/index.jsonl',
-  'docs/installation.md',
-  'docs/i18n/de/README.md',
-  'docs/i18n/es/README.md',
-  'docs/i18n/fr/README.md',
-  'docs/i18n/tr/README.md',
-  'docs/i18n/zh-CN/README.md'
-];
+const requiredConsumerDocs = ['tools/mock-provider.mjs'];
 const missingConsumerDocs = requiredConsumerDocs.filter((path) => !packedPaths.includes(path));
 const forbiddenPaths = packedPaths.filter(
   (path) =>
     path.startsWith('.agents/') ||
     path.startsWith('.codex/') ||
     path.startsWith('.cursor/') ||
+    path.startsWith('.claude/') ||
     path.startsWith('.deckent/') ||
     path.startsWith('.xerify/') ||
+    path.startsWith('docs/') ||
     path.startsWith('assets/') ||
     path.startsWith('design/') ||
     path.startsWith('src/') ||

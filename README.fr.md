@@ -20,7 +20,11 @@ JavaScript/TypeScript, le MCP STDIO local et le MCP Streamable HTTP partagent le
 mêmes schémas.
 
 Xerify est créé et développé par **Verhex**, avec des contributions de la communauté, et distribué
-sous licence MIT. Son résultat est un second avis, pas une preuve formelle, une certification de
+sous licence MIT. Il constitue la couche de vérification inter-fournisseurs de **Deckent**, le
+système d'exploitation agentique de Verhex, publiée ici comme outil autonome — Xerify fonctionne
+seul et ne dépend en rien de Deckent.
+
+Son résultat est un second avis, pas une preuve formelle, une certification de
 sécurité ou une garantie de vérité. La sortie du fournisseur est une donnée non fiable et n'est
 jamais exécutée.
 
@@ -128,6 +132,18 @@ MCP STDIO local avec version épinglée :
 Le serveur expose `xerify_ask`, `xerify_verify` et `xerify_capabilities`. HTTP écoute par défaut sur
 `127.0.0.1` ; un bind hors loopback exige `--allow-public` et un bearer token fourni par une variable
 d'environnement nommée.
+
+## Qui développe Xerify
+
+Xerify est conçu, développé et maintenu par **[Verhex](https://github.com/VerhexIO)**.
+
+Il trouve son origine dans **Deckent**, le système d'exploitation agentique de Verhex, où demander à
+un second fournisseur de vérifier une affirmation fait partie des capacités dont dépend
+l'orchestrateur. Xerify est cette même capacité, sous une forme autonome et open source : il
+s'installe seul, ne nécessite pas Deckent, et n'en dépend en rien.
+
+Seul Xerify est couvert par la [licence MIT](LICENSE) dans ce dépôt. Deckent est un produit Verhex
+distinct, qui n'est pas concédé sous licence ici.
 
 ## Documentation
 

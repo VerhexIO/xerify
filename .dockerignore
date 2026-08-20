@@ -3,6 +3,7 @@
 .git/
 .agents/
 .codex/
+.claude/
 .cursor/
 .deckent/
 .xerify/
