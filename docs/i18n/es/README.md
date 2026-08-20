@@ -21,6 +21,7 @@ El inglés es el idioma canónico de los esquemas públicos, las ADR, la políti
 - [Ejemplos de verificación resueltos](examples/README.md)
 - [Tutorial sin cuenta](examples/no-account-walkthrough.md) — todos los resultados posibles sin gastar cuota de ningún proveedor
 - [Modos de fallo](examples/failure-modes.md) — cada fallo tipificado, su causa y cómo resolverlo
+- [Dogfooding](examples/dogfooding.md) — 26 rondas de verificación contra dos canales, y qué se rechazó
 - [Política de seguridad](security.md)
 
 ## Material normativo y legible por máquina

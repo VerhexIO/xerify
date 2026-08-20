@@ -26,6 +26,7 @@ signaler l'écart constaté.
 - [Exemples de vérification commentés](examples/README.md)
 - [Parcours sans compte fournisseur](examples/no-account-walkthrough.md) — tous les résultats possibles, sans consommer le moindre quota
 - [Modes d'échec](examples/failure-modes.md) — chaque échec typé, sa cause et sa correction
+- [Dogfooding](examples/dogfooding.md) — 26 tours de vérification face à deux canaux, et ce qui a été rejeté
 - [Politique de sécurité](security.md)
 
 ## Ressources normatives et lisibles par machine

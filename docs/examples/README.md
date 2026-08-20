@@ -26,6 +26,16 @@ Read it before integrating. The most common integration bug is treating exit `11
 it is really two — a real `unclear` verdict, or an operational failure wearing the same verdict
 string.
 
+## What verification actually feels like
+
+[Dogfooding](dogfooding.md) is a log of 26 rounds spent putting five findings about Xerify through
+`xerify verify` against both the `codex` and `cursor` channels. Nine came back `confirmed`, two came
+back `refuted` because a claim was wrong, and twelve came back `unclear` because the evidence did not
+establish what the claim asserted. It names all four rejection classes, quotes the objections
+verbatim, and shows the envelope shape that finally passed.
+
+Read it before you write your first claim. It is the difference between two rounds and eleven.
+
 ## Live examples
 
 All five domain scenarios are synthetic. They contain no real participant, customer, analytics, or

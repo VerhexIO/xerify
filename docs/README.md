@@ -25,6 +25,7 @@ please report the translation drift.
 - [Worked verification examples](examples/README.md)
 - [No-account walkthrough](examples/no-account-walkthrough.md) — every outcome with zero provider quota
 - [Failure modes](examples/failure-modes.md) — every typed failure, its cause, and its fix
+- [Dogfooding](examples/dogfooding.md) — 26 verification rounds against two channels, and what got rejected
 - [Security policy](../SECURITY.md)
 
 ## Normative and machine-readable material

@@ -6,6 +6,13 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ### Added
 
+- `docs/examples/dogfooding.md`: a log of 26 verification rounds spent putting five findings about
+  Xerify through `xerify verify` against both the `codex` and `cursor` channels. Nine came back
+  `confirmed`, two came back `refuted` because a claim was wrong, and twelve came back `unclear`
+  because the evidence did not establish what the claim asserted. The page names the four rejection
+  classes, quotes the verifier objections verbatim, shows the envelope shape that finally passed,
+  and records what this channel structurally cannot verify.
+
 - Complete six-language documentation set under `docs/i18n/<lang>/`. Every consumer guide, the
   security policy, and every worked-example page is now available in Turkish, German, Simplified
   Chinese, Spanish, and French. English remains canonical; `docs/examples/evidence/` stays

@@ -33,6 +33,17 @@ Vor der Integration lesen. Der häufigste Integrationsfehler ist, Exit `11` als 
 behandeln, obwohl er zwei verschiedene Fälle abdeckt: ein echtes Urteil `unclear` oder einen
 operativen Fehler, der denselben Urteilsstring trägt.
 
+## Wie sich Verifikation tatsächlich anfühlt
+
+[Dogfooding](dogfooding.md) ist ein Protokoll von 26 Runden, in denen fünf Befunde über
+Xerify mit `xerify verify` gegen die Kanäle `codex` und `cursor` geprüft wurden. Neun kamen
+mit `confirmed` zurück, zwei mit `refuted`, weil eine Behauptung falsch war, und zwölf mit
+`unclear`, weil die Belege nicht stützten, was die Behauptung aussagte. Die Seite benennt alle
+vier Ablehnungskategorien, zitiert die Einwände wörtlich und zeigt die Envelope-Form, die am
+Ende bestand.
+
+Vor der ersten eigenen Behauptung lesen. Das ist der Unterschied zwischen zwei Runden und elf.
+
 ## Live-Beispiele
 
 Alle fünf fachlichen Szenarien sind synthetisch. Sie enthalten keine echten Teilnehmer-, Kunden-,

@@ -33,6 +33,16 @@ Léalo antes de integrar. El error de integración más común es tratar el cód
 si fuera una sola cosa, cuando en realidad son dos: un `unclear` genuino, o un fallo operativo
 disfrazado bajo el mismo texto de veredicto.
 
+## Cómo se siente verificar en la práctica
+
+[Dogfooding](dogfooding.md) es un registro de 26 rondas dedicadas a pasar cinco hallazgos sobre
+Xerify por `xerify verify`, contra los canales `codex` y `cursor`. Nueve volvieron `confirmed`,
+dos volvieron `refuted` porque una afirmación estaba equivocada, y doce volvieron `unclear`
+porque la evidencia no establecía lo que la afirmación aseveraba. Nombra las cuatro categorías
+de rechazo, cita las objeciones textualmente, y muestra la forma del sobre que finalmente pasó.
+
+Léalo antes de escribir su primera afirmación. Es la diferencia entre dos rondas y once.
+
 ## Ejemplos en vivo
 
 Los cinco escenarios de dominio son sintéticos. No contienen datos reales de participantes,

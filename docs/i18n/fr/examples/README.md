@@ -35,6 +35,16 @@ Lisez-le avant toute intégration. Le bug d'intégration le plus fréquent consi
 sortie `11` comme une seule chose alors qu'il en recouvre deux — un véritable verdict `unclear`, ou
 un échec opérationnel qui porte simplement la même étiquette de verdict.
 
+## Ce à quoi ressemble vraiment une vérification
+
+[Dogfooding](dogfooding.md) est un journal de 26 tours passés à faire passer cinq constats sur
+Xerify par `xerify verify`, face aux canaux `codex` et `cursor`. Neuf sont revenus `confirmed`, deux
+sont revenus `refuted` parce qu'une affirmation était fausse, et douze sont revenus `unclear` parce
+que la preuve n'établissait pas ce que l'affirmation avançait. La page nomme les quatre catégories de
+rejet, cite les objections mot pour mot, et montre la forme d'enveloppe qui a fini par passer.
+
+Lisez-la avant d'écrire votre première affirmation. C'est la différence entre deux tours et onze.
+
 ## Exemples en conditions réelles
 
 Les cinq scénarios métier sont synthétiques. Ils ne contiennent aucune donnée réelle de participant,

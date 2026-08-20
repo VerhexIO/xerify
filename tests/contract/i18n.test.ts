@@ -25,6 +25,7 @@ const PAGES: ReadonlyArray<readonly [string, string]> = [
   ['architecture.md', 'docs/architecture.md'],
   ['security.md', 'SECURITY.md'],
   ['examples/README.md', 'docs/examples/README.md'],
+  ['examples/dogfooding.md', 'docs/examples/dogfooding.md'],
   ['examples/failure-modes.md', 'docs/examples/failure-modes.md'],
   ['examples/no-account-walkthrough.md', 'docs/examples/no-account-walkthrough.md'],
   ['examples/research-paper.md', 'docs/examples/research-paper.md'],

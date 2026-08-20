@@ -21,6 +21,7 @@
 - [Çalışan doğrulama örnekleri](examples/README.md)
 - [Hesapsız izlenecek yol](examples/no-account-walkthrough.md) — sıfır sağlayıcı kotasıyla her sonuç
 - [Başarısızlık modları](examples/failure-modes.md) — her türü belirlenmiş hata, nedeni ve düzeltmesi
+- [Dogfooding](examples/dogfooding.md) — iki kanala karşı 26 doğrulama turu ve neyin reddedildiği
 - [Güvenlik politikası](security.md)
 
 ## Normatif ve makine tarafından okunabilir materyal

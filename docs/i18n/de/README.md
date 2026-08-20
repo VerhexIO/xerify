@@ -21,6 +21,7 @@ Englisch ist die verbindliche Sprache für öffentliche Schemas, ADRs, die Siche
 - [Ausgearbeitete Verifikationsbeispiele](examples/README.md)
 - [Anleitung ohne Provider-Konto](examples/no-account-walkthrough.md) – jedes Ergebnis ganz ohne Provider-Kontingent
 - [Fehlerarten](examples/failure-modes.md) – jeder typisierte Fehler mit Ursache und Lösung
+- [Dogfooding](examples/dogfooding.md) – 26 Verifikationsrunden gegen zwei Kanäle, und was dabei abgelehnt wurde
 - [Sicherheitsrichtlinie](security.md)
 
 ## Normative und maschinenlesbare Materialien

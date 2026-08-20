@@ -21,6 +21,7 @@
 - [验证实例演练](examples/README.md)
 - [无账号演练](examples/no-account-walkthrough.md) — 零提供方配额下的每一种结果
 - [失败模式](examples/failure-modes.md) — 每一种类型化失败、成因与修复方法
+- [Dogfood 记录](examples/dogfooding.md) — 两条通道上的 26 轮验证，以及被拒绝的原因
 - [安全政策](security.md)
 
 ## 规范性文档与机器可读资料

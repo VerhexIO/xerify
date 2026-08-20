@@ -39,12 +39,38 @@ function localTargets(markdown) {
 }
 
 function isExternal(target) {
-  return (
-    target.length === 0 ||
-    target.startsWith('#') ||
-    target.startsWith('/') ||
-    /^[a-z][a-z0-9+.-]*:/i.test(target)
-  );
+  return target.length === 0 || target.startsWith('/') || /^[a-z][a-z0-9+.-]*:/i.test(target);
+}
+
+// A heading anchor is derived from the heading text, so a translated heading needs a
+// translated anchor. This mirrors the slug GitHub generates: strip inline formatting,
+// lowercase, spaces to hyphens, drop punctuation, keep letters from any script.
+function headingSlug(text) {
+  const plain = text
+    .replace(/`([^`]*)`/g, '$1')
+    .replace(/\*\*([^*]*)\*\*/g, '$1')
+    .replace(/_([^_]*)_/g, '$1');
+  let slug = '';
+  for (const character of plain.toLowerCase()) {
+    if (/[\p{L}\p{N}\-_]/u.test(character)) slug += character;
+    else if (/\s/u.test(character)) slug += '-';
+  }
+  return slug;
+}
+
+function headingSlugs(markdown) {
+  const slugs = new Set();
+  let fenced = false;
+  for (const line of markdown.split('\n')) {
+    if (line.trimStart().startsWith('```')) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    const heading = /^#{1,6}\s+(.*?)\s*$/.exec(line);
+    if (heading) slugs.add(headingSlug(heading[1]));
+  }
+  return slugs;
 }
 
 const files = [
@@ -61,8 +87,16 @@ for (const file of files) {
     failures.push(`${path.relative(repositoryRoot, file)}: missing document`);
     continue;
   }
+  const ownSlugs = headingSlugs(markdown);
   for (const target of localTargets(markdown)) {
     if (isExternal(target)) continue;
+    if (target.startsWith('#')) {
+      const fragment = decodeURIComponent(target.slice(1));
+      if (!ownSlugs.has(fragment)) {
+        failures.push(`${path.relative(repositoryRoot, file)}: no heading matches ${target}`);
+      }
+      continue;
+    }
     const withoutFragment = target.split('#', 1)[0].split('?', 1)[0];
     let decoded;
     try {

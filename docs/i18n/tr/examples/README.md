@@ -18,6 +18,12 @@ Bunlar **gözlemlenmiş çalıştırmalardır**, önceden hazırlanmış kararla
 
 Entegre etmeden önce okuyun. En sık karşılaşılan entegrasyon hatası, exit `11`'i tek bir şeymiş gibi ele almaktır; oysa aslında ikidir — ya gerçek bir `unclear` kararı, ya da üzerinde aynı karar dizisini taşıyan operasyonel bir başarısızlık.
 
+## Doğrulama gerçekte neye benziyor
+
+[Dogfooding](dogfooding.md), Xerify hakkındaki beş bulgunun hem `codex` hem de `cursor` kanallarına karşı `xerify verify`'den geçirilmesine harcanan 26 turun günlüğüdür. Dokuzu `confirmed` döndü, ikisi bir iddia yanlış olduğu için `refuted` döndü, on ikisi ise kanıt iddianın öne sürdüğünü ortaya koymadığı için `unclear` döndü. Dört ret sınıfının tamamını adlandırır, itirazları birebir alıntılar ve sonunda geçen zarfın şeklini gösterir.
+
+İlk iddianızı yazmadan önce okuyun. İki tur ile on bir tur arasındaki fark bu.
+
 ## Canlı örnekler
 
 Beş alan senaryosunun tümü sentetiktir. Hiçbirinde gerçek bir katılımcı, müşteri, analitik veya proje verisi bulunmaz. İki dogfood senaryosu ise genel Xerify paketini ve kaynak kanıtını kullanır. İddialar, CLI tarafından beyan edilen kökeni kullanır; Xerify bu beyanı uzaktan doğrulama gibi göstermez.
