@@ -11,15 +11,15 @@
   <img src="https://raw.githubusercontent.com/VerhexIO/xerify/main/assets/logos/full-horizontal/xerify-horizontal-light.svg" alt="Xerify" width="360">
 </p>
 
-<p align="center"><strong>Frage einen anderen Anbieter. Erhalte eine klare Zweitmeinung.</strong></p>
+<p align="center"><strong>Frage einen anderen Provider. Erhalte eine klare Zweitmeinung.</strong></p>
 
-Xerify ist ein Shell-orientiertes Open-Source-Werkzeug für begrenzte, anbieterübergreifende Fragen
+Xerify ist ein Shell-orientiertes Open-Source-Werkzeug für begrenzte, providerübergreifende Fragen
 und Prüfungen. Es kann bereits authentifizierte offizielle Provider-CLIs, direkte APIs oder ein
 explizit konfiguriertes Programm verwenden. CLI, JavaScript/TypeScript-Bibliothek, lokales STDIO-MCP
 und Streamable-HTTP-MCP nutzen denselben Kern und dieselben Schemas.
 
 Xerify wird von **Verhex** entwickelt, mit Beiträgen der Community, und unter der MIT-Lizenz
-veröffentlicht. Es ist die anbieterübergreifende Verifikationsschicht von **Deckent**, dem
+veröffentlicht. Es ist die providerübergreifende Verifikationsschicht von **Deckent**, dem
 agentischen Betriebssystem von Verhex, hier als eigenständiges Werkzeug bereitgestellt — Xerify
 läuft für sich allein und hat keine Abhängigkeit von Deckent. Das Ergebnis ist eine Zweitmeinung,
 kein formaler Beweis, kein Sicherheitszertifikat und keine Wahrheitsgarantie. Provider-Ausgaben
@@ -66,7 +66,7 @@ git diff --cached | xerify ask \
   --question "Welches ist das größte Risiko dieser Änderung?"
 ```
 
-Versuche, eine konkrete Behauptung über einen anderen Aufrufanbieter zu widerlegen:
+Versuche, eine konkrete Behauptung über einen anderen Aufruf-Provider zu widerlegen:
 
 ```sh
 git diff --cached | xerify --json verify \
@@ -85,11 +85,11 @@ oder blinden Flecken.
 
 ## Ergebnisse
 
-| Ergebnis    | Exit | Bedeutung                                                        |
-| ----------- | ---: | ---------------------------------------------------------------- |
-| `confirmed` |    0 | Kandidat zum Fortfahren; kein wesentlicher Gegenbeleg im Kontext |
-| `refuted`   |   10 | Behauptung blockieren                                            |
-| `unclear`   |   11 | bessere Belege, Wiederholung oder menschliche Prüfung            |
+| Ergebnis    | Exit | Bedeutung                                                           |
+| ----------- | ---: | ------------------------------------------------------------------- |
+| `confirmed` |    0 | Kandidat zum Fortfahren; kein wesentliches Gegenbeispiel im Kontext |
+| `refuted`   |   10 | Behauptung blockieren                                               |
+| `unclear`   |   11 | bessere Belege, Wiederholung oder menschliche Prüfung               |
 
 Timeouts, Provider-Fehler, ungültige Schemas und Abschneidung bleiben mit typisierten
 Nichtnull-Codes fail-closed. `unclear` wird nie in Erfolg umgewandelt.
@@ -135,7 +135,7 @@ einer benannten Umgebungsvariable.
 Xerify wird von **[Verhex](https://github.com/VerhexIO)** entworfen, gebaut und gepflegt.
 
 Es stammt aus **Deckent**, dem agentischen Betriebssystem von Verhex, wo das Einholen einer
-Zweitmeinung von einem weiteren Anbieter zu den Fähigkeiten gehört, auf die der Orchestrator
+Zweitmeinung von einem weiteren Provider zu den Fähigkeiten gehört, auf die der Orchestrator
 angewiesen ist. Xerify ist genau diese Fähigkeit in eigenständiger Open-Source-Form: Es
 installiert sich für sich allein, braucht kein Deckent und trägt keine Abhängigkeit davon.
 
