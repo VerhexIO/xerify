@@ -15,8 +15,10 @@
 
 Xerify is a shell-first, open-source tool for bounded cross-provider questions and verification. It can use provider CLIs already authenticated on your machine, direct APIs, or an explicitly configured executable. The same core and schemas power the CLI, library, local STDIO MCP server, and Streamable HTTP MCP server.
 
-Xerify is created and developed by **Verhex**, with community contributions, and distributed under
-the MIT License.
+Xerify is built and maintained by **Verhex**, with community contributions, and distributed under
+the MIT License. It is the cross-provider verification layer of **Deckent**, the Verhex agentic
+operating system, released here as a standalone tool — Xerify runs on its own and has no dependency
+on Deckent.
 
 Xerify provides a second opinion, not formal proof or guaranteed truth. Provider output is untrusted data and is never executed.
 
@@ -53,7 +55,9 @@ using Xerify as another package's dependency.
 See [installation and upgrades](docs/installation.md) for project-local, global, `npx`, lifecycle,
 upgrade, removal, and clean-install verification instructions.
 The [documentation index](docs/README.md) links the complete English reference and all localized
-consumer guides.
+consumer guides. Documentation is served from the repository and is not installed with the package,
+so the npm artifact stays small; read it at
+<https://github.com/VerhexIO/xerify/blob/main/docs/README.md>.
 
 ## Quick start
 
@@ -253,10 +257,21 @@ runtime, host, schema, and provider support boundary is documented in
 in [SECURITY.md](SECURITY.md); prompt instructions reduce risk but cannot make any LLM
 prompt-injection-proof.
 
+## Who makes Xerify
+
+Xerify is designed, built, and maintained by **[Verhex](https://github.com/VerhexIO)**.
+
+It originates in **Deckent**, the Verhex agentic operating system, where asking a second provider to
+check a claim is one of the capabilities the orchestrator depends on. Xerify is that capability in
+standalone, open-source form: it installs on its own, needs no Deckent, and carries no dependency on
+it.
+
+Only Xerify is covered by the [MIT License](LICENSE) in this repository. Deckent is a separate
+Verhex product and is not licensed here.
+
 ## Security and license
 
 Read [SECURITY.md](SECURITY.md) before reporting a vulnerability or operating the HTTP server.
 Subscription, direct API, Cursor, CLI, and MCP combinations are mapped in [provider and access
-channels](docs/channels.md). Xerify is created and developed by **Verhex**, with community
-contributions, and distributed under the [MIT License](LICENSE). Third-party notices are in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+channels](docs/channels.md). Xerify is distributed under the [MIT License](LICENSE); third-party
+notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

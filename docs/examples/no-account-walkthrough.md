@@ -13,7 +13,7 @@ Xerify's `command` adapter runs any executable, sends the prompt on stdin, and r
 from stdout. It does not care whether a language model produced that response. So a fixed script is
 a perfectly valid provider — one whose answers you control, which makes every outcome reproducible.
 
-The mock lives at `docs/examples/tools/mock-provider.mjs`. It takes one argument, the scenario name,
+The mock lives at `tools/mock-provider.mjs`. It takes one argument, the scenario name,
 ignores the prompt, and prints a fixed response.
 
 > **Availability:** the mock is included in the package from the release after `0.1.0`. On `0.1.0`
@@ -28,13 +28,13 @@ adapter runs in a fresh temporary directory, so relative paths never resolve.
 
 ```sh
 # From a source checkout
-MOCK="$PWD/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/tools/mock-provider.mjs"
 
 # From a global npm install
-MOCK="$(npm root -g)/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$(npm root -g)/xverify-cli/tools/mock-provider.mjs"
 
 # From a project-local install
-MOCK="$PWD/node_modules/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/node_modules/xverify-cli/tools/mock-provider.mjs"
 
 echo "$MOCK"
 ```

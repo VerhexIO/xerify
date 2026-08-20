@@ -64,6 +64,7 @@ try {
     'assets/',
     'artifacts/',
     'design/',
+    'docs/',
     'src/',
     'tests/'
   ]) {
@@ -76,28 +77,22 @@ try {
       throw new Error(`npm package contains forbidden development file: ${forbiddenFile}`);
     }
   }
+  // The documentation set is served from GitHub, not installed onto consumer machines. Only the
+  // package's own README family ships, plus the tools a reader needs to run the documented flows.
   for (const requiredDocument of [
+    'README.md',
     'README.de.md',
     'README.es.md',
     'README.fr.md',
     'README.tr.md',
-    'README.zh-CN.md',
-    'docs/README.md',
-    'docs/installation.md',
-    'docs/configuration.md',
-    'docs/cli-reference.md',
-    'docs/compatibility.md',
-    'docs/examples/README.md',
-    'docs/examples/index.jsonl',
-    'docs/i18n/de/README.md',
-    'docs/i18n/es/README.md',
-    'docs/i18n/fr/README.md',
-    'docs/i18n/tr/README.md',
-    'docs/i18n/zh-CN/README.md'
+    'README.zh-CN.md'
   ]) {
     if (!packedPaths.includes(requiredDocument)) {
       throw new Error(`npm package is missing consumer documentation: ${requiredDocument}`);
     }
+  }
+  if (!packedPaths.includes('tools/mock-provider.mjs')) {
+    throw new Error('npm package is missing the deterministic mock provider tool');
   }
   if (!packedPaths.includes('scripts/postinstall.mjs')) {
     throw new Error('npm package is missing the guarded postinstall initializer');

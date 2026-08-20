@@ -257,10 +257,10 @@ xerify --json verify \
 
 ```jsonc
 // Broken — resolves against a temp directory, process exits 1, you get exit 5
-"args": ["docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["tools/mock-provider.mjs", "prose"]
 
 // Working
-"args": ["/absolute/path/to/docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["/absolute/path/to/tools/mock-provider.mjs", "prose"]
 ```
 
 配置模式里没有 `cwd` 这个键，所以绝对路径是唯一选择。如果 `command` 适配器几乎是立刻（几十毫秒内）就返回退出码 `5`，先怀疑这里，再怀疑提供方。

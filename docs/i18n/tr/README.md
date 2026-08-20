@@ -29,6 +29,6 @@
 - [Yayımlanmış JSON Şemaları](../../../schemas/)
 - [Makine tarafından okunabilir örnek indeksi](../../examples/index.jsonl)
 - [Değişmez örnek kanıtı](../../examples/evidence/) — yalnızca İngilizce, hash ile sabitlenmiş
-- [Belirleyici sahte sağlayıcı](../../examples/tools/mock-provider.mjs)
+- [Belirleyici sahte sağlayıcı](../../../tools/mock-provider.mjs)
 
 Ürün **Xerify**'dir, npm dağıtımı **`xverify-cli`**'dir ve kurulu çalıştırılabilir dosya **`xerify`**'dir.

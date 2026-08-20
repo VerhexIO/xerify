@@ -34,7 +34,7 @@ signaler l'écart constaté.
 - [Schémas JSON publiés](../../../schemas/)
 - [Index des exemples lisible par machine](../../examples/index.jsonl)
 - [Preuves immuables des exemples](../../examples/evidence/) — en anglais uniquement, ancrées par hachage
-- [Fournisseur simulé déterministe](../../examples/tools/mock-provider.mjs)
+- [Fournisseur simulé déterministe](../../../tools/mock-provider.mjs)
 
 Le produit s'appelle **Xerify**, le paquet distribué sur npm est **`xverify-cli`**, et l'exécutable
 installé est **`xerify`**.

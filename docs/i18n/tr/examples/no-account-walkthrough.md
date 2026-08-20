@@ -12,7 +12,7 @@ Burada hiçbir şey bir ağ hizmetine bağlanmaz. Burada hiçbir şey ücretlend
 
 Xerify'in `command` adaptörü, herhangi bir çalıştırılabilir dosyayı çalıştırır, prompt'u stdin üzerinden gönderir ve yanıtı stdout'tan okur. Bu yanıtı bir dil modelinin üretip üretmediğiyle ilgilenmez. Dolayısıyla sabit bir betik de gayet geçerli bir sağlayıcıdır — yanıtlarını sizin kontrol ettiğiniz, bu sayede her sonucu yeniden üretilebilir kılan bir sağlayıcı.
 
-Sahte sağlayıcı `docs/examples/tools/mock-provider.mjs` yolunda bulunur. Tek bir argüman alır — senaryo adı —, prompt'u yok sayar ve sabit bir yanıt yazdırır.
+Sahte sağlayıcı `tools/mock-provider.mjs` yolunda bulunur. Tek bir argüman alır — senaryo adı —, prompt'u yok sayar ve sabit bir yanıt yazdırır.
 
 > **Erişilebilirlik:** sahte sağlayıcı, `0.1.0` sonrasındaki sürümden itibaren pakete dahildir. `0.1.0` sürümünde npm paketinde (tarball) yer almaz — bu durumda deponun bir kaynak kopyasını kullanın, ya da dosyayı depodan kendi projenize kopyalayıp `args` değerini kendi kopyanıza yönlendirin. Bu sayfadaki geri kalan her şey değişmeden çalışır.
 
@@ -22,13 +22,13 @@ Sahte sağlayıcı `docs/examples/tools/mock-provider.mjs` yolunda bulunur. Tek 
 
 ```sh
 # Kaynak kod deposundan
-MOCK="$PWD/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/tools/mock-provider.mjs"
 
 # Genel (global) bir npm kurulumundan
-MOCK="$(npm root -g)/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$(npm root -g)/xverify-cli/tools/mock-provider.mjs"
 
 # Projeye özel bir kurulumdan
-MOCK="$PWD/node_modules/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/node_modules/xverify-cli/tools/mock-provider.mjs"
 
 echo "$MOCK"
 ```

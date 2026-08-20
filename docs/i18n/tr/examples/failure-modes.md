@@ -257,10 +257,10 @@ Bir `command` adaptörü, projenizde değil **yeni bir geçici dizinde** çalı�
 
 ```jsonc
 // Broken — resolves against a temp directory, process exits 1, you get exit 5
-"args": ["docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["tools/mock-provider.mjs", "prose"]
 
 // Working
-"args": ["/absolute/path/to/docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["/absolute/path/to/tools/mock-provider.mjs", "prose"]
 ```
 
 Yapılandırma şemasında bir `cwd` anahtarı yoktur, bu yüzden mutlak bir yol tek seçenektir. Bir `command` adaptörü hemen (birkaç on milisaniye içinde) exit `5` döndürüyorsa, sağlayıcıdan şüphelenmeden önce bundan şüphelenin.

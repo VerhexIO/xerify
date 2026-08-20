@@ -33,7 +33,7 @@ please report the translation drift.
 - [Published JSON Schemas](../schemas/)
 - [Machine-readable example index](examples/index.jsonl)
 - [Immutable example evidence](examples/evidence/) — English-only, hash-anchored
-- [Deterministic mock provider](examples/tools/mock-provider.mjs)
+- [Deterministic mock provider](../tools/mock-provider.mjs)
 
 The product is **Xerify**, the npm distribution is **`xverify-cli`**, and the installed executable
 is **`xerify`**.

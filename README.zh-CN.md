@@ -15,7 +15,7 @@
 
 Xerify 是一个面向 shell 的开源工具，用于有边界的跨提供方提问和验证。它可以使用本机已登录的官方提供方 CLI、直接 API，或显式配置的可执行程序。CLI、JavaScript/TypeScript 库、本地 STDIO MCP 与 Streamable HTTP MCP 共用同一套核心逻辑和 Schema。
 
-Xerify 由 **Verhex** 创建和维护，并接受社区贡献，以 MIT 许可证发布。它提供的是第二意见，而不是形式化证明、安全认证或真相保证。提供方输出始终被视为不可信数据，绝不会被直接执行。
+Xerify 由 **Verhex** 开发和维护，并接受社区贡献，以 MIT 许可证发布。它是 **Deckent**（Verhex 的智能体操作系统）的跨提供方验证层，在本仓库中作为独立工具发布——Xerify 可以独立运行，不依赖 Deckent。它提供的是第二意见，而不是形式化证明、安全认证或真相保证。提供方输出始终被视为不可信数据，绝不会被直接执行。
 
 > **发布状态：**`0.1.0` 是候选版本。npm 分发包名为 `xverify-cli`，产品名和安装后的命令仍为 `xerify`。
 
@@ -108,6 +108,14 @@ xerify --json config validate
 ```
 
 服务器提供 `xerify_ask`、`xerify_verify` 和 `xerify_capabilities`。HTTP 默认只绑定 `127.0.0.1`；非 loopback 绑定必须同时使用 `--allow-public` 和来自命名环境变量的 bearer token。
+
+## Xerify 由谁打造
+
+Xerify 由 **[Verhex](https://github.com/VerhexIO)** 设计、开发和维护。
+
+它起源于 **Deckent**——Verhex 的智能体操作系统。在 Deckent 中，请第二个提供方核查一条主张，是编排器所依赖的能力之一。Xerify 就是这项能力的独立开源形态：它可以单独安装，不需要 Deckent，也不依赖它。
+
+本仓库中，只有 Xerify 采用 [MIT 许可证](LICENSE)。Deckent 是 Verhex 的另一款独立产品，不在本仓库的许可范围内。
 
 ## 文档
 

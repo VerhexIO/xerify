@@ -29,6 +29,6 @@
 - [已发布的 JSON 模式](../../../schemas/)
 - [机器可读示例索引](../../examples/index.jsonl)
 - [不可变示例证据](../../examples/evidence/) — 仅英文，哈希锚定
-- [确定性模拟提供方](../../examples/tools/mock-provider.mjs)
+- [确定性模拟提供方](../../../tools/mock-provider.mjs)
 
 产品名为 **Xerify**，npm 发行包为 **`xverify-cli`**，安装后的可执行命令为 **`xerify`**。

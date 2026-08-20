@@ -11,7 +11,7 @@
 //     "kind": "command",
 //     "provider": "mock-lab",
 //     "executable": "node",
-//     "args": ["docs/examples/tools/mock-provider.mjs", "confirmed"],
+//     "args": ["tools/mock-provider.mjs", "confirmed"],
 //     "authKind": "local",
 //     "structuredOutput": true
 //   }

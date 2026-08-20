@@ -18,7 +18,7 @@ standard, et lit la réponse depuis stdout. Peu lui importe qu'un modèle de lan
 réponse ou non. Un script fixe est donc un fournisseur parfaitement valide — un fournisseur dont vous
 contrôlez les réponses, ce qui rend chaque résultat reproductible.
 
-Le simulateur se trouve dans `docs/examples/tools/mock-provider.mjs`. Il prend un seul argument, le
+Le simulateur se trouve dans `tools/mock-provider.mjs`. Il prend un seul argument, le
 nom du scénario, ignore le prompt, et affiche une réponse fixe.
 
 > **Disponibilité :** le simulateur est inclus dans le paquet à partir de la version qui suit
@@ -34,13 +34,13 @@ chemins relatifs ne se résolvent jamais.
 
 ```sh
 # From a source checkout
-MOCK="$PWD/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/tools/mock-provider.mjs"
 
 # From a global npm install
-MOCK="$(npm root -g)/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$(npm root -g)/xverify-cli/tools/mock-provider.mjs"
 
 # From a project-local install
-MOCK="$PWD/node_modules/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/node_modules/xverify-cli/tools/mock-provider.mjs"
 
 echo "$MOCK"
 ```

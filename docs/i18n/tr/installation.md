@@ -91,4 +91,4 @@ Tedarik zinciri açısından incelenebilir bir host yapılandırması için pake
 
 npm artefaktı; derlenmiş çalışma zamanı/kitaplık çıktısını, genel şemaları, tüketici belgelerini, eşlik eden ajan yeteneğini (skill), korumalı başlatıcıyı ve lisans/güvenlik bildirimlerini içerir. Kaynak testlerini, sürüm araçlarını, yerel `.xerify/` durumunu, içsel ajan/orkestrasyon dosyalarını, tasarım çalışma alanlarını, üretilen sürüm artefaktlarını ve marka inceleme materyalini ise bilerek dışarıda bırakır.
 
-Xerify, Verhex tarafından oluşturulmuş ve geliştirilmiştir; MIT Lisansı altında dağıtılır. Kanonik kaynak ve issue takipçisi, paket meta verisinden bağlantılanır.
+Xerify, Verhex tarafından geliştirilir ve MIT Lisansı altında dağıtılır. Xerify, Verhex'in ajan tabanlı işletim sistemi olan Deckent'in sağlayıcılar arası doğrulama katmanıdır ve bağımsız bir araç olarak sunulur; Xerify'i kurmak Deckent'i ne gerektirir ne de kurar. Kanonik kaynak ve issue takipçisi, paket meta verisinden bağlantılanır.

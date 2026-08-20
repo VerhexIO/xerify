@@ -18,7 +18,7 @@ und liest die Antwort von stdout. Ob diese Antwort von einem Sprachmodell stammt
 keine Rolle. Ein festes Skript ist deshalb ein völlig gültiger Provider – einer, dessen Antworten
 man selbst kontrolliert, wodurch jedes Ergebnis reproduzierbar wird.
 
-Der Mock liegt unter `docs/examples/tools/mock-provider.mjs`. Er nimmt ein Argument entgegen, den
+Der Mock liegt unter `tools/mock-provider.mjs`. Er nimmt ein Argument entgegen, den
 Szenarionamen, ignoriert den Prompt und gibt eine feste Antwort aus.
 
 > **Verfügbarkeit:** Der Mock ist ab dem Release nach `0.1.0` im Paket enthalten. In `0.1.0` fehlt
@@ -34,13 +34,13 @@ lösen sich dort nie auf.
 
 ```sh
 # Aus einem Source-Checkout
-MOCK="$PWD/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/tools/mock-provider.mjs"
 
 # Aus einer globalen npm-Installation
-MOCK="$(npm root -g)/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$(npm root -g)/xverify-cli/tools/mock-provider.mjs"
 
 # Aus einer projektlokalen Installation
-MOCK="$PWD/node_modules/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/node_modules/xverify-cli/tools/mock-provider.mjs"
 
 echo "$MOCK"
 ```

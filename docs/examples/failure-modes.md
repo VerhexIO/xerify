@@ -289,10 +289,10 @@ difference between a working and a broken config can be one character:
 
 ```jsonc
 // Broken — resolves against a temp directory, process exits 1, you get exit 5
-"args": ["docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["tools/mock-provider.mjs", "prose"]
 
 // Working
-"args": ["/absolute/path/to/docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["/absolute/path/to/tools/mock-provider.mjs", "prose"]
 ```
 
 The config schema has no `cwd` key, so an absolute path is the only option. If a `command` adapter

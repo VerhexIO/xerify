@@ -102,5 +102,7 @@ the companion agent skill, the guarded initializer, and license/security notices
 excludes source tests, release tooling, local `.xerify/` state, internal agent/orchestration files,
 design workspaces, generated release artefacts, and brand review material.
 
-Xerify is created and developed by Verhex and distributed under the MIT License. The canonical
-source and issue tracker are linked from the package metadata.
+Xerify is built and maintained by Verhex and distributed under the MIT License. It is the
+cross-provider verification layer of Deckent, the Verhex agentic operating system, released as a
+standalone tool; installing Xerify neither requires nor installs Deckent. The canonical source and
+issue tracker are linked from the package metadata.

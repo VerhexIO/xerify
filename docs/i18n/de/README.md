@@ -29,6 +29,6 @@ Englisch ist die verbindliche Sprache für öffentliche Schemas, ADRs, die Siche
 - [Veröffentlichte JSON-Schemas](../../../schemas/)
 - [Maschinenlesbarer Beispielindex](../../examples/index.jsonl)
 - [Unveränderliche Beispielnachweise](../../examples/evidence/) – nur Englisch, hash-verankert
-- [Deterministischer Mock-Provider](../../examples/tools/mock-provider.mjs)
+- [Deterministischer Mock-Provider](../../../tools/mock-provider.mjs)
 
 Das Produkt heißt **Xerify**, die npm-Distribution **`xverify-cli`** und der installierte Befehl **`xerify`**.

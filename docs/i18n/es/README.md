@@ -29,6 +29,6 @@ El inglés es el idioma canónico de los esquemas públicos, las ADR, la políti
 - [Esquemas JSON publicados](../../../schemas/)
 - [Índice de ejemplos legible por máquina](../../examples/index.jsonl)
 - [Evidencia de ejemplo inmutable](../../examples/evidence/) — solo en inglés, anclada por hash
-- [Proveedor simulado determinista](../../examples/tools/mock-provider.mjs)
+- [Proveedor simulado determinista](../../../tools/mock-provider.mjs)
 
 El producto se llama **Xerify**, el paquete de npm es **`xverify-cli`**, y el ejecutable instalado es **`xerify`**.

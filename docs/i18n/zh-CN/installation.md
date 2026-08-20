@@ -91,4 +91,4 @@ npm install --save-dev xverify-cli@latest
 
 npm 制品包含编译后的运行时/库产物、公开模式、面向消费者的文档、配套的 agent skill、带保护机制的初始化器，以及许可证与安全声明。它有意排除了源码测试、发布工具链、本地 `.xerify/` 状态、内部 agent/编排文件、设计工作区、生成的发布产物，以及品牌评审材料。
 
-Xerify 由 Verhex 创建和开发，以 MIT 许可证发布。规范的源码仓库与问题跟踪器均可从包元数据中的链接找到。
+Xerify 由 Verhex 开发和维护，以 MIT 许可证发布。它是 Deckent（Verhex 的智能体操作系统）的跨提供方验证层，以独立工具的形式发布；安装 Xerify 既不需要、也不会安装 Deckent。规范的源码仓库与问题跟踪器均可从包元数据中的链接找到。

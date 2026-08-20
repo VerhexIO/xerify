@@ -18,7 +18,7 @@ respuesta de stdout. No le importa si esa respuesta la produjo un modelo de leng
 un script fijo es un proveedor perfectamente válido — uno cuyas respuestas usted controla, lo que
 hace que cada resultado sea reproducible.
 
-El simulador vive en `docs/examples/tools/mock-provider.mjs`. Toma un argumento, el nombre del
+El simulador vive en `tools/mock-provider.mjs`. Toma un argumento, el nombre del
 escenario, ignora el prompt, e imprime una respuesta fija.
 
 > **Disponibilidad:** el simulador se incluye en el paquete a partir del release posterior a
@@ -34,13 +34,13 @@ resuelven.
 
 ```sh
 # Desde un checkout del código fuente
-MOCK="$PWD/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/tools/mock-provider.mjs"
 
 # Desde una instalación global de npm
-MOCK="$(npm root -g)/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$(npm root -g)/xverify-cli/tools/mock-provider.mjs"
 
 # Desde una instalación local del proyecto
-MOCK="$PWD/node_modules/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/node_modules/xverify-cli/tools/mock-provider.mjs"
 
 echo "$MOCK"
 ```

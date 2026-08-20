@@ -17,7 +17,7 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
   observed run-to-run flakiness.
 - `docs/examples/no-account-walkthrough.md`: reproduces every verdict and every typed failure with
   zero provider quota.
-- `docs/examples/tools/mock-provider.mjs`: a deterministic mock provider that makes the walkthrough
+- `tools/mock-provider.mjs`: a deterministic mock provider that makes the walkthrough
   and the failure catalogue reproducible without a provider account.
 
 ### Changed

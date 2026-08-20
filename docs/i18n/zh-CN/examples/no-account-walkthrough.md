@@ -12,7 +12,7 @@
 
 Xerify 的 `command` 适配器可以运行任意可执行文件：把 prompt 写入其 stdin，再从 stdout 读取响应。至于这段响应是不是语言模型生成的，它并不关心。因此，一段固定输出的脚本同样是合法的提供方——而且由于响应完全由你掌控，每个结果都可以稳定复现。
 
-这个模拟提供方位于 `docs/examples/tools/mock-provider.mjs`，只接受一个参数——场景名称，会忽略传入的 prompt，直接打印固定的响应。
+这个模拟提供方位于 `tools/mock-provider.mjs`，只接受一个参数——场景名称，会忽略传入的 prompt，直接打印固定的响应。
 
 > **可用性说明：** 该模拟提供方从 `0.1.0` 之后的版本开始随包分发。在 `0.1.0` 版本中，它并未打包进 npm 压缩包——请使用仓库的源码检出，或者把该文件从仓库中复制到自己的项目里，并把 `args` 指向这份副本。本页其余内容不受影响，照常可用。
 
@@ -22,13 +22,13 @@ Xerify 的 `command` 适配器可以运行任意可执行文件：把 prompt 写
 
 ```sh
 # 从源码检出运行
-MOCK="$PWD/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/tools/mock-provider.mjs"
 
 # 从全局 npm 安装运行
-MOCK="$(npm root -g)/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$(npm root -g)/xverify-cli/tools/mock-provider.mjs"
 
 # 从项目本地安装运行
-MOCK="$PWD/node_modules/xverify-cli/docs/examples/tools/mock-provider.mjs"
+MOCK="$PWD/node_modules/xverify-cli/tools/mock-provider.mjs"
 
 echo "$MOCK"
 ```

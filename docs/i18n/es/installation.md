@@ -115,5 +115,7 @@ fuente, las herramientas de lanzamiento, el estado local de `.xerify/`, los arch
 agentes y orquestación, los espacios de trabajo de diseño, los artefactos de lanzamiento generados y
 el material de revisión de marca.
 
-Xerify está creado y desarrollado por Verhex, y se distribuye bajo la licencia MIT. El repositorio
-de origen y el rastreador de incidencias canónicos están enlazados desde los metadatos del paquete.
+Xerify está creado y desarrollado por Verhex, y se distribuye bajo la licencia MIT. Es la capa de
+verificación entre proveedores de Deckent, el sistema operativo agéntico de Verhex, publicada como
+herramienta independiente; instalar Xerify no exige ni instala Deckent. El repositorio de origen y
+el rastreador de incidencias canónicos están enlazados desde los metadatos del paquete.

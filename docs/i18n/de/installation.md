@@ -109,5 +109,8 @@ Sicherheitshinweise. Bewusst ausgeschlossen sind Source-Tests, Release-Tooling, 
 interne Agent-/Orchestrierungsdateien, Design-Workspaces, generierte Release-Artefakte und Material für
 das Brand-Review.
 
-Xerify wird von Verhex entwickelt und unter der MIT-Lizenz vertrieben. Das kanonische Repository und der
+Xerify wird von Verhex entwickelt und unter der MIT-Lizenz vertrieben. Es ist die
+providerübergreifende Verifikationsschicht von Deckent, dem agentischen Betriebssystem von
+Verhex, und wird hier als eigenständiges Werkzeug veröffentlicht; die Installation von Xerify
+setzt Deckent nicht voraus und installiert es nicht mit. Das kanonische Repository und der
 Issue-Tracker sind in den Paket-Metadaten verlinkt.

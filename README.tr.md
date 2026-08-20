@@ -18,8 +18,10 @@ bir araçtır. Bilgisayarınızda giriş yapılmış resmi sağlayıcı CLI'lar�
 yapılandırılmış bir çalıştırılabilir dosyayı kullanabilir. CLI, JavaScript/TypeScript kütüphanesi,
 yerel STDIO MCP ve Streamable HTTP MCP aynı çekirdeği ve şemaları kullanır.
 
-Xerify, **Verhex** tarafından oluşturulup geliştirilmektedir ve topluluk katkılarıyla MIT Lisansı
-altında dağıtılır. Sonuç bir ikinci görüştür; matematiksel ispat, güvenlik sertifikası veya garanti
+Xerify, **Verhex** tarafından topluluk katkılarıyla geliştirilir ve MIT Lisansı altında dağıtılır.
+Xerify, Verhex'in ajan tabanlı işletim sistemi olan **Deckent**'in sağlayıcılar arası doğrulama
+katmanıdır; burada bağımsız, kendi başına çalışan bir araç olarak sunulur ve Deckent'e hiçbir
+bağımlılığı yoktur. Sonuç bir ikinci görüştür; matematiksel ispat, güvenlik sertifikası veya garanti
 edilmiş gerçek değildir. Sağlayıcı çıktısı güvenilmeyen veridir ve hiçbir zaman çalıştırılmaz.
 
 > **Yayın durumu:** `0.1.0` yayın adayıdır. npm dağıtım adı `xverify-cli`, ürün ve terminal komutu
@@ -154,6 +156,18 @@ Sabit npm sürümüyle:
 Sunucu `xerify_ask`, `xerify_verify` ve ücretsiz `xerify_capabilities` araçlarını sunar. HTTP
 varsayılan olarak `127.0.0.1` üzerinde çalışır; loopback dışı bind, hem `--allow-public` hem de
 ortam değişkeninden bearer token gerektirir.
+
+## Xerify'i kim geliştiriyor
+
+Xerify, **[Verhex](https://github.com/VerhexIO)** tarafından tasarlanır, geliştirilir ve sürdürülür.
+
+Kökeni **Deckent**'e dayanır — Verhex'in ajan tabanlı işletim sistemine; orkestratörün dayandığı
+yeteneklerden biri de bir iddiayı kontrol etmesi için ikinci bir sağlayıcıya sormaktır. Xerify, bu
+yeteneğin bağımsız, açık kaynaklı halidir: kendi başına kurulur, Deckent'e ihtiyaç duymaz ve ona
+hiçbir bağımlılık taşımaz.
+
+Bu depoda yalnızca Xerify [MIT Lisansı](LICENSE) kapsamındadır. Deckent, ayrı bir Verhex ürünüdür ve
+burada lisanslanmamıştır.
 
 ## Dokümantasyon
 

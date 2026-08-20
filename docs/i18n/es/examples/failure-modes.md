@@ -304,10 +304,10 @@ solo carácter:
 
 ```jsonc
 // Broken — resolves against a temp directory, process exits 1, you get exit 5
-"args": ["docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["tools/mock-provider.mjs", "prose"]
 
 // Working
-"args": ["/absolute/path/to/docs/examples/tools/mock-provider.mjs", "prose"]
+"args": ["/absolute/path/to/tools/mock-provider.mjs", "prose"]
 ```
 
 El esquema de configuración no tiene ninguna clave `cwd`, así que una ruta absoluta es la única
