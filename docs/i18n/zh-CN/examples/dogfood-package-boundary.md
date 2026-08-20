@@ -13,7 +13,7 @@ Xerify 在核查一条关于自身发行边界的主张，用的是自动生成�
 
 ## 主张
 
-> 针对 `xverify-cli@0.1.0` 提供的 npm dry-run 回执显示，所列出的每一个必需运行时、示例和本地化路径均存在，也没有任何包内路径匹配所列的内部或本地状态禁止规则。
+> 针对 `xverify-cli@0.1.1` 提供的 npm dry-run 回执显示，所列出的每一个必需运行时和工具路径均存在，没有任何包内路径匹配所列的内部、文档或本地状态禁止规则，并且显示 source map 文件数为零。
 
 ## 复现
 
@@ -28,7 +28,7 @@ cat docs/examples/evidence/dogfood-package-boundary.md | xerify --json --timeout
   --adapter claude \
   --from openai:gpt-5.6-sol \
   --to anthropic:claude-fable-5 \
-  --claim "The supplied npm dry-run receipt for xverify-cli@0.1.0 reports every listed required runtime, example, and localization path as present, and reports no package path matching its listed internal or local-state forbidden rules." \
+  --claim "The supplied npm dry-run receipt for xverify-cli@0.1.1 reports every listed required runtime and tool path as present, reports no package path matching its listed internal, documentation or local-state forbidden rules, and reports zero source map files." \
   --context-label docs/examples/evidence/dogfood-package-boundary.md
 ```
 
@@ -39,12 +39,12 @@ cat docs/examples/evidence/dogfood-package-boundary.md | xerify --json --timeout
   "verdict": "confirmed",
   "exitCode": 0,
   "failure": null,
-  "summary": "The dry-run receipt for xverify-cli@0.1.0 lists eight required paths under requiredPathsPresent and reports every one as true. Its forbiddenMatches array is empty against the fourteen listed forbidden rules, and none of the sixteen topLevelEntries matches any forbidden rule such as src/, tests/, .github/, .xerify/, AGENTS.md, or CONTRIBUTING.md.",
+  "summary": "The dry-run receipt for xverify-cli@0.1.1 reports exactly what the bounded claim states: all six paths in requiredPathsPresent are true; forbiddenMatches is an empty array against the 16 listed internal/documentation/local-state rules; and sourceMapCount is 0. An independent cross-check of the 16 topLevelEntries against the forbiddenPathRules yields no match, so the receipt is internally consistent.",
   "materialFindings": [
-    "[info] All eight required paths are reported present, covering runtime, example, and localization categories.",
-    "[info] forbiddenMatches is empty, and cross-checking topLevelEntries against the fourteen rules yields no match.",
-    "[low] The receipt shows entryCount 229 but enumerates only 16 top-level entries, so forbiddenMatches cannot be independently recomputed from a full file manifest; it can only be read as the receipt's own report.",
-    "[info] The name discrepancy between the pre-publication candidate name xerify and the published name xverify-cli is explained in the evidence prose and does not contradict the claim."
+    "[info] All six requiredPathsPresent entries are reported true, covering the runtime entry, schema, skill, postinstall script, mock-provider tool, and README.",
+    "[info] forbiddenMatches is empty, and cross-checking topLevelEntries against the 16 forbiddenPathRules yields no match.",
+    "[info] sourceMapCount is 0, matching the claim of zero source map files.",
+    "[low] The receipt enumerates only the 16 top-level entries of 109 total, so forbiddenMatches is accepted as the receipt's own computed report rather than independently recomputed."
   ]
 }
 ```
@@ -53,7 +53,7 @@ cat docs/examples/evidence/dogfood-package-boundary.md | xerify --json --timeout
 
 注意这条主张的范围划定得有多谨慎：它说的是**回执报告了什么**，而不是**注册表实际提供了什么**。正是这种范围限定，才让它具备可验证性。像“已发布的包不包含任何源码文件”这样的主张，凭这份证据是无法验证的，因为证据只是一次本地 dry run。
 
-那条 `low` 级发现，是验证方从另一侧守住这条边界。它注意到 `forbiddenMatches: []` 无法被独立重新计算，因为回执只列出了 16 个顶层条目，而总文件数是 229。也就是说，它其实是在信任回执自身的断言——而它把这一点明说了出来，没有悄悄把一个汇总字段当成事实真相。
+那条 `low` 级发现，是验证方从另一侧守住这条边界。它注意到 `forbiddenMatches: []` 无法被独立重新计算，因为回执只列出了 16 个顶层条目，而总文件数是 109。也就是说，它其实是在信任回执自身的断言——而它把这一点明说了出来，没有悄悄把一个汇总字段当成事实真相。
 
 候选包名 `xerify` 被 npm 以“非限定名称”为由拒绝；最终发布的分发包是 `xverify-cli`，安装后的可执行文件叫 `xerify`。验证方核实了这种命名差异是有说明的，而不是自相矛盾。
 

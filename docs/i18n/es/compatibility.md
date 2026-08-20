@@ -8,7 +8,8 @@ Xerify admite Node.js 20 y 24 en Ubuntu, macOS y Windows, a través de la matriz
 Node.js 24 es la línea principal de publicación. WSL usa la misma ruta de runtime que Linux, pero
 la autenticación de proveedor y el comportamiento de procesos específicos del host deben comprobarse
 con `xerify health` en la máquina real. La verificación completa, la prueba de humo de instalación
-limpia y la auditoría de release del candidato `0.1.0` también pasan en WSL2 con Node.js 24.
+limpia y la auditoría de release también pasan en WSL2 con Node.js 24; esto se verificó en la
+máquina de un mantenedor, y no mediante la matriz pública de CI.
 
 ## Superficies admitidas
 

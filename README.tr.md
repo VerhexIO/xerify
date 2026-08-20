@@ -24,8 +24,13 @@ katmanıdır; burada bağımsız, kendi başına çalışan bir araç olarak sun
 bağımlılığı yoktur. Sonuç bir ikinci görüştür; matematiksel ispat, güvenlik sertifikası veya garanti
 edilmiş gerçek değildir. Sağlayıcı çıktısı güvenilmeyen veridir ve hiçbir zaman çalıştırılmaz.
 
-> **Yayın durumu:** `0.1.0` yayın adayıdır. npm dağıtım adı `xverify-cli`, ürün ve terminal komutu
-> `xerify` olarak kalır.
+> **Yayın durumu:** `0.1.1`, npm üzerinde `xverify-cli` olarak dağıtılan erken bir genel sürümdür.
+> Genel CI, Node 20/24 ile Ubuntu, macOS ve Windows'ta yeşil — harici kurulum ve MCP Inspector duman
+> testi dahil; aynı kontrol, temiz kurulum duman testi ve sürüm denetimi Node 24 ile WSL2'de de geçer.
+> Çağrı sağlayıcısı kimlik sözleşmesinin her iki yönde de canlı Cursor/OpenAI kanıtı var. Yayımlanan
+> `0.1.0` tarball'ı, yayın iş akışının dışında registry'ye ulaştı ve bu yüzden hiçbir npm provenance
+> onayı taşımıyor; `0.1.1` ise bunu isteyen iş akışı tarafından yayımlanıyor. Genel şemalar, JSON
+> zarfları ve çıkış kodları kararlı; sağlayıcı yüzeyi ise hâlâ küçük ve API büyüyebilir.
 
 ## Kurulum
 
@@ -41,7 +46,7 @@ xerify init
 Projeye sabitlenmiş geliştirme bağımlılığı:
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 npx xerify --version
 ```
 
@@ -147,7 +152,7 @@ Sabit npm sürümüyle:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

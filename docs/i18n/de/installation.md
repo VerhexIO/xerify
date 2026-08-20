@@ -35,7 +35,7 @@ npm zwei getrennte Paketnamen – das ist nicht dasselbe.
 Für reproduzierbare Automatisierung eine feste Version statt `latest` angeben:
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 ```
 
 ## Projektinitialisierung
@@ -90,7 +90,7 @@ Der lokale STDIO-MCP-Server nutzt dasselbe Paket – ein zweiter Server-Download
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

@@ -39,7 +39,7 @@ demande à npm d'installer deux paquets distincts, ce qui n'a rien d'équivalent
 Pour une automatisation reproductible, figez une version exacte plutôt que `latest` :
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 ```
 
 ## Initialisation du projet
@@ -96,7 +96,7 @@ Le MCP local en STDIO utilise le même paquet ; il n'y a pas de second serveur
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }
@@ -118,5 +118,5 @@ documents de revue de marque.
 
 Xerify est créé et développé par Verhex, et distribué sous licence MIT. Il constitue la couche de
 vérification inter-fournisseurs de Deckent, le système d'exploitation agentique de Verhex, publiée
-comme outil autonome ; installer Xerify n'exige ni n'installe Deckent. Le dépôt source
+comme outil autonome ; installer Xerify n'exige ni n'installe Deckent. Le dépôt source
 canonique et le suivi des tickets sont accessibles depuis les métadonnées du paquet.

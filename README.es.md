@@ -25,8 +25,16 @@ sí solo y no depende de Deckent. El resultado es una segunda opinión, no una p
 certificación de seguridad ni una garantía de verdad. La salida del proveedor es un dato no
 confiable y nunca se ejecuta.
 
-> **Estado de publicación:** `0.1.0` es un candidato de lanzamiento. El paquete npm es
-> `xverify-cli`; el producto y el comando instalado siguen llamándose `xerify`.
+> **Estado de publicación:** `0.1.1` es una versión pública temprana, distribuida en npm como
+> `xverify-cli`. La CI pública está en verde en Ubuntu, macOS y Windows con Node 20/24, incluyendo
+> la instalación externa y la prueba de humo de MCP Inspector; la misma verificación, la prueba de
+> humo de instalación limpia y la auditoría de release también pasan en WSL2 con Node 24. El
+> contrato de identidad de proveedor de invocación tiene prueba en vivo entre Cursor y OpenAI en
+> ambas direcciones. El tarball publicado de `0.1.0` llegó al registro por fuera del flujo de
+> trabajo de release, así que no lleva ninguna atestación de procedencia de npm; `0.1.1` se publica
+> mediante ese flujo de trabajo, que sí la solicita. Los esquemas públicos, los sobres JSON y los
+> códigos de salida son estables; la superficie de proveedores todavía es pequeña, y la API puede
+> crecer.
 
 ## Instalación
 
@@ -42,7 +50,7 @@ xerify init
 Como dependencia de desarrollo fijada:
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 npx xerify --version
 ```
 
@@ -120,7 +128,7 @@ MCP STDIO local con versión fija:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

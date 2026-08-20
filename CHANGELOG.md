@@ -4,6 +4,28 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-20
+
+### Packaging
+
+- Documentation is served from the repository instead of the npm artifact. The package drops from
+  336 entries and 1,483,898 bytes to 109 entries and 342,060 bytes, a 77% reduction. `docs/` is now
+  in the forbidden-path rules of both the install smoke and the release audit.
+- TypeScript source maps are excluded. Every `.js.map` in the published `0.1.0` resolved to
+  `../../src/*.ts`, none carried `sourcesContent`, and `src/` has never shipped, so none of them
+  could resolve for any consumer.
+- The deterministic mock provider moved to `tools/mock-provider.mjs` and still ships. It is a
+  runnable tool rather than documentation, and the zero-quota walkthrough has to work from an npm
+  install.
+- The release workflow now passes `--provenance` explicitly and fails the run if the registry did
+  not record an attestation. `0.1.0` reached the registry outside the workflow and carries none.
+
+### Added
+
+- A contract test pinning the compiled `VERSION` constant to the package manifest and to
+  `server.json`. Both were hardcoded and nothing kept them in step, so a release could have shipped
+  a binary reporting the wrong version.
+
 ### Added
 
 - `docs/examples/dogfooding.md`: a log of 26 verification rounds spent putting five findings about

@@ -45,7 +45,7 @@ Without a global install, an MCP host may resolve the public npm package directl
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

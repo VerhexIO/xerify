@@ -21,10 +21,10 @@ man selbst kontrolliert, wodurch jedes Ergebnis reproduzierbar wird.
 Der Mock liegt unter `tools/mock-provider.mjs`. Er nimmt ein Argument entgegen, den
 Szenarionamen, ignoriert den Prompt und gibt eine feste Antwort aus.
 
-> **Verfügbarkeit:** Der Mock ist ab dem Release nach `0.1.0` im Paket enthalten. In `0.1.0` fehlt
-> er im npm-Tarball – stattdessen einen Source-Checkout des Repositorys verwenden oder die Datei
-> aus dem Repository in das eigene Projekt kopieren und `args` auf diese Kopie zeigen lassen. Alles
-> andere auf dieser Seite funktioniert unverändert.
+> **Verfügbarkeit:** Der Mock ist ab `0.1.1` im Paket enthalten. In `0.1.0` fehlt er – auf dieser
+> Version stattdessen einen Source-Checkout des Repositorys verwenden oder die Datei aus dem
+> Repository in das eigene Projekt kopieren und `args` auf diese Kopie zeigen lassen. Alles andere
+> auf dieser Seite funktioniert unverändert.
 
 ## Setup
 

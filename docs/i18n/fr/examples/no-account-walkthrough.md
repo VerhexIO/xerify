@@ -21,10 +21,10 @@ contrôlez les réponses, ce qui rend chaque résultat reproductible.
 Le simulateur se trouve dans `tools/mock-provider.mjs`. Il prend un seul argument, le
 nom du scénario, ignore le prompt, et affiche une réponse fixe.
 
-> **Disponibilité :** le simulateur est inclus dans le paquet à partir de la version qui suit
-> `0.1.0`. Sur `0.1.0`, il ne figure pas dans l'archive npm — utilisez un clone source du dépôt, ou
-> copiez le fichier depuis le dépôt vers votre propre projet et faites pointer `args` vers votre
-> copie. Tout le reste de cette page fonctionne sans changement.
+> **Disponibilité :** le simulateur est fourni à partir de `0.1.1`. Il ne figure pas dans
+> l'archive `0.1.0` — sur cette version, utilisez un clone source du dépôt, ou copiez le fichier
+> depuis le dépôt vers votre propre projet et faites pointer `args` vers votre copie. Tout le
+> reste de cette page fonctionne sans changement.
 
 ## Mise en place
 

@@ -14,9 +14,10 @@ plutôt que d'un résumé rédigé par un humain.
 
 ## Affirmation
 
-> Le reçu d'essai à blanc npm fourni pour xverify-cli@0.1.0 indique que chaque chemin requis listé —
-> runtime, exemples et localisation — est présent, et ne signale aucun chemin de paquet correspondant
-> à ses règles interdites, qu'elles portent sur les fichiers internes ou sur l'état local.
+> Le reçu d'essai à blanc npm fourni pour xverify-cli@0.1.1 indique que chaque chemin requis listé —
+> runtime et outils — est présent, qu'aucun chemin de paquet ne correspond à ses règles interdites
+> portant sur les fichiers internes, la documentation ou l'état local, et que le nombre de fichiers
+> de carte source est nul.
 
 ## Reproduire
 
@@ -32,7 +33,7 @@ cat docs/examples/evidence/dogfood-package-boundary.md | xerify --json --timeout
   --adapter claude \
   --from openai:gpt-5.6-sol \
   --to anthropic:claude-fable-5 \
-  --claim "The supplied npm dry-run receipt for xverify-cli@0.1.0 reports every listed required runtime, example, and localization path as present, and reports no package path matching its listed internal or local-state forbidden rules." \
+  --claim "The supplied npm dry-run receipt for xverify-cli@0.1.1 reports every listed required runtime and tool path as present, reports no package path matching its listed internal, documentation or local-state forbidden rules, and reports zero source map files." \
   --context-label docs/examples/evidence/dogfood-package-boundary.md
 ```
 
@@ -43,12 +44,12 @@ cat docs/examples/evidence/dogfood-package-boundary.md | xerify --json --timeout
   "verdict": "confirmed",
   "exitCode": 0,
   "failure": null,
-  "summary": "The dry-run receipt for xverify-cli@0.1.0 lists eight required paths under requiredPathsPresent and reports every one as true. Its forbiddenMatches array is empty against the fourteen listed forbidden rules, and none of the sixteen topLevelEntries matches any forbidden rule such as src/, tests/, .github/, .xerify/, AGENTS.md, or CONTRIBUTING.md.",
+  "summary": "The dry-run receipt for xverify-cli@0.1.1 reports exactly what the bounded claim states: all six paths in requiredPathsPresent are true; forbiddenMatches is an empty array against the 16 listed internal/documentation/local-state rules; and sourceMapCount is 0. An independent cross-check of the 16 topLevelEntries against the forbiddenPathRules yields no match, so the receipt is internally consistent.",
   "materialFindings": [
-    "[info] All eight required paths are reported present, covering runtime, example, and localization categories.",
-    "[info] forbiddenMatches is empty, and cross-checking topLevelEntries against the fourteen rules yields no match.",
-    "[low] The receipt shows entryCount 229 but enumerates only 16 top-level entries, so forbiddenMatches cannot be independently recomputed from a full file manifest; it can only be read as the receipt's own report.",
-    "[info] The name discrepancy between the pre-publication candidate name xerify and the published name xverify-cli is explained in the evidence prose and does not contradict the claim."
+    "[info] All six requiredPathsPresent entries are reported true, covering the runtime entry, schema, skill, postinstall script, mock-provider tool, and README.",
+    "[info] forbiddenMatches is empty, and cross-checking topLevelEntries against the 16 forbiddenPathRules yields no match.",
+    "[info] sourceMapCount is 0, matching the claim of zero source map files.",
+    "[low] The receipt enumerates only the 16 top-level entries of 109 total, so forbiddenMatches is accepted as the receipt's own computed report rather than independently recomputed."
   ]
 }
 ```
@@ -62,7 +63,7 @@ partir de cette preuve, puisque la preuve est un essai à blanc local.
 
 Le résultat `low` montre le vérificateur qui surveille cette frontière depuis l'autre côté. Il a
 observé que `forbiddenMatches: []` ne peut pas être recalculé de façon indépendante, car le reçu ne
-liste que 16 entrées de premier niveau sur 229 fichiers au total. Il fait donc confiance à
+liste que 16 entrées de premier niveau sur 109 fichiers au total. Il fait donc confiance à
 l'assertion même du reçu — et il l'a dit, plutôt que de traiter silencieusement un champ
 récapitulatif comme une vérité établie.
 

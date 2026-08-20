@@ -18,9 +18,14 @@ inventory, SPDX SBOM, vulnerability audit, and secret-pattern scan. Live provide
 normal release gate; any such call requires explicit owner approval and a bounded, non-sensitive
 evidence scope.
 
-The unscoped package is `xverify-cli`; the installed executable remains `xerify`. npm requires a package to exist before a Trusted Publisher can be
-configured, so the designated Verhex release owner bootstraps `0.1.0` with an owner-controlled,
-package-write granular token that can satisfy the account's publish-time 2FA policy. Store it only
+The unscoped package is `xverify-cli`; the installed executable remains `xerify`. `0.1.0` was
+bootstrapped with an owner-controlled, package-write granular token because npm requires a package
+to exist before a Trusted Publisher can be configured. That tarball reached the registry outside
+this workflow, so the workflow's publish step was skipped by its already-published guard and npm
+recorded no provenance attestation for it. From `0.1.1` on, the publish runs inside the workflow,
+which holds `id-token: write`, passes `--provenance`, and then fails the run if the registry did not
+record an attestation. The token stays in use until Trusted Publishing is configured; it does not
+prevent provenance. Store it only
 as the repository Actions secret `NPM_TOKEN`; the bootstrap release workflow exposes it only as
 `NODE_AUTH_TOKEN` on the `npm publish` step. Never commit or paste npm tokens, OTPs, recovery codes,
 or auth-store contents into issues, prompts, logs, or repository files.

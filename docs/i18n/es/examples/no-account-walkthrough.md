@@ -21,10 +21,10 @@ hace que cada resultado sea reproducible.
 El simulador vive en `tools/mock-provider.mjs`. Toma un argumento, el nombre del
 escenario, ignora el prompt, e imprime una respuesta fija.
 
-> **Disponibilidad:** el simulador se incluye en el paquete a partir del release posterior a
-> `0.1.0`. En `0.1.0` no está en el tarball de npm — use un checkout del código fuente del
-> repositorio, o copie el archivo del repositorio a su propio proyecto y apunte `args` a su copia.
-> Todo lo demás en esta página funciona sin cambios.
+> **Disponibilidad:** el simulador se incluye a partir de `0.1.1`. No está en el tarball de
+> `0.1.0` — en esa versión, use un checkout del código fuente del repositorio, o copie el archivo
+> del repositorio a su propio proyecto y apunte `args` a su copia. Todo lo demás en esta página
+> funciona sin cambios.
 
 ## Configuración inicial
 

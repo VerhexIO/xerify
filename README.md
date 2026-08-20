@@ -22,7 +22,7 @@ on Deckent.
 
 Xerify provides a second opinion, not formal proof or guaranteed truth. Provider output is untrusted data and is never executed.
 
-> **Release status:** `0.1.0` is a pre-release candidate. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke. The same check, clean-install smoke, and release audit pass on WSL2 with Node 24. The invocation-provider identity contract has live Cursor/OpenAI proof in both directions, and the logo geometry/palette are owner-approved. First npm publication/Trusted Publisher setup and signed GitHub artifacts remain release operations.
+> **Release status:** `0.1.1` is an early public release, distributed on npm as `xverify-cli`. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke; the same check, clean-install smoke, and release audit also pass on WSL2 with Node 24. The invocation-provider identity contract has live Cursor/OpenAI proof in both directions. The published `0.1.0` tarball reached the registry outside the release workflow and therefore carries no npm provenance attestation; `0.1.1` is published by the workflow, which requests one. Public schemas, JSON envelopes and exit codes are stable; the provider surface is still small and the API may grow.
 
 ## Install
 

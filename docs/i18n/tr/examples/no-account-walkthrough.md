@@ -14,7 +14,7 @@ Xerify'in `command` adaptörü, herhangi bir çalıştırılabilir dosyayı çal
 
 Sahte sağlayıcı `tools/mock-provider.mjs` yolunda bulunur. Tek bir argüman alır — senaryo adı —, prompt'u yok sayar ve sabit bir yanıt yazdırır.
 
-> **Erişilebilirlik:** sahte sağlayıcı, `0.1.0` sonrasındaki sürümden itibaren pakete dahildir. `0.1.0` sürümünde npm paketinde (tarball) yer almaz — bu durumda deponun bir kaynak kopyasını kullanın, ya da dosyayı depodan kendi projenize kopyalayıp `args` değerini kendi kopyanıza yönlendirin. Bu sayfadaki geri kalan her şey değişmeden çalışır.
+> **Erişilebilirlik:** sahte sağlayıcı `0.1.1` sürümünden itibaren pakete dahildir. `0.1.0` tarball'ında yer almaz — o sürümde, deponun bir kaynak kopyasını kullanın, ya da dosyayı depodan kendi projenize kopyalayıp `args` değerini kendi kopyanıza yönlendirin. Bu sayfadaki geri kalan her şey değişmeden çalışır.
 
 ## Kurulum
 

@@ -49,14 +49,28 @@ jobs:
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
-      # Bootstrap only: npm requires the package to exist before Trusted Publishing can be
-      # configured. Remove NODE_AUTH_TOKEN after xverify-cli@0.1.0 is published and release.yml is
-      # registered as the package's trusted publisher.
+      # `0.1.0` reached the registry outside this workflow, so its publish step was skipped by the
+      # guard below and npm recorded no provenance attestation for it. Provenance is generated when
+      # the publish itself runs here, because this job holds `id-token: write` and the manifest sets
+      # `publishConfig.provenance`. `--provenance` is passed explicitly so the intent survives a
+      # manifest edit, and the run fails rather than publishing silently without it.
       - name: Publish package
         if: steps.registry.outputs.published != 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish "${{ steps.release.outputs.tarball }}" --access public
+        run: npm publish "${{ steps.release.outputs.tarball }}" --access public --provenance
+      - name: Verify the registry recorded a provenance attestation
+        if: steps.registry.outputs.published != 'true'
+        shell: bash
+        run: |
+          attestations=$(npm view \
+            "${{ steps.release.outputs.package }}@${{ steps.release.outputs.version }}" \
+            dist.attestations --json 2>/dev/null || echo 'null')
+          echo "dist.attestations: $attestations"
+          if [ "$attestations" = 'null' ] || [ -z "$attestations" ]; then
+            echo "::error::npm recorded no provenance attestation for this version"
+            exit 1
+          fi
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

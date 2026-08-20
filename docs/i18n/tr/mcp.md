@@ -44,7 +44,7 @@ Genel bir kurulum olmadan, bir MCP host'u genel npm paketini doğrudan çözüml
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

@@ -34,7 +34,7 @@ npx --yes --package=xverify-cli@latest xerify --json health
 Yeniden üretilebilir otomasyon için, `latest` yerine tam bir sürümü sabitleyin:
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 ```
 
 ## Proje başlatma
@@ -79,7 +79,7 @@ Yerel STDIO MCP aynı paketi kullanır; ikinci bir sunucu indirmesi yoktur:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

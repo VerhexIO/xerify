@@ -3,8 +3,8 @@
 Xerify supports Node.js 20 and 24 on Ubuntu, macOS, and Windows through the public CI matrix. Node.js
 24 is the primary release lane. WSL uses the Linux runtime path, but host-specific provider
 authentication and process behavior should be checked with `xerify health` on the actual machine.
-The `0.1.0` release candidate's full check, clean-install smoke, and release audit also pass on WSL2
-with Node.js 24.
+The full check, clean-install smoke, and release audit also pass on WSL2 with Node.js 24, verified
+on a maintainer machine rather than by the public CI matrix.
 
 ## Supported surfaces
 

@@ -32,7 +32,7 @@ package names and is not equivalent.
 For reproducible automation, pin an exact version instead of `latest`:
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 ```
 
 ## Project initialization
@@ -85,7 +85,7 @@ Local STDIO MCP uses the same package; there is no second server download:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

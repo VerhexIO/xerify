@@ -13,7 +13,7 @@ body:
     attributes:
       label: Xerify version
       description: Output of `xerify --version` or the exact source commit.
-      placeholder: 0.1.0
+      placeholder: 0.1.1
     validations:
       required: true
   - type: dropdown

@@ -14,9 +14,10 @@ generado en lugar de un resumen humano.
 
 ## Afirmación
 
-> El comprobante de npm dry-run suministrado para xverify-cli@0.1.0 informa que todas las rutas
-> requeridas listadas de runtime, ejemplos y localización están presentes, y no informa ninguna
-> ruta del paquete que coincida con sus reglas prohibidas de archivos internos o de estado local.
+> El comprobante de npm dry-run suministrado para xverify-cli@0.1.1 informa que todas las rutas
+> requeridas listadas de runtime y de herramientas están presentes, no informa ninguna ruta del
+> paquete que coincida con sus reglas prohibidas de archivos internos, de documentación o de
+> estado local, y informa cero archivos source map.
 
 ## Reproducir
 
@@ -32,7 +33,7 @@ cat docs/examples/evidence/dogfood-package-boundary.md | xerify --json --timeout
   --adapter claude \
   --from openai:gpt-5.6-sol \
   --to anthropic:claude-fable-5 \
-  --claim "The supplied npm dry-run receipt for xverify-cli@0.1.0 reports every listed required runtime, example, and localization path as present, and reports no package path matching its listed internal or local-state forbidden rules." \
+  --claim "The supplied npm dry-run receipt for xverify-cli@0.1.1 reports every listed required runtime and tool path as present, reports no package path matching its listed internal, documentation or local-state forbidden rules, and reports zero source map files." \
   --context-label docs/examples/evidence/dogfood-package-boundary.md
 ```
 
@@ -43,12 +44,12 @@ cat docs/examples/evidence/dogfood-package-boundary.md | xerify --json --timeout
   "verdict": "confirmed",
   "exitCode": 0,
   "failure": null,
-  "summary": "The dry-run receipt for xverify-cli@0.1.0 lists eight required paths under requiredPathsPresent and reports every one as true. Its forbiddenMatches array is empty against the fourteen listed forbidden rules, and none of the sixteen topLevelEntries matches any forbidden rule such as src/, tests/, .github/, .xerify/, AGENTS.md, or CONTRIBUTING.md.",
+  "summary": "The dry-run receipt for xverify-cli@0.1.1 reports exactly what the bounded claim states: all six paths in requiredPathsPresent are true; forbiddenMatches is an empty array against the 16 listed internal/documentation/local-state rules; and sourceMapCount is 0. An independent cross-check of the 16 topLevelEntries against the forbiddenPathRules yields no match, so the receipt is internally consistent.",
   "materialFindings": [
-    "[info] All eight required paths are reported present, covering runtime, example, and localization categories.",
-    "[info] forbiddenMatches is empty, and cross-checking topLevelEntries against the fourteen rules yields no match.",
-    "[low] The receipt shows entryCount 229 but enumerates only 16 top-level entries, so forbiddenMatches cannot be independently recomputed from a full file manifest; it can only be read as the receipt's own report.",
-    "[info] The name discrepancy between the pre-publication candidate name xerify and the published name xverify-cli is explained in the evidence prose and does not contradict the claim."
+    "[info] All six requiredPathsPresent entries are reported true, covering the runtime entry, schema, skill, postinstall script, mock-provider tool, and README.",
+    "[info] forbiddenMatches is empty, and cross-checking topLevelEntries against the 16 forbiddenPathRules yields no match.",
+    "[info] sourceMapCount is 0, matching the claim of zero source map files.",
+    "[low] The receipt enumerates only the 16 top-level entries of 109 total, so forbiddenMatches is accepted as the receipt's own computed report rather than independently recomputed."
   ]
 }
 ```
@@ -62,7 +63,7 @@ partir de esta evidencia, porque la evidencia es un dry run local.
 
 El finding `low` es el verificador vigilando ese mismo límite desde el otro lado. Observó que
 `forbiddenMatches: []` no se puede volver a calcular de forma independiente, porque el comprobante
-lista 16 entradas de nivel superior, pero 229 archivos en total. Así que está confiando en la propia
+lista 16 entradas de nivel superior, pero 109 archivos en total. Así que está confiando en la propia
 aseveración del comprobante — y lo dijo, en lugar de tratar en silencio un campo de resumen como
 verdad absoluta.
 

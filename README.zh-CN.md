@@ -17,7 +17,7 @@ Xerify 是一个面向 shell 的开源工具，用于有边界的跨提供方提
 
 Xerify 由 **Verhex** 开发和维护，并接受社区贡献，以 MIT 许可证发布。它是 **Deckent**（Verhex 的智能体操作系统）的跨提供方验证层，在本仓库中作为独立工具发布——Xerify 可以独立运行，不依赖 Deckent。它提供的是第二意见，而不是形式化证明、安全认证或真相保证。提供方输出始终被视为不可信数据，绝不会被直接执行。
 
-> **发布状态：**`0.1.0` 是候选版本。npm 分发包名为 `xverify-cli`，产品名和安装后的命令仍为 `xerify`。
+> **发布状态：** `0.1.1` 是一个早期公开发布版本，以 `xverify-cli` 的包名发布到 npm。公开 CI 在 Ubuntu、macOS、Windows 上针对 Node 20/24 均为绿色，涵盖外部安装和 MCP Inspector 冒烟测试；同一套检查、干净安装冒烟测试和发布审计，在 WSL2 + Node 24 环境下同样通过。调用提供方身份约定已经有 Cursor/OpenAI 双向的实测验证。已发布的 `0.1.0` tarball 是在发布工作流之外抵达 registry 的，因此不带 npm 来源认证（provenance attestation）；`0.1.1` 则是由工作流发布，会主动申请这项认证。公开的 schema、JSON envelope 和退出码是稳定的；提供方接入面目前还比较小，API 仍可能扩展。
 
 ## 安装
 
@@ -33,7 +33,7 @@ xerify init
 固定为项目开发依赖：
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 npx xerify --version
 ```
 
@@ -101,7 +101,7 @@ xerify --json config validate
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

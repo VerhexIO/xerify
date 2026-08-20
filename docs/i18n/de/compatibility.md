@@ -7,8 +7,9 @@
 Xerify unterstützt über die öffentliche CI-Matrix Node.js 20 und 24 unter Ubuntu, macOS und
 Windows. Node.js 24 ist die primäre Release-Schiene. WSL nutzt den Linux-Laufzeitpfad,
 host-spezifische Provider-Authentifizierung und Prozessverhalten sollten aber auf der tatsächlichen
-Maschine mit `xerify health` geprüft werden. Der vollständige Check, der Clean-Install-Smoke-Test
-und das Release-Audit des Release-Candidate `0.1.0` bestehen ebenfalls unter WSL2 mit Node.js 24.
+Maschine mit `xerify health` geprüft werden. Der vollständige Check, der Clean-Install-Smoke-Test und das Release-Audit bestehen ebenfalls
+unter WSL2 mit Node.js 24 – verifiziert auf einem Maintainer-Rechner, nicht durch die
+öffentliche CI-Matrix.
 
 ## Unterstützte Oberflächen
 

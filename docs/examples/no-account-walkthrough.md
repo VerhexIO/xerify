@@ -16,10 +16,9 @@ a perfectly valid provider — one whose answers you control, which makes every 
 The mock lives at `tools/mock-provider.mjs`. It takes one argument, the scenario name,
 ignores the prompt, and prints a fixed response.
 
-> **Availability:** the mock is included in the package from the release after `0.1.0`. On `0.1.0`
-> it is not in the npm tarball — use a source checkout of the repository, or copy the file from
-> the repository into your own project and point `args` at your copy. Everything else on this page
-> works unchanged.
+> **Availability:** the mock ships from `0.1.1` onward. It is not in the `0.1.0` tarball — on that
+> version, use a source checkout of the repository, or copy the file from the repository into your
+> own project and point `args` at your copy. Everything else on this page works unchanged.
 
 ## Setup
 

@@ -4,7 +4,7 @@
 
 > Belgelerin normatif ve kanonik kaynağı İngilizce dokümantasyondur. Bir çeviri ile test edilmiş sözleşme çelişirse, geçerli olan taraf test edilmiş İngilizce sözleşmedir.
 
-Xerify, genel CI matrisi üzerinden Ubuntu, macOS ve Windows'ta Node.js 20 ve 24'ü destekler. Node.js 24 birincil sürüm hattıdır. WSL, Linux çalışma zamanı yolunu kullanır; ama host'a özgü sağlayıcı kimlik doğrulaması ve süreç davranışı, gerçek makinede `xerify health` ile kontrol edilmelidir. `0.1.0` sürüm adayının tam kontrolü, temiz kurulum duman testi ve sürüm denetimi de Node.js 24 ile WSL2'de geçmektedir.
+Xerify, genel CI matrisi üzerinden Ubuntu, macOS ve Windows'ta Node.js 20 ve 24'ü destekler. Node.js 24 birincil sürüm hattıdır. WSL, Linux çalışma zamanı yolunu kullanır; ama host'a özgü sağlayıcı kimlik doğrulaması ve süreç davranışı, gerçek makinede `xerify health` ile kontrol edilmelidir. Tam kontrol, temiz kurulum duman testi ve sürüm denetimi de Node.js 24 ile WSL2'de geçer; bu doğrulama genel CI matrisi tarafından değil, bir bakımcı makinesinde yapılmıştır.
 
 ## Desteklenen yüzeyler
 

@@ -34,7 +34,7 @@ npx --yes --package=xverify-cli@latest xerify --json health
 自动化流程要求可复现结果时，把 `latest` 换成具体版本号：
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 ```
 
 ## 项目初始化
@@ -79,7 +79,7 @@ npm install --save-dev xverify-cli@latest
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }

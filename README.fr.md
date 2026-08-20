@@ -28,12 +28,20 @@ Son résultat est un second avis, pas une preuve formelle, une certification de
 sécurité ou une garantie de vérité. La sortie du fournisseur est une donnée non fiable et n'est
 jamais exécutée.
 
-> **État de publication :** `0.1.0` est une version candidate. Le paquet npm s'appelle
-> `xverify-cli` ; le produit et la commande installée restent `xerify`.
+> **État de publication :** `0.1.1` est une première version publique, distribuée sur npm sous
+> le nom `xverify-cli`. La CI publique est au vert sur Ubuntu, macOS et Windows avec Node
+> 20/24, y compris l'installation externe et le test de fumée de MCP Inspector ; la même
+> vérification, le test de fumée d'installation propre et l'audit de publication passent aussi
+> sous WSL2 avec Node 24. Le contrat d'identité de fournisseur d'invocation dispose d'une preuve
+> réelle Cursor/OpenAI dans les deux sens. Le tarball `0.1.0` publié a atteint le registre en
+> dehors du flux de publication, et ne porte donc aucune attestation de provenance npm ;
+> `0.1.1` est publié par ce flux, qui en demande une. Les schémas publics, les enveloppes JSON et
+> les codes de sortie sont stables ; la surface de fournisseurs reste encore restreinte, et
+> l'API est susceptible de s'étoffer.
 
 ## Installation
 
-Après la première publication publique sur npm :
+Après la première publication publique sur npm :
 
 ```sh
 npm install --global xverify-cli@latest
@@ -42,26 +50,26 @@ xerify --json health
 xerify init
 ```
 
-Comme dépendance de développement épinglée :
+Comme dépendance de développement épinglée :
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.0
+npm install --save-dev --save-exact xverify-cli@0.1.1
 npx xerify --version
 ```
 
-Sans conserver de dépendance :
+Sans conserver de dépendance :
 
 ```sh
 npx --yes --package=xverify-cli@latest xerify --json health
 ```
 
-Node.js 20 ou ultérieur est requis ; Node.js 24 est la voie de publication principale. Consultez
+Node.js 20 ou ultérieur est requis ; Node.js 24 est la voie de publication principale. Consultez
 le [guide complet en français](docs/i18n/fr/README.md) et la
 [documentation d'installation canonique](docs/installation.md).
 
 ## Démarrage rapide
 
-Demandez un second avis ouvert ; l'entrée pipée devient le contexte borné :
+Demandez un second avis ouvert ; l'entrée pipée devient le contexte borné :
 
 ```sh
 git diff --cached | xerify ask \
@@ -69,7 +77,7 @@ git diff --cached | xerify ask \
   --question "Quel est le risque principal de cette modification ?"
 ```
 
-Tentez de réfuter une affirmation concrète avec un autre fournisseur d'invocation :
+Tentez de réfuter une affirmation concrète avec un autre fournisseur d'invocation :
 
 ```sh
 git diff --cached | xerify --json verify \
@@ -80,7 +88,7 @@ git diff --cached | xerify --json verify \
 
 `--from` et `--to` identifient le service d'invocation, de facturation et de contrôle. Un modèle
 choisi via Cursor Agent a toujours le provider `cursor`, même si son ID mentionne GPT, Claude,
-Gemini ou Grok. Codex/OpenAI direct est `openai` ; Claude/Anthropic direct est `anthropic`. Une
+Gemini ou Grok. Codex/OpenAI direct est `openai` ; Claude/Anthropic direct est `anthropic`. Une
 vérification avec le même fournisseur est rejetée avant l'appel au modèle.
 
 Cette séparation mesure la diversité des canaux, pas l'indépendance des poids, données
@@ -90,7 +98,7 @@ d'entraînement ou angles morts des modèles.
 
 | Résultat    | Exit | Action                                                         |
 | ----------- | ---: | -------------------------------------------------------------- |
-| `confirmed` |    0 | candidat pour continuer ; aucun contre-exemple matériel trouvé |
+| `confirmed` |    0 | candidat pour continuer ; aucun contre-exemple matériel trouvé |
 | `refuted`   |   10 | bloquer l'affirmation                                          |
 | `unclear`   |   11 | fournir des preuves, réessayer ou demander une revue humaine   |
 
@@ -116,21 +124,21 @@ bornés. Les appels réels `ask` et `verify` peuvent consommer un quota ou entra
 Docker. Les exécutions actives sont sous `runs/`, les archives sous `archive/`, et
 `archive/index.jsonl` sert de catalogue compact pour les humains et les outils AI.
 
-MCP STDIO local avec version épinglée :
+MCP STDIO local avec version épinglée :
 
 ```json
 {
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.0", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
     }
   }
 }
 ```
 
 Le serveur expose `xerify_ask`, `xerify_verify` et `xerify_capabilities`. HTTP écoute par défaut sur
-`127.0.0.1` ; un bind hors loopback exige `--allow-public` et un bearer token fourni par une variable
+`127.0.0.1` ; un bind hors loopback exige `--allow-public` et un bearer token fourni par une variable
 d'environnement nommée.
 
 ## Qui développe Xerify
@@ -139,7 +147,7 @@ Xerify est conçu, développé et maintenu par **[Verhex](https://github.com/Ver
 
 Il trouve son origine dans **Deckent**, le système d'exploitation agentique de Verhex, où demander à
 un second fournisseur de vérifier une affirmation fait partie des capacités dont dépend
-l'orchestrateur. Xerify est cette même capacité, sous une forme autonome et open source : il
+l'orchestrateur. Xerify est cette même capacité, sous une forme autonome et open source : il
 s'installe seul, ne nécessite pas Deckent, et n'en dépend en rien.
 
 Seul Xerify est couvert par la [licence MIT](LICENSE) dans ce dépôt. Deckent est un produit Verhex
