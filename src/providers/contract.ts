@@ -10,6 +10,11 @@ export interface ProviderCapabilities {
   authKinds: readonly AuthKind[];
   structuredOutput: boolean;
   reportsUsage: boolean;
+  // Whether this adapter can ever populate `usage.costUsd`. Without it a caller summing cost
+  // across runs cannot tell an adapter that never reports cost from a run that genuinely cost
+  // nothing, because both arrive as `null`. This lives on the capability rather than on the
+  // result so the published result schema stays as it is.
+  reportsCost: boolean;
   supportsAbort: boolean;
 }
 

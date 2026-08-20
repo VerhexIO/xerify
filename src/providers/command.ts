@@ -6,6 +6,7 @@ import { XerifyError } from '../core/errors.js';
 import { buildChildEnvironment } from '../process/environment.js';
 import { resolveExecutable } from '../process/executable-resolution.js';
 import { runProcess } from '../process/spawn.js';
+import { describeProcessFailure } from './diagnostic.js';
 import type {
   AuthKind,
   InvokeInput,
@@ -50,6 +51,7 @@ export class CommandAdapter implements ProviderAdapter {
       authKinds: [this.#options.authKind ?? 'unknown'],
       structuredOutput: this.#options.structuredOutput ?? false,
       reportsUsage: this.#options.reportsUsage ?? false,
+      reportsCost: false,
       supportsAbort: true
     };
   }
@@ -125,9 +127,14 @@ export class CommandAdapter implements ProviderAdapter {
       );
 
       if (result.exitCode !== 0) {
+        const providerMessage = describeProcessFailure(result.stderr, result.stdout);
         throw new XerifyError('PROVIDER_FAILURE', 'Provider process exited unsuccessfully', {
           retryable: true,
-          details: { exitCode: result.exitCode, signal: result.signal }
+          details: {
+            exitCode: result.exitCode,
+            signal: result.signal,
+            ...(providerMessage === null ? {} : { providerMessage })
+          }
         });
       }
 

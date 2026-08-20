@@ -179,6 +179,21 @@ Grundlegende Plattformvariablen wie `PATH`, Home-/Config-Pfade, Variablen für T
 die Locale werden weitergereicht, damit offizielle CLIs ihre eigenen sicheren Auth-Speicher finden.
 Der Rest der übergeordneten Umgebung wird nicht pauschal übernommen.
 
+Ein generischer Command-Adapter wird in einem privaten, leeren Verzeichnis gestartet statt im
+Projekt, sodass er keine Projektdateien lesen kann, die ihm nicht mitgegeben wurden. Eine Folge
+davon tritt leicht ein: **Jeder Pfad in `executable` und `args` muss absolut sein.** `"args":
+["tools/verifier.mjs"]` wird gegen das private Verzeichnis aufgelöst, nicht gegen das Projekt, und
+der Prozess schlägt fehl, bevor er überhaupt eine Eingabe liest. Der typisierte Fehler zitiert den
+Interpreter, der das durchsuchte Verzeichnis benennt:
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "message": "Provider process exited unsuccessfully",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
 Es gibt bewusst keine Umgebungsvariable zur Modellauswahl. Jede Live-Anfrage trägt ein exaktes
 `--to provider:model`; die Herkunftsangabe der Quelle nutzt ein exaktes `--from provider:model`.
 Modell-IDs mit dem providereigenen, nicht abrechnungspflichtigen Discovery-Befehl ermitteln, etwa

@@ -51,7 +51,7 @@ Sin una instalación global, un host MCP puede resolver directamente el paquete 
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.2.0", "xerify", "mcp", "stdio"]
     }
   }
 }

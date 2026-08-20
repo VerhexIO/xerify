@@ -79,6 +79,7 @@ export class OpenAiApiAdapter implements ProviderAdapter {
       authKinds: ['api-key'],
       structuredOutput: true,
       reportsUsage: true,
+      reportsCost: false,
       supportsAbort: true
     };
   }

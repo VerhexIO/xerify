@@ -181,6 +181,21 @@ las variables de directorio temporal y el locale, para que las CLI oficiales pue
 propios almacenes seguros de credenciales. El resto del entorno del proceso padre no se copia a
 ciegas.
 
+Un adaptador `command` genérico se inicia en un directorio privado y vacío, en vez de en el
+proyecto, así que no puede leer archivos del proyecto que no se le hayan proporcionado. Esto tiene
+una consecuencia fácil de pasar por alto: **toda ruta en `executable` y en `args` debe ser
+absoluta.** `"args": ["tools/verifier.mjs"]` se resuelve contra el directorio privado, no contra el
+proyecto, y el proceso falla antes de leer cualquier entrada. El fallo tipificado cita el
+intérprete, que nombra el directorio en el que buscó:
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "message": "Provider process exited unsuccessfully",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
 A propósito no existe ninguna variable de entorno para elegir el modelo. Toda solicitud real lleva
 un `--to provider:model` exacto; la procedencia del origen usa un `--from provider:model` igual de
 exacto. Para encontrar los ID de modelo, use el propio comando de descubrimiento del proveedor que

@@ -39,7 +39,7 @@ demande à npm d'installer deux paquets distincts, ce qui n'a rien d'équivalent
 Pour une automatisation reproductible, figez une version exacte plutôt que `latest` :
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.1
+npm install --save-dev --save-exact xverify-cli@0.2.0
 ```
 
 ## Initialisation du projet
@@ -96,7 +96,7 @@ Le MCP local en STDIO utilise le même paquet ; il n'y a pas de second serveur
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.2.0", "xerify", "mcp", "stdio"]
     }
   }
 }

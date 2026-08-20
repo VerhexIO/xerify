@@ -13,6 +13,10 @@
 
 <p align="center"><strong>Frage einen anderen Provider. Erhalte eine klare Zweitmeinung.</strong></p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/VerhexIO/xerify/main/assets/readme/xerify-verification-flow.gif" alt="Xerify-Ablauf: Eine bestehende Behauptung von Provider A durchläuft begrenzte Evidenz und das Andere-Provider-Gate, Provider B versucht die Falsifikation, und Xerify liefert confirmed, refuted oder unclear" width="960">
+</p>
+
 Xerify ist ein Shell-orientiertes Open-Source-Werkzeug für begrenzte, providerübergreifende Fragen
 und Prüfungen. Es kann bereits authentifizierte offizielle Provider-CLIs, direkte APIs oder ein
 explizit konfiguriertes Programm verwenden. CLI, JavaScript/TypeScript-Bibliothek, lokales STDIO-MCP
@@ -25,14 +29,14 @@ läuft für sich allein und hat keine Abhängigkeit von Deckent. Das Ergebnis is
 kein formaler Beweis, kein Sicherheitszertifikat und keine Wahrheitsgarantie. Provider-Ausgaben
 sind nicht vertrauenswürdige Daten und werden niemals ausgeführt.
 
-> **Release-Status:** `0.1.1` ist ein früher öffentlicher Release, auf npm als `xverify-cli`
+> **Release-Status:** `0.2.0` ist ein früher öffentlicher Release, auf npm als `xverify-cli`
 > verteilt. Die öffentliche CI ist unter Ubuntu, macOS und Windows mit Node 20/24 grün,
 > einschließlich externem Install- und MCP-Inspector-Smoke-Test; derselbe Check, der
 > Clean-Install-Smoke-Test und das Release-Audit bestehen auch unter WSL2 mit Node 24. Der
 > Vertrag zur Aufruf-Provider-Identität ist live in beide Richtungen mit Cursor/OpenAI belegt.
 > Der veröffentlichte `0.1.0`-Tarball erreichte die Registry außerhalb des Release-Workflows und
-> trägt deshalb keine npm-Provenance-Attestierung; `0.1.1` wird vom Workflow veröffentlicht, der
-> eine solche anfordert. Öffentliche Schemas, JSON-Envelopes und Exit-Codes sind stabil; die
+> trägt deshalb keine npm-Provenance-Attestierung; `0.1.1` und spätere Versionen werden vom
+> Workflow veröffentlicht, der eine solche anfordert. Öffentliche Schemas, JSON-Envelopes und Exit-Codes sind stabil; die
 > Provider-Oberfläche ist noch klein, und die API kann wachsen.
 
 ## Installation
@@ -49,7 +53,7 @@ xerify init
 Als festgelegte Entwicklungsabhängigkeit:
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.1
+npm install --save-dev --save-exact xverify-cli@0.2.0
 npx xerify --version
 ```
 
@@ -114,6 +118,33 @@ xerify --json config validate
 Diese Befehle rufen kein Modell auf. `--network` ergänzt nur begrenzte Erreichbarkeitstests. Live
 `ask` und `verify` können Kontingent verbrauchen oder API-Kosten verursachen.
 
+## Adapter-Pfade und Modell-IDs
+
+Ein Command-Adapter läuft in einem privaten, leeren Verzeichnis, nicht im eigenen Projekt, daher
+muss **jeder Pfad in `executable` und `args` absolut sein**. Ein relativer Pfad wie
+`./tools/verifier.mjs` wird gegen dieses private Verzeichnis aufgelöst, und der Prozess scheitert
+schon beim Start. Der Fehler zitiert jetzt den Interpreter, der das Verzeichnis nennt, in dem er
+tatsächlich gesucht hat:
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
+Exakte IDs stammen vom Provider, nicht von Xerify; nur Cursor bietet einen Auflistungsbefehl:
+
+| Adapter                                            | Woher die exakte Modell-ID stammt                                                                                              |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `cursor`                                           | `agent models`                                                                                                                 |
+| `codex`                                            | das eigene Codex-Konto und die verwendete CLI-Version; `codex --help` zeigt `--model`, und die CLI nennt das abgelehnte Modell |
+| `claude`                                           | das eigene Anthropic-Konto und die verwendete CLI-Version; `claude --help` zeigt `--model`                                     |
+| `openai-api`, `anthropic-api`, `openai-compatible` | die eigene Modellliste des Providers für den jeweiligen Key                                                                    |
+
+Lehnt ein Provider ein Modell ab, wird dessen eigener Satz unter `providerMessage` zurückgemeldet –
+meist der schnellste Weg, um herauszufinden, was er akzeptiert.
+
 ## Lokaler Zustand und MCP
 
 `xerify init` erstellt ohne Überschreiben `.xerify/` und schützt es in Git-, npm- und
@@ -127,15 +158,32 @@ Lokales STDIO-MCP:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.2.0", "xerify", "mcp", "stdio"]
+    }
+  }
+}
+```
+
+Bei einer projektlokalen Installation liegt `xerify` nicht auf dem `PATH`. Der Host wird dann direkt
+auf den Einstiegspunkt verwiesen – das umgeht zugleich die `npx`-Indirektion, wodurch der Server
+schneller startet:
+
+```json
+{
+  "mcpServers": {
+    "xerify": {
+      "command": "node",
+      "args": ["./node_modules/xverify-cli/dist/cli/entry.js", "mcp", "stdio"]
     }
   }
 }
 ```
 
 Die Tools heißen `xerify_ask`, `xerify_verify` und `xerify_capabilities`. HTTP bindet standardmäßig
-an `127.0.0.1`; ein Bind außerhalb von Loopback erfordert `--allow-public` und ein Bearer-Token aus
-einer benannten Umgebungsvariable.
+an `127.0.0.1`; der Endpoint ist `http://127.0.0.1:8787/mcp`, und der Root-Pfad liefert `404`. Der
+Befehl gibt beim Start die vollständige URL aus – sie sollte von dort abgelesen werden, statt sie
+von Hand zusammenzusetzen. Ein Bind außerhalb von Loopback erfordert `--allow-public` und ein
+Bearer-Token aus einer benannten Umgebungsvariable.
 
 ## Wer Xerify entwickelt
 

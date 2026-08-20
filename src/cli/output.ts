@@ -1,5 +1,7 @@
 import {
   SCHEMA_VERSION,
+  type CliErrorEnvelope,
+  type CliSuccessEnvelope,
   type ErrorBody,
   type Finding,
   type VerifyResult
@@ -10,12 +12,14 @@ export interface OutputWriter {
   stderr(value: string): void;
 }
 
-export function successEnvelope(command: string, data: unknown) {
-  return { ok: true as const, schemaVersion: SCHEMA_VERSION, command, data };
+// The return types are declared rather than inferred so the compiler, not a reviewer, is what
+// keeps these literals in step with the envelope schemas exported under `schemas/`.
+export function successEnvelope(command: string, data: unknown): CliSuccessEnvelope {
+  return { ok: true, schemaVersion: SCHEMA_VERSION, command, data };
 }
 
-export function errorEnvelope(command: string, error: ErrorBody) {
-  return { ok: false as const, schemaVersion: SCHEMA_VERSION, command, error };
+export function errorEnvelope(command: string, error: ErrorBody): CliErrorEnvelope {
+  return { ok: false, schemaVersion: SCHEMA_VERSION, command, error };
 }
 
 export function writeJson(writer: OutputWriter, value: unknown): void {

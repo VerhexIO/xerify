@@ -29,10 +29,14 @@ function operationalFailure(error: XerifyError): VerificationFailure | null {
     error.code === 'PROVIDER_FAILURE' ||
     error.code === 'INVALID_PROVIDER_RESPONSE'
   ) {
+    const providerMessage = error.details.providerMessage;
     return {
       code: error.code,
       message: error.message,
-      retryable: error.retryable
+      retryable: error.retryable,
+      ...(typeof providerMessage === 'string' && providerMessage.length > 0
+        ? { providerMessage }
+        : {})
     };
   }
   return null;

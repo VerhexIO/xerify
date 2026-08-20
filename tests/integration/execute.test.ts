@@ -130,7 +130,11 @@ describe('canonical execution chain', () => {
     expect(verificationExitCode(result)).toBe(6);
   });
 
-  it('normalizes nonzero provider exit without exposing stderr', async () => {
+  // Xerify's own sentence stays fixed so callers can branch on it, and the provider's own words
+  // arrive in a separate field. Reporting only the exit status left a user unable to tell a stale
+  // CLI from an expired login from a rejected model, which is the one thing the provider always
+  // says out loud.
+  it('reports a nonzero provider exit with the provider’s own words in a separate field', async () => {
     const result = await executeVerify(
       { from, to, claim: 'The change is safe', context: '', limits: DEFAULT_LIMITS },
       registry('stderr')
@@ -138,9 +142,25 @@ describe('canonical execution chain', () => {
     expect(result.failure).toEqual({
       code: 'PROVIDER_FAILURE',
       message: 'Provider process exited unsuccessfully',
-      retryable: true
+      retryable: true,
+      providerMessage: 'fixture failed'
     });
-    expect(JSON.stringify(result)).not.toContain('fixture failed');
+  });
+
+  // The reason the previous behaviour discarded stderr entirely. Carrying the provider's words
+  // through is only defensible if the credential a provider echoes back cannot ride along with
+  // them, so the guarantee is asserted end to end rather than only on the redaction helper.
+  it('keeps a credential echoed on provider stderr out of the whole result', async () => {
+    const result = await executeVerify(
+      { from, to, claim: 'The change is safe', context: '', limits: DEFAULT_LIMITS },
+      registry('stderr-secret')
+    );
+    expect(result.failure?.code).toBe('PROVIDER_FAILURE');
+    expect(result.failure?.providerMessage).toContain('request rejected');
+    expect(result.failure?.providerMessage).toContain('[REDACTED]');
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain('YWxpY2U6U3VwZXJTZWNyZXQh');
+    expect(serialized).not.toContain('Authorization');
   });
 
   it('terminates a timed-out provider and returns exit reason 4', async () => {

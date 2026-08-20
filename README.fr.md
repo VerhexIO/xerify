@@ -13,6 +13,10 @@
 
 <p align="center"><strong>Interrogez un autre fournisseur. Obtenez un second avis clair.</strong></p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/VerhexIO/xerify/main/assets/readme/xerify-verification-flow.gif" alt="Flux Xerify animé : une affirmation existante du fournisseur A passe par une preuve bornée puis une porte de fournisseur différent, le fournisseur B tente de la réfuter, et Xerify renvoie un résultat typé confirmed, refuted ou unclear" width="960">
+</p>
+
 Xerify est un outil open source orienté shell pour des questions et vérifications inter-fournisseurs
 à périmètre borné. Il peut utiliser les CLI officielles déjà authentifiées sur votre machine, des
 API directes ou un exécutable explicitement configuré. La CLI, la bibliothèque
@@ -28,14 +32,14 @@ Son résultat est un second avis, pas une preuve formelle, une certification de
 sécurité ou une garantie de vérité. La sortie du fournisseur est une donnée non fiable et n'est
 jamais exécutée.
 
-> **État de publication :** `0.1.1` est une première version publique, distribuée sur npm sous
+> **État de publication :** `0.2.0` est une première version publique, distribuée sur npm sous
 > le nom `xverify-cli`. La CI publique est au vert sur Ubuntu, macOS et Windows avec Node
 > 20/24, y compris l'installation externe et le test de fumée de MCP Inspector ; la même
 > vérification, le test de fumée d'installation propre et l'audit de publication passent aussi
 > sous WSL2 avec Node 24. Le contrat d'identité de fournisseur d'invocation dispose d'une preuve
 > réelle Cursor/OpenAI dans les deux sens. Le tarball `0.1.0` publié a atteint le registre en
 > dehors du flux de publication, et ne porte donc aucune attestation de provenance npm ;
-> `0.1.1` est publié par ce flux, qui en demande une. Les schémas publics, les enveloppes JSON et
+> `0.1.1` et les versions ultérieures sont publiés par ce flux, qui en demande une. Les schémas publics, les enveloppes JSON et
 > les codes de sortie sont stables ; la surface de fournisseurs reste encore restreinte, et
 > l'API est susceptible de s'étoffer.
 
@@ -53,7 +57,7 @@ xerify init
 Comme dépendance de développement épinglée :
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.1
+npm install --save-dev --save-exact xverify-cli@0.2.0
 npx xerify --version
 ```
 
@@ -118,11 +122,41 @@ xerify --json config validate
 Ces commandes n'appellent aucun modèle. `--network` ajoute seulement des tests de connectivité
 bornés. Les appels réels `ask` et `verify` peuvent consommer un quota ou entraîner des coûts API.
 
-## État local et MCP
+## État local
 
 `xerify init` crée `.xerify/` sans écrasement et le protège dans les fichiers ignore de Git, npm et
 Docker. Les exécutions actives sont sous `runs/`, les archives sous `archive/`, et
 `archive/index.jsonl` sert de catalogue compact pour les humains et les outils AI.
+
+## Chemins d'adaptateur et identifiants de modèle
+
+Un adaptateur de commande s'exécute dans un répertoire privé et vide, pas dans votre projet ;
+tout chemin dans `executable` et `args` doit donc être absolu. Un chemin relatif comme
+`./tools/verifier.mjs` se résout par rapport à ce répertoire privé, et le processus échoue à
+démarrer. L'échec cite désormais l'interpréteur, qui nomme le répertoire dans lequel il a
+réellement cherché :
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
+Les identifiants exacts proviennent du fournisseur, pas de Xerify, et seul Cursor propose une
+commande de listage :
+
+| Adaptateur                                         | D'où vient l'identifiant de modèle exact                                                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `cursor`                                           | `agent models`                                                                                                            |
+| `codex`                                            | votre compte Codex et la version de la CLI ; `codex --help` affiche `--model`, et la CLI nomme le modèle qu'elle a rejeté |
+| `claude`                                           | votre compte Anthropic et la version de la CLI ; `claude --help` affiche `--model`                                        |
+| `openai-api`, `anthropic-api`, `openai-compatible` | la liste de modèles propre au fournisseur pour votre clé                                                                  |
+
+Lorsqu'un fournisseur rejette un modèle, sa propre phrase est renvoyée dans `providerMessage`,
+ce qui est généralement le moyen le plus rapide de savoir ce qu'il acceptera.
+
+## MCP
 
 MCP STDIO local avec version épinglée :
 
@@ -131,14 +165,30 @@ MCP STDIO local avec version épinglée :
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.2.0", "xerify", "mcp", "stdio"]
+    }
+  }
+}
+```
+
+Si vous préférez une installation locale au projet plutôt que `npx`, pointez l'hôte directement vers
+le point d'entrée : cela évite aussi l'indirection `npx`, et le serveur démarre donc plus vite.
+
+```json
+{
+  "mcpServers": {
+    "xerify": {
+      "command": "node",
+      "args": ["./node_modules/xverify-cli/dist/cli/entry.js", "mcp", "stdio"]
     }
   }
 }
 ```
 
 Le serveur expose `xerify_ask`, `xerify_verify` et `xerify_capabilities`. HTTP écoute par défaut sur
-`127.0.0.1` ; un bind hors loopback exige `--allow-public` et un bearer token fourni par une variable
+`127.0.0.1` (port `8787`), à l'endpoint `http://127.0.0.1:8787/mcp` — le chemin racine renvoie
+`404`. La commande affiche l'URL complète au démarrage : mieux vaut la lire là que la reconstituer
+à la main. Un bind hors loopback exige `--allow-public` et un bearer token fourni par une variable
 d'environnement nommée.
 
 ## Qui développe Xerify

@@ -19,18 +19,36 @@ export interface RecordedExecuteOptions extends ExecuteOptions {
   contextLabel?: string;
 }
 
+// The record should say which adapter actually served the request, not merely which one the
+// caller named. When two adapters answer to the same invocation-provider identity the registry
+// picks one, and without this the audit trail cannot say which. Resolution is deterministic and
+// makes no call, so doing it early is free; a failure here is swallowed so that an unresolvable
+// provider still produces a record and still fails through the normal path.
+function resolvedAdapterId(
+  registry: ProviderRegistry,
+  provider: string,
+  requested: string | undefined
+): string | undefined {
+  try {
+    return registry.resolve(provider, requested).id;
+  } catch {
+    return requested;
+  }
+}
+
 export async function executeRecordedAsk(
   rawRequest: AskRequest,
   registry: ProviderRegistry,
   options: RecordedExecuteOptions = {}
 ): Promise<AskResult> {
   const request = AskRequestSchema.parse(rawRequest);
+  const adapterId = resolvedAdapterId(registry, request.to.provider, options.adapterId);
   const session = await options.history?.start({
     operation: 'ask',
     surface: options.surface ?? 'library',
     from: request.from ?? null,
     to: request.to,
-    ...(options.adapterId ? { adapterId: options.adapterId } : {}),
+    ...(adapterId ? { adapterId } : {}),
     statementKind: 'question',
     statement: request.question,
     context: request.context,
@@ -53,12 +71,13 @@ export async function executeRecordedVerify(
   options: RecordedExecuteOptions = {}
 ): Promise<VerifyResult> {
   const request = VerifyRequestSchema.parse(rawRequest);
+  const adapterId = resolvedAdapterId(registry, request.to.provider, options.adapterId);
   const session = await options.history?.start({
     operation: 'verify',
     surface: options.surface ?? 'library',
     from: request.from,
     to: request.to,
-    ...(options.adapterId ? { adapterId: options.adapterId } : {}),
+    ...(adapterId ? { adapterId } : {}),
     statementKind: 'claim',
     statement: request.claim,
     context: request.context,

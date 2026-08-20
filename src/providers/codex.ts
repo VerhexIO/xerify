@@ -18,6 +18,7 @@ import type {
   ProviderAdapter,
   ProviderCapabilities
 } from './contract.js';
+import { describeEventFailure, describeProcessFailure } from './diagnostic.js';
 import { parseProviderJson } from './response.js';
 
 const CodexEventSchema = z.looseObject({
@@ -53,6 +54,11 @@ function parseEvents(output: string): { message: string; usage: Usage | null } {
       message = event.item.text ?? null;
     }
     if (event.type === 'turn.completed' && event.usage) {
+      // `cached_input_tokens` is a subset of `input_tokens`, not an addition to it. Measured
+      // against Codex v0.148.0: a turn reporting input 17607 / cached 11008 / output 5 is summarised
+      // by Codex itself as `tokens used 6,604`, which is 17607 - 11008 + 5 exactly. Adding the
+      // cached count would double-count the cached prefix. `input_tokens` already carries the whole
+      // input, so it is reported unchanged; the cached share is a billing detail, not a size.
       const inputTokens = event.usage.input_tokens ?? null;
       const outputTokens = event.usage.output_tokens ?? null;
       usage = {
@@ -102,6 +108,7 @@ export class CodexAdapter implements ProviderAdapter {
       authKinds: ['subscription', 'api-key'],
       structuredOutput: true,
       reportsUsage: true,
+      reportsCost: false,
       supportsAbort: true
     };
   }
@@ -192,9 +199,18 @@ export class CodexAdapter implements ProviderAdapter {
         signal
       );
       if (processResult.exitCode !== 0) {
+        // Codex reports a rejected model as a `turn.failed` event on stdout and still exits
+        // nonzero, so the event stream is checked before falling back to stderr.
+        const providerMessage =
+          describeEventFailure(processResult.stdout, ['turn.failed', 'error']) ??
+          describeProcessFailure(processResult.stderr, processResult.stdout);
         throw new XerifyError('PROVIDER_FAILURE', 'Codex CLI exited unsuccessfully', {
           retryable: true,
-          details: { exitCode: processResult.exitCode, signal: processResult.signal }
+          details: {
+            exitCode: processResult.exitCode,
+            signal: processResult.signal,
+            ...(providerMessage === null ? {} : { providerMessage })
+          }
         });
       }
       const parsed = parseEvents(processResult.stdout);

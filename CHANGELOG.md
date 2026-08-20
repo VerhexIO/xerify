@@ -4,6 +4,131 @@ All notable changes to Xerify are documented here. The format follows Keep a Cha
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-20
+
+First release driven by an outside field report against `0.1.0`. Every finding in it was reproduced
+against `0.1.1` before being fixed, and the design of each fix was put through `xerify verify`
+against the `codex` channel.
+
+### Added
+
+- `failure.providerMessage`: the provider's own sentence about why it failed. Xerify's `message`
+  stays a fixed sentence per failure code and remains what a caller branches on. Without the new
+  field a stale CLI, an expired login, and a rejected model all reported
+  `Provider process exited unsuccessfully`, which names no cause. Provider text is untrusted, so it
+  is reduced to one stated error line (or the last four lines when the output states none),
+  stripped of escape sequences and control characters, redacted against credential patterns, and
+  bounded to 501 characters. `docs/json-contract.md` describes the pipeline and what the field does
+  not promise.
+
+  Verified against the exact failure the report describes. `--to openai:<unknown-model> --adapter
+codex` reported only `Codex CLI exited unsuccessfully`; it now reports
+  `The '<unknown-model>' model is not supported when using Codex with a ChatGPT account.` Codex
+  delivers that sentence wrapped twice — an event whose `message` is the API's JSON error body
+  serialized into a string — so the diagnostic unwraps repeatedly, up to a fixed bound, rather than
+  reporting the envelope.
+
+  Four gaps in that pipeline were found by putting its own design through `xerify verify`, each one
+  fixed before release: `Authorization: Basic <base64>` matched none of the credential patterns
+  because the header name contains no `key`/`token`/`secret`; a multi-pair `Cookie` header lost only
+  its first pair; an `npm_…` token showed that a vendor prefix list is not a strategy, so an
+  unbroken run of 24 or more alphanumerics mixing letters and digits is now redacted whatever
+  issued it; sanitisation covered only 7-bit escape sequences and C0 controls, leaving carriage
+  return and the C1 range — including U+009B, which a terminal reads exactly as `ESC [`; and the
+  URL-userinfo rule required a colon, so `https://username@host/path` was not userinfo as far as it
+  was concerned.
+
+- `reportsCost` on provider capabilities. `usage.costUsd` arrives as `null` both from an adapter
+  that never reports cost and from a run that genuinely cost nothing; a caller summing cost across
+  runs could not tell those apart. Only the Claude CLI adapter reports cost. The MCP capability
+  schema declares its provider entries field by field and is `.strict()`, so the new field reached
+  the CLI but was dropped from the MCP surface until a contract test pinned the two key sets
+  together.
+- The resolved adapter ID is recorded on a run history record. A bare `--to provider:model` is
+  answered by the first adapter claiming that identity, so a record that named only the provider did
+  not say which adapter actually ran.
+- Contract tests covering published-schema freshness, the compiled `VERSION`, the exact version
+  pinned by every localized README's install command, request-schema projection, agreement between
+  the MCP capability schema and `ProviderCapabilities`, the adapter ID recorded on a run history
+  record, and the opposite cached-token conventions of the two official CLIs.
+
+### Fixed
+
+- Published request and config JSON Schemas listed fields as required that Xerify itself supplies.
+  They were exported from the output projection, where every `.default()` field is already
+  populated. `ask-request` required `['to','question','context','limits']` and now requires
+  `['to','question']`; the `command` adapter branch of `config.schema.json` required eight fields and
+  now requires three, which is what README and `docs/configuration.md` have always shown. An editor
+  wired to `$schema` reported errors on a config Xerify accepts.
+- Claude input tokens were under-reported on every cached turn. Claude's `cache_creation_input_tokens`
+  and `cache_read_input_tokens` sit outside `input_tokens` and are billed on top; a measured run
+  reported `input_tokens: 2` against a real charge of $0.130107. Codex's `cached_input_tokens` is the
+  opposite — a subset of `input_tokens`, confirmed against Codex v0.148.0, where a turn reporting
+  input 17607 / cached 11008 / output 5 is summarised by Codex itself as `tokens used 6,604` — so it
+  is deliberately not added.
+- The advertised MCP input schema required `to.provenance`, whose only legal value is `declared`,
+  costing every caller a field it could not vary.
+- The checked-in JSON Schemas were regenerated. `generate:schemas` is not part of `npm run check`, so
+  `providerMessage` was capped at 501 in code while the published artifact declared 2000. A contract
+  test now regenerates every schema and fails on any difference.
+- Redaction missed credential-bearing headers whose names contain none of `key`, `token`, `secret`,
+  `password`, or `credential`. `Authorization: Basic <base64>` reached provider diagnostics verbatim.
+  `Authorization`, `Proxy-Authorization`, and `Cookie` values are now redacted regardless of scheme.
+- The envelope builders in `src/cli/output.ts` had no declared return types, so nothing checked that
+  a required envelope field was present. They are typed now.
+- Provider diagnostics selected the last lines of the output unconditionally, which is the wrong end
+  of a stack trace. A crashing interpreter reported `code: 'MODULE_NOT_FOUND', | requireStack: [] |
+} | Node.js v24.15.0` while the line naming the cause sat five lines above. A stated error line now
+  wins over the tail.
+
+### Documentation
+
+- The README now opens with a compact eight-second workflow animation: an existing claim from
+  provider A enters Xerify as bounded evidence, only provider B is invoked to attempt
+  falsification, and the result returns as `confirmed`, `refuted`, or `unclear`. Its generated
+  background is composited beneath deterministic text and the owner-approved Xerify SVG geometry.
+- Where each adapter's exact model IDs come from. Only Cursor exposes a listing command; for the
+  others the ID comes from the account and CLI version, and a rejected model now says so itself.
+- The MCP Streamable HTTP endpoint is `/mcp`; the root path returns `404`. The command prints the
+  full URL on startup.
+- An MCP host entry for a project-local install, which has no `xerify` on `PATH`.
+- Command-adapter paths must be absolute. The adapter runs in a private empty directory, so
+  `"args": ["tools/verifier.mjs"]` resolves against that directory and never starts. The failure now
+  quotes the interpreter, which names the directory it searched. Documented in English and in all
+  five translations.
+- `docs/json-contract.md` no longer states that raw authorization headers and credential paths
+  cannot appear in a typed error without qualification. It names `providerMessage` as the one field
+  carrying provider-authored text, lists the rules applied to it, and says plainly that they are
+  defence in depth rather than a proof.
+
+### Compatibility
+
+This is a minor rather than a patch release, even though SemVer would permit either at `0.x`,
+because two things a careful consumer may depend on now behave differently. An `npm` range of
+`^0.1.1` upgrades to `0.1.2` on its own and does not reach `0.2.0`, so the bump is what makes the
+change something a consumer opts into.
+
+- **Provider-authored text now reaches results, and disk.** `0.1.1` normalized every nonzero
+  provider exit to a fixed sentence and deliberately discarded the provider's output; its test was
+  named "normalizes nonzero provider exit without exposing stderr". `providerMessage` reverses that
+  on purpose. The text is bounded and redacted, but it is provider-authored, there is no switch to
+  turn it off, and under the default capture policy it is written to
+  `.xerify/runs/<id>/result.json` along with the rest of the result. A project that chose Xerify
+  partly because provider output never entered its records should decide about this rather than
+  receive it.
+- **Claude token counts changed for cached turns.** `inputTokens` now includes
+  `cache_creation_input_tokens` and `cache_read_input_tokens`. The previous numbers were wrong — a
+  measured run reported `input_tokens: 2` against a $0.130107 charge — but anyone aggregating usage
+  across versions will see a discontinuity at this release rather than a correction.
+- `providerMessage` is also a new optional field on a failure body the published `verify-result`
+  schema marks `additionalProperties: false`, as is `reportsCost` on the MCP capabilities response.
+  A consumer validating against a **copied-out** `0.1.1` schema file will reject both. Schemas ship
+  inside the package, so a consumer validating against the schema from its own install is
+  unaffected.
+- Relaxations only, safe in both directions: `ask-request` and `verify-request` now require fewer
+  fields, the `command` adapter branch of `config.schema.json` requires three instead of eight, and
+  `to.provenance` defaults instead of being demanded from the caller.
+
 ## [0.1.1] - 2026-08-20
 
 ### Packaging

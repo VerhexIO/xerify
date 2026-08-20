@@ -73,6 +73,7 @@ export class AnthropicApiAdapter implements ProviderAdapter {
       authKinds: ['api-key'],
       structuredOutput: true,
       reportsUsage: true,
+      reportsCost: false,
       supportsAbort: true
     };
   }

@@ -26,7 +26,11 @@ export const XERIFY_MCP_TOOLS = {
 } as const;
 
 const EmptyInputSchema = z.object({}).strict();
-const CapabilitiesOutputSchema = z
+// Every field of `ProviderCapabilities` has to be listed here. The object is `.strict()`, so a
+// capability added to the interface but forgotten here is silently dropped from the MCP surface
+// while the CLI still reports it. That happened to `reportsCost`; a contract test now pins the two
+// key sets together.
+export const CapabilitiesOutputSchema = z
   .object({
     schemaVersion: z.literal(SCHEMA_VERSION),
     protocolRevision: z.literal(MCP_PROTOCOL_REVISION),
@@ -43,6 +47,7 @@ const CapabilitiesOutputSchema = z
           authKinds: z.array(z.enum(['subscription', 'api-key', 'local', 'unknown'])),
           structuredOutput: z.boolean(),
           reportsUsage: z.boolean(),
+          reportsCost: z.boolean(),
           supportsAbort: z.boolean()
         })
         .strict()
@@ -90,7 +95,7 @@ export interface XerifyMcpServerOptions {
 
 export function createXerifyMcpServer(options: XerifyMcpServerOptions): McpServer {
   const server = new McpServer(
-    { name: 'xerify', version: options.version ?? '0.1.1' },
+    { name: 'xerify', version: options.version ?? '0.2.0' },
     { capabilities: { tools: { listChanged: false } } }
   );
 

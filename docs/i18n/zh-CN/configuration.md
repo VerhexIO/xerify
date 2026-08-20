@@ -129,6 +129,16 @@ npx --yes --package=xverify-cli@latest xerify init
 
 `PATH`、主目录/配置目录、临时目录变量、locale 这些平台级必需项会被转发，好让官方 CLI 能找到自己的安全凭据存储；父进程环境里的其余变量不会被无差别地复制过去。
 
+通用 command 适配器会在一个私有的空目录中启动，而不是在项目目录中启动，因此它无法读取未显式提供给它的项目文件。这一点很容易踩坑：**`executable` 和 `args` 中的每一个路径都必须是绝对路径。** `"args": ["tools/verifier.mjs"]` 会相对该私有目录解析，而不是相对项目目录，于是进程会在读取任何输入之前就失败。类型化失败会引用解释器报出的原话，其中已指明它实际搜索过的目录：
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "message": "Provider process exited unsuccessfully",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
 刻意没有提供用于选择模型的环境变量：每一次真实请求都必须带上精确的 `--to provider:model`；标注来源时同样要用精确的 `--from provider:model`。模型 ID 请用提供方自己的免费发现命令查询，比如 `agent models`，不要凭猜测使用别名。
 
 ## 健康检查与提供方发现

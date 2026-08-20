@@ -17,10 +17,12 @@ import { z } from 'zod';
 import { AskRequestSchema } from '../../src/core/contracts.js';
 import { createXerifyHttpBoundary, serveXerifyHttp } from '../../src/mcp/http.js';
 import {
+  CapabilitiesOutputSchema,
   createXerifyMcpFactory,
   createXerifyMcpServer,
   XERIFY_MCP_TOOLS
 } from '../../src/mcp/server.js';
+import { CodexAdapter } from '../../src/providers/codex.js';
 import { serveXerifyStdio } from '../../src/mcp/stdio.js';
 import { RunHistoryStore } from '../../src/history/store.js';
 import { CommandAdapter } from '../../src/providers/command.js';
@@ -124,12 +126,36 @@ describe('MCP v2 contract', () => {
       history: disabledHistory()
     });
     const advertised = server.toolInputSchemaJson(XERIFY_MCP_TOOLS.ask);
-    const canonical = z.toJSONSchema(AskRequestSchema);
+    // The SDK builds an advertised input schema with `standardSchemaToJsonSchema(schema, 'input')`,
+    // so the canonical side to compare against is the input projection. On the output projection
+    // every `.default()` field is already populated and therefore required, which would advertise
+    // fields the caller never has to send.
+    const canonical = z.toJSONSchema(AskRequestSchema, { io: 'input' });
     expect(advertised?.properties).toEqual(canonical.properties);
     expect(advertised).toMatchObject({
       additionalProperties: false,
       required: ['to', 'question']
     });
+  });
+
+  // The capability object is declared field by field in a `.strict()` schema, so a capability the
+  // adapters report but the schema omits never reaches an MCP client, while the CLI still shows it.
+  // `reportsCost` was dropped exactly this way.
+  it('advertises every capability the adapters actually report', () => {
+    // `id` is the adapter's registry key rather than a capability, so it is the one field the
+    // advertised entry carries that `capabilities()` does not.
+    const reported = [
+      'id',
+      ...Object.keys(new CodexAdapter({ executable: process.execPath, env: {} }).capabilities())
+    ].sort();
+    const advertised = Object.keys(
+      (
+        z.toJSONSchema(CapabilitiesOutputSchema, { io: 'output' }) as unknown as {
+          properties: { providers: { items: { properties: Record<string, unknown> } } };
+        }
+      ).properties.providers.items.properties
+    ).sort();
+    expect(advertised, 'MCP capability schema and ProviderCapabilities disagree').toEqual(reported);
   });
 
   it('does not advertise observed provenance as caller-assertable verification input', () => {

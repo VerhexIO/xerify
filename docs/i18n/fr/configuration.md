@@ -181,6 +181,21 @@ et de configuration, les variables de répertoire temporaire et la locale, sont 
 les CLI officielles puissent retrouver leur propre stockage sécurisé d'identifiants. Le reste de
 l'environnement parent n'est pas recopié aveuglément.
 
+Un adaptateur de commande générique démarre dans un répertoire privé et vide plutôt que dans le
+projet, si bien qu'il ne peut pas lire des fichiers du projet qui ne lui ont pas été explicitement
+fournis. Une des conséquences est un piège fréquent : **tout chemin dans `executable` et dans
+`args` doit être absolu.** `"args": ["tools/verifier.mjs"]` se résout par rapport au répertoire
+privé, pas au projet, et le processus échoue avant même de lire la moindre entrée. L'échec typé
+cite l'interpréteur, qui nomme le répertoire dans lequel il a cherché :
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "message": "Provider process exited unsuccessfully",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
 Il n'existe volontairement aucune variable d'environnement de sélection de modèle. Chaque requête
 réelle porte un `--to provider:model` exact ; la provenance de la source utilise de même un
 `--from provider:model` exact. Trouvez les identifiants de modèle grâce à la commande de découverte

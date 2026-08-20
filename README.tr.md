@@ -13,6 +13,10 @@
 
 <p align="center"><strong>Başka bir sağlayıcıya sor. Net bir ikinci görüş al.</strong></p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/VerhexIO/xerify/main/assets/readme/xerify-verification-flow.gif" alt="Xerify akışı: A sağlayıcısındaki mevcut iddia sınırlandırılmış kanıt ve farklı sağlayıcı kapısından geçer, B sağlayıcısı iddiayı çürütmeye çalışır ve Xerify confirmed, refuted veya unclear sonucu döndürür" width="960">
+</p>
+
 Xerify; sınırlandırılmış, sağlayıcılar arası soru sorma ve doğrulama için shell odaklı, açık kaynaklı
 bir araçtır. Bilgisayarınızda giriş yapılmış resmi sağlayıcı CLI'larını, doğrudan API'leri veya açıkça
 yapılandırılmış bir çalıştırılabilir dosyayı kullanabilir. CLI, JavaScript/TypeScript kütüphanesi,
@@ -24,12 +28,12 @@ katmanıdır; burada bağımsız, kendi başına çalışan bir araç olarak sun
 bağımlılığı yoktur. Sonuç bir ikinci görüştür; matematiksel ispat, güvenlik sertifikası veya garanti
 edilmiş gerçek değildir. Sağlayıcı çıktısı güvenilmeyen veridir ve hiçbir zaman çalıştırılmaz.
 
-> **Yayın durumu:** `0.1.1`, npm üzerinde `xverify-cli` olarak dağıtılan erken bir genel sürümdür.
+> **Yayın durumu:** `0.2.0`, npm üzerinde `xverify-cli` olarak dağıtılan erken bir genel sürümdür.
 > Genel CI, Node 20/24 ile Ubuntu, macOS ve Windows'ta yeşil — harici kurulum ve MCP Inspector duman
 > testi dahil; aynı kontrol, temiz kurulum duman testi ve sürüm denetimi Node 24 ile WSL2'de de geçer.
 > Çağrı sağlayıcısı kimlik sözleşmesinin her iki yönde de canlı Cursor/OpenAI kanıtı var. Yayımlanan
 > `0.1.0` tarball'ı, yayın iş akışının dışında registry'ye ulaştı ve bu yüzden hiçbir npm provenance
-> onayı taşımıyor; `0.1.1` ise bunu isteyen iş akışı tarafından yayımlanıyor. Genel şemalar, JSON
+> onayı taşımıyor; `0.1.1` ve sonraki sürümler bunu isteyen iş akışı tarafından yayımlanıyor. Genel şemalar, JSON
 > zarfları ve çıkış kodları kararlı; sağlayıcı yüzeyi ise hâlâ küçük ve API büyüyebilir.
 
 ## Kurulum
@@ -46,7 +50,7 @@ xerify init
 Projeye sabitlenmiş geliştirme bağımlılığı:
 
 ```sh
-npm install --save-dev --save-exact xverify-cli@0.1.1
+npm install --save-dev --save-exact xverify-cli@0.2.0
 npx xerify --version
 ```
 
@@ -130,6 +134,32 @@ Aktif kayıtlar `runs/` altında görünür; `xerify runs archive 1` bunları ar
 `archive/index.jsonl`, insan ve AI araçlarının binlerce geçmiş kaydı tüm dosyaları açmadan aramasını
 sağlar. Ham sağlayıcı taşıma çıktısı ve kimlik bilgileri geçmişe yazılmaz.
 
+## Adaptör yolları ve model kimlikleri
+
+Bir command adaptörü, projenizde değil özel ve boş bir dizinde çalışır; bu yüzden **`executable` ve
+`args` içindeki her yol mutlak olmalıdır**. `./tools/verifier.mjs` gibi göreli bir yol bu özel
+dizine göre çözümlenir ve süreç başlamadan başarısız olur. Hata artık gerçekte hangi dizine
+baktığını söyleyen yorumlayıcıyı alıntılıyor:
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
+Tam kimlikler Xerify'den değil sağlayıcıdan gelir; yalnızca Cursor bir listeleme komutu sunar:
+
+| Adaptör                                            | Tam model kimliği nereden gelir                                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `cursor`                                           | `agent models`                                                                                                      |
+| `codex`                                            | Codex hesabınız ve CLI sürümünüz; `codex --help`, `--model` seçeneğini gösterir ve CLI reddettiği modeli adlandırır |
+| `claude`                                           | Anthropic hesabınız ve CLI sürümünüz; `claude --help`, `--model` seçeneğini gösterir                                |
+| `openai-api`, `anthropic-api`, `openai-compatible` | sağlayıcının kendi anahtarınız için sunduğu model listesi                                                           |
+
+Bir sağlayıcı bir modeli reddettiğinde kendi cümlesi `providerMessage` altında geri bildirilir;
+neyi kabul edeceğini öğrenmenin genellikle en hızlı yolu budur.
+
 ## MCP
 
 Global kurulum için yerel STDIO:
@@ -145,6 +175,20 @@ Global kurulum için yerel STDIO:
 }
 ```
 
+Projeye yerel bir kurulumda `xerify`, `PATH` üzerinde bulunmaz. Bu durumda giriş noktasını doğrudan
+hedefleyin — bu ayrıca `npx` dolaylamasını da atlar, dolayısıyla sunucu daha hızlı başlar:
+
+```json
+{
+  "mcpServers": {
+    "xerify": {
+      "command": "node",
+      "args": ["./node_modules/xverify-cli/dist/cli/entry.js", "mcp", "stdio"]
+    }
+  }
+}
+```
+
 Sabit npm sürümüyle:
 
 ```json
@@ -152,7 +196,7 @@ Sabit npm sürümüyle:
   "mcpServers": {
     "xerify": {
       "command": "npx",
-      "args": ["-y", "--package=xverify-cli@0.1.1", "xerify", "mcp", "stdio"]
+      "args": ["-y", "--package=xverify-cli@0.2.0", "xerify", "mcp", "stdio"]
     }
   }
 }
@@ -160,7 +204,8 @@ Sabit npm sürümüyle:
 
 Sunucu `xerify_ask`, `xerify_verify` ve ücretsiz `xerify_capabilities` araçlarını sunar. HTTP
 varsayılan olarak `127.0.0.1` üzerinde çalışır; loopback dışı bind, hem `--allow-public` hem de
-ortam değişkeninden bearer token gerektirir.
+ortam değişkeninden bearer token gerektirir. Uç nokta `http://127.0.0.1:8787/mcp`'dir; kök yol
+`404` döner. Sunucu başlangıçta tam URL'yi yazdırır — URL'yi elle birleştirmek yerine oradan okuyun.
 
 ## Xerify'i kim geliştiriyor
 

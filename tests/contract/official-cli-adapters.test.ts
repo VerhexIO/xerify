@@ -25,6 +25,10 @@ describe('official subscription CLI adapters', () => {
       new AbortController().signal
     );
     expect(JSON.parse(result.output)).toMatchObject({ verdict: 'confirmed' });
+    // The fixture reports `cached_input_tokens: 3` alongside `input_tokens: 12`. Codex's cached
+    // count is a subset of its input count, so the input is 12 and not 15. Measured against Codex
+    // v0.148.0: a turn reporting input 17607 / cached 11008 / output 5 is summarised by Codex as
+    // `tokens used 6,604` = 17607 - 11008 + 5. Summing here would double-count the cached prefix.
     expect(result.usage).toEqual({
       inputTokens: 12,
       outputTokens: 8,
@@ -49,6 +53,27 @@ describe('official subscription CLI adapters', () => {
       outputTokens: 9,
       totalTokens: 23,
       costUsd: 0.01
+    });
+  });
+
+  // The two official CLIs report cached input with opposite meanings, and reading either one the
+  // wrong way silently misreports every cached turn. Codex's `cached_input_tokens` is contained in
+  // its `input_tokens`; Claude's cache counts sit outside `input_tokens` and are billed on top.
+  it('adds Claude cache counts to the input total because they sit outside input_tokens', async () => {
+    const adapter = new ClaudeAdapter({
+      executable: process.execPath,
+      prefixArgs: [fixture, 'claude-json-cached'],
+      env: {}
+    });
+    const result = await adapter.invoke(
+      { operation: 'verify', model: 'test-model', prompt: 'verify', limits: DEFAULT_LIMITS },
+      new AbortController().signal
+    );
+    expect(result.usage).toEqual({
+      inputTokens: 28_766,
+      outputTokens: 4,
+      totalTokens: 28_770,
+      costUsd: 0.13
     });
   });
 

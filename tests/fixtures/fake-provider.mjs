@@ -90,6 +90,13 @@ switch (scenario) {
     await write(2, 'fixture failed');
     process.exitCode = 7;
     break;
+  case 'stderr-secret':
+    // A provider CLI that echoes the credential it just rejected. Shaped after verbose HTTP
+    // client output, where the header name carries none of the words a labelled-value pattern
+    // looks for.
+    await write(2, 'request rejected\n> Authorization: Basic YWxpY2U6U3VwZXJTZWNyZXQh');
+    process.exitCode = 7;
+    break;
   case 'huge':
     await write(1, 'x'.repeat(256 * 1024));
     break;
@@ -158,6 +165,34 @@ switch (scenario) {
         },
         total_cost_usd: 0.01,
         usage: { input_tokens: 14, output_tokens: 9 }
+      })
+    );
+    break;
+  case 'claude-json-cached':
+    // Shaped after a live `claude -p --output-format json` run, where a real charge accompanied
+    // `input_tokens: 2` because the request's actual input was in the cache fields.
+    await write(
+      1,
+      JSON.stringify({
+        type: 'result',
+        subtype: 'success',
+        result: 'Claude answer',
+        structured_output: {
+          verdict: 'confirmed',
+          summary: 'Claude agreed.',
+          findings: [],
+          evidence: [],
+          assumptions: [],
+          limitations: ['Fixture output only.'],
+          unverifiedClaims: []
+        },
+        total_cost_usd: 0.13,
+        usage: {
+          input_tokens: 2,
+          cache_creation_input_tokens: 12_170,
+          cache_read_input_tokens: 16_594,
+          output_tokens: 4
+        }
       })
     );
     break;

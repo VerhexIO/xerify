@@ -89,6 +89,7 @@ export class OpenAiCompatibleAdapter implements ProviderAdapter {
           : ['unknown'],
       structuredOutput: true,
       reportsUsage: true,
+      reportsCost: false,
       supportsAbort: true
     };
   }

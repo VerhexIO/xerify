@@ -137,7 +137,8 @@
               "enum": ["TIMEOUT", "CANCELLED", "PROVIDER_FAILURE", "INVALID_PROVIDER_RESPONSE"]
             },
             "message": { "type": "string", "minLength": 1, "maxLength": 2000 },
-            "retryable": { "type": "boolean" }
+            "retryable": { "type": "boolean" },
+            "providerMessage": { "type": "string", "minLength": 1, "maxLength": 501 }
           },
           "required": ["code", "message", "retryable"],
           "additionalProperties": false

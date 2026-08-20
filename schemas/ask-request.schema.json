@@ -38,9 +38,9 @@
           "maxLength": 200,
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$"
         },
-        "provenance": { "type": "string", "const": "declared" }
+        "provenance": { "default": "declared", "type": "string", "const": "declared" }
       },
-      "required": ["provider", "model", "provenance"],
+      "required": ["provider", "model"],
       "additionalProperties": false
     },
     "question": { "type": "string", "minLength": 1, "maxLength": 100000 },
@@ -57,6 +57,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["to", "question", "context", "limits"],
+  "required": ["to", "question"],
   "additionalProperties": false
 }

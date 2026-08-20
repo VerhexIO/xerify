@@ -18,6 +18,7 @@ import type {
   ProviderAdapter,
   ProviderCapabilities
 } from './contract.js';
+import { describeProcessFailure, sumInputTokens } from './diagnostic.js';
 import { parseProviderJson } from './response.js';
 
 const ClaudeOutputSchema = z.looseObject({
@@ -29,6 +30,8 @@ const ClaudeOutputSchema = z.looseObject({
   usage: z
     .looseObject({
       input_tokens: z.number().int().nonnegative().optional(),
+      cache_creation_input_tokens: z.number().int().nonnegative().optional(),
+      cache_read_input_tokens: z.number().int().nonnegative().optional(),
       output_tokens: z.number().int().nonnegative().optional()
     })
     .optional()
@@ -62,7 +65,16 @@ function parseOutput(raw: string, structured: boolean): { output: string; usage:
       }
     );
   }
-  const inputTokens = value.usage?.input_tokens ?? null;
+  // Claude's cache counts are additions to `input_tokens`, not a subset of it. Measured against a
+  // live `claude -p --output-format json` run: input 2, cache_creation 12170, cache_read 16594,
+  // against a real charge of $0.130107. A two-token request does not cost that, so `input_tokens`
+  // alone under-reports the input by four orders of magnitude here. Note this is the opposite of
+  // Codex, whose `cached_input_tokens` IS a subset — see the comment in `codex.ts`.
+  const inputTokens = sumInputTokens(
+    value.usage?.input_tokens,
+    value.usage?.cache_creation_input_tokens,
+    value.usage?.cache_read_input_tokens
+  );
   const outputTokens = value.usage?.output_tokens ?? null;
   return {
     output,
@@ -100,6 +112,7 @@ export class ClaudeAdapter implements ProviderAdapter {
       authKinds: ['subscription', 'api-key'],
       structuredOutput: true,
       reportsUsage: true,
+      reportsCost: true,
       supportsAbort: true
     };
   }
@@ -186,9 +199,14 @@ export class ClaudeAdapter implements ProviderAdapter {
         signal
       );
       if (result.exitCode !== 0) {
+        const providerMessage = describeProcessFailure(result.stderr, result.stdout);
         throw new XerifyError('PROVIDER_FAILURE', 'Claude CLI exited unsuccessfully', {
           retryable: true,
-          details: { exitCode: result.exitCode, signal: result.signal }
+          details: {
+            exitCode: result.exitCode,
+            signal: result.signal,
+            ...(providerMessage === null ? {} : { providerMessage })
+          }
         });
       }
       const parsed = parseOutput(result.stdout, input.operation === 'verify');

@@ -29,8 +29,14 @@ export const PublicProviderReferenceSchema = ProviderReferenceSchema.extend({
 });
 export type PublicProviderReference = z.infer<typeof PublicProviderReferenceSchema>;
 
+// `to.provenance` has exactly one legal value, so requiring a caller to send it costs a round
+// trip and carries no information. It defaults.
+//
+// `from.provenance` deliberately does not default. It accepts `declared` or `unknown`, and
+// `unknown` is rejected before any model call — defaulting it would silently promote an unknown
+// author to a declared one and defeat the different-provider check it exists to support.
 export const DeclaredProviderReferenceSchema = ProviderReferenceSchema.extend({
-  provenance: z.literal('declared')
+  provenance: z.literal('declared').default('declared')
 });
 export type DeclaredProviderReference = z.infer<typeof DeclaredProviderReferenceSchema>;
 
@@ -58,6 +64,10 @@ export const DEFAULT_LIMITS: RequestLimits = {
 };
 
 const boundedText = z.string().max(100 * 1024 * 1024);
+
+// Matches the bound the provider adapters apply when they build the message, so the schema states
+// the real limit rather than a looser one a library caller could exceed.
+export const MAX_PROVIDER_MESSAGE_LENGTH = 501;
 
 export const AskRequestSchema = z
   .object({
@@ -149,7 +159,13 @@ export const FailureSchema = z
   .object({
     code: z.enum(['TIMEOUT', 'CANCELLED', 'PROVIDER_FAILURE', 'INVALID_PROVIDER_RESPONSE']),
     message: z.string().min(1).max(2_000),
-    retryable: z.boolean()
+    retryable: z.boolean(),
+    // What the provider itself said, bounded and redacted. `message` names Xerify's own category
+    // of failure, which cannot distinguish a stale CLI from an expired login; without the
+    // provider's own sentence a caller has nothing to act on. Optional because a process can fail
+    // without saying anything, and a single narrow string rather than a free-form record so the
+    // public result never becomes a channel for unreviewed provider output.
+    providerMessage: z.string().min(1).max(MAX_PROVIDER_MESSAGE_LENGTH).optional()
   })
   .strict();
 export type VerificationFailure = z.infer<typeof FailureSchema>;

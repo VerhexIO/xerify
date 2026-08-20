@@ -13,6 +13,10 @@
 
 <p align="center"><strong>Ask another provider. Get a clear second opinion.</strong></p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/VerhexIO/xerify/main/assets/readme/xerify-verification-flow.gif" alt="Animated Xerify flow: an existing claim from provider A passes through bounded evidence and a different-provider gate, provider B attempts falsification, and Xerify returns a typed confirmed, refuted, or unclear result" width="960">
+</p>
+
 Xerify is a shell-first, open-source tool for bounded cross-provider questions and verification. It can use provider CLIs already authenticated on your machine, direct APIs, or an explicitly configured executable. The same core and schemas power the CLI, library, local STDIO MCP server, and Streamable HTTP MCP server.
 
 Xerify is built and maintained by **Verhex**, with community contributions, and distributed under
@@ -22,11 +26,11 @@ on Deckent.
 
 Xerify provides a second opinion, not formal proof or guaranteed truth. Provider output is untrusted data and is never executed.
 
-> **Release status:** `0.1.1` is an early public release, distributed on npm as `xverify-cli`. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke; the same check, clean-install smoke, and release audit also pass on WSL2 with Node 24. The invocation-provider identity contract has live Cursor/OpenAI proof in both directions. The published `0.1.0` tarball reached the registry outside the release workflow and therefore carries no npm provenance attestation; `0.1.1` is published by the workflow, which requests one. Public schemas, JSON envelopes and exit codes are stable; the provider surface is still small and the API may grow.
+> **Release status:** `0.2.0` is an early public release, distributed on npm as `xverify-cli`. Public CI is green on Ubuntu, macOS, and Windows with Node 20/24, including external install and MCP Inspector smoke; the same check, clean-install smoke, and release audit also pass on WSL2 with Node 24. The invocation-provider identity contract has live Cursor/OpenAI proof in both directions. The published `0.1.0` tarball reached the registry outside the release workflow and therefore carries no npm provenance attestation; `0.1.1` and later releases are published by the workflow, which requests one. Public schemas, JSON envelopes and exit codes are stable; the provider surface is still small and the API may grow.
 
 ## Install
 
-After the first public release:
+Install from npm:
 
 ```sh
 npm install --global xverify-cli@latest
@@ -207,7 +211,31 @@ heads without scanning every record. See [local run history](docs/run-history.md
 
 Only `{model}` and `{operation}` are expanded for a command adapter. Xerify invokes an executable plus argument array with `shell: false` and sends prompt/context through stdin.
 
+A command adapter runs in a private empty directory, not in your project, so **every path in
+`executable` and `args` must be absolute**. A relative path such as `./tools/verifier.mjs` resolves
+against that private directory and the process fails to start. The failure now quotes the
+interpreter, which names the directory it actually looked in:
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
 Every live `ask` or `verify` request must name an exact model in `--to provider:model`; configuration does not silently choose or guess a model.
+
+Exact IDs come from the provider, not from Xerify, and only Cursor exposes a listing command:
+
+| Adapter                                            | Where the exact model ID comes from                                                                         |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `cursor`                                           | `agent models`                                                                                              |
+| `codex`                                            | your Codex account and CLI version; `codex --help` shows `--model`, and the CLI names the model it rejected |
+| `claude`                                           | your Anthropic account and CLI version; `claude --help` shows `--model`                                     |
+| `openai-api`, `anthropic-api`, `openai-compatible` | the provider's own model list for your key                                                                  |
+
+When a provider rejects a model, its own sentence is reported back under `providerMessage`, which is
+usually the fastest way to learn what it will accept.
 
 For Cursor, configure one `cursor` adapter and use `--to cursor:EXACT_MODEL_ID`. Exact model IDs are
 opaque Cursor catalog identifiers; Xerify does not reinterpret their upstream vendor. `auto` fails
@@ -221,12 +249,28 @@ precedence, permission, environment, and user-path rules are in
 
 For local hosts:
 
+A global install puts `xerify` on `PATH`:
+
 ```json
 {
   "mcpServers": {
     "xerify": {
       "command": "xerify",
       "args": ["mcp", "stdio"]
+    }
+  }
+}
+```
+
+A project-local install does not. Point the host at the entry point directly — this also skips the
+`npx` indirection, so the server starts faster:
+
+```json
+{
+  "mcpServers": {
+    "xerify": {
+      "command": "node",
+      "args": ["./node_modules/xverify-cli/dist/cli/entry.js", "mcp", "stdio"]
     }
   }
 }
@@ -239,6 +283,9 @@ Streamable HTTP binds to `127.0.0.1:8787` by default:
 ```sh
 xerify mcp http --host 127.0.0.1 --port 8787
 ```
+
+The endpoint is `http://127.0.0.1:8787/mcp`; the root path returns `404`. The command prints the
+full URL on startup, so read it from there rather than assembling it by hand.
 
 A non-loopback bind requires both `--allow-public` and a bearer token supplied through `--token-env`. See [MCP operation and security](docs/mcp.md).
 

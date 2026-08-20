@@ -44,6 +44,53 @@ Erfolgreiche Verifizierer-Payloads können `evidence`, `assumptions`, `limitatio
 
 Aufrufer müssen stdout deshalb auch dann parsen, wenn der Exit ungleich null ist.
 
+### `providerMessage`
+
+Ein typisierter `failure` kann optional ein `providerMessage` tragen. Xerifys eigenes `message` ist
+pro Fehlercode ein fester Satz und das, worauf ein Aufrufer verzweigen sollte; `providerMessage`
+sind die eigenen Worte des Providers zu demselben Fehler und das, was ein Mensch lesen sollte. Ohne
+dieses Feld melden eine veraltete CLI, ein abgelaufener Login und ein abgelehntes Modell allesamt
+`Provider process exited unsuccessfully`, was keine Ursache benennt.
+
+Das Feld trägt Provider-Ausgabe und gilt deshalb als nicht vertrauenswürdig; bevor es in ein
+Ergebnis gelangt, durchläuft es eine feste Pipeline:
+
+- höchstens eine ausdrücklich genannte Fehlerzeile, oder die letzten vier Zeilen, die mit `|`
+  verbunden werden, wenn die Ausgabe keine benennt; dabei wird jede Zeile für sich geschwärzt, bevor
+  sie verbunden wird;
+- OSC- und CSI-Sequenzen werden vollständig entfernt – Payload eingeschlossen –, sowohl in ihrer
+  7-Bit-Form (`ESC ]`, `ESC [`) als auch in ihrer 8-Bit-Form (U+009D, U+009B), denn ein Terminal,
+  das 8-Bit-Steuerzeichen akzeptiert, liest U+009B genauso wie `ESC [`. Jedes verbleibende
+  Steuerzeichen außer Tab und Zeilenumbruch wird durch ein Leerzeichen ersetzt: C0, DEL und der
+  C1-Bereich gleichermaßen, Carriage Return eingeschlossen. Jede andere Escape-Sequenz verliert auf
+  dieselbe Weise ihren Einleiter und behält nur einen druckbaren Rest, der keine Steuerfunktion
+  trägt;
+- die Header `Authorization`, `Proxy-Authorization`, `Cookie` und `Set-Cookie` werden als Ganzes
+  ersetzt – Name und der gesamte restliche Zeileninhalt zusammen –, da ein solcher Header mehrere
+  Werte tragen kann und das Entfernen nur des ersten den Rest zurücklässt;
+- `Bearer`-Tokens, JWTs, URL-Userinfo, bekannte Vendor-Key-Präfixe sowie jedes `label: value`-Paar,
+  dessen Label `key`, `token`, `secret`, `password` oder `credential` enthält, werden durch
+  `[REDACTED]` ersetzt;
+- jede verbleibende ununterbrochene Folge von 24 oder mehr alphanumerischen Zeichen, die Buchstaben
+  und Ziffern mischt, wird durch `[REDACTED]` ersetzt; das erfasst auch ein Credential, dessen
+  Aussteller nicht auf der Präfixliste steht. Lesenswerte Bezeichner überstehen dies, weil sie in
+  kurze Segmente zerfallen: Die längste ununterbrochene Folge in `claude-opus-4-5-20251101` ist
+  acht;
+- nie länger als 501 Zeichen: Eine Nachricht, die diese Grenze überschreiten würde, wird auf 500
+  Zeichen gekürzt und erhält einen einzelnen abschließenden `…`;
+- vollständig ausgelassen statt leer gesendet, wenn der Provider nichts Brauchbares mitgeteilt hat.
+
+Was übrig bleibt, ist ein begrenztes Zitat, kein geparstes Feld: Es hat außer `string` kein Schema,
+sein Wortlaut stammt vom Provider und ändert sich, wenn sich der Provider ändert, und es kann
+Dateisystempfade enthalten, die der Provider selbst ausgegeben hat. Nicht darauf verzweigen.
+
+Schwärzung ist Defense in Depth für vom Provider verfassten Text, kein Beweis. Es werden genau die
+oben genannten Regeln angewendet; keine endliche Regelmenge lässt sich als lückenlos für jedes
+Credential nachweisen, das sich ein Provider ausdenken könnte, und die letzte Regel existiert, weil
+sich eine Präfixliste nachweislich als unzureichend erwiesen hat. `providerMessage` als die am
+wenigsten vertrauenswürdige Zeichenkette im Ergebnis behandeln und es nicht dorthin weiterleiten, wo
+ein Geheimnis inakzeptabel wäre.
+
 | Exit | Bedeutung                                                                        |
 | ---: | -------------------------------------------------------------------------------- |
 |  `0` | Befehl erfolgreich; `ask` beantwortet oder Verifikation bestätigt                |
@@ -65,3 +112,4 @@ Eine Discovery ohne Treffer gilt als erfolgreich. Fehlende Nutzungswerte bleiben
 - Unbekannte Eingabe- oder Konfigurationsfelder werden von den strikten Schemas abgelehnt.
 - Öffentliche Request-Schemas akzeptieren für die Herkunft der Quelle `declared` oder `unknown` und verlangen für das Ziel `declared`. Ein vom Aufrufer angegebenes `observed` wird abgelehnt; bei `unknown` für die Quelle scheitert die Prüfung dann an der Regel für unterschiedliche Provider.
 - Geheimwerte, rohe Autorisierungsheader, Token-Fragmente, Credential-Pfade, Prompt/Kontext, Antworttext und Findings gelangen weder in typisierte Fehler noch in Audit-Einträge.
+- Das einzige Feld, das vom Provider verfassten Text in einen typisierten Fehler bringt, ist `providerMessage`; es wird geschwärzt und begrenzt, wie unter [Verifikationsergebnisse](#providermessage) beschrieben. Ein Pfad, den der Provider selbst ausgegeben hat, kann darin erscheinen; Credentials werden durch die dort aufgeführten Regeln geschwärzt, die Defense in Depth sind, keine Garantie.

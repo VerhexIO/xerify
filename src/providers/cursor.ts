@@ -17,6 +17,7 @@ import type {
   ProviderAdapter,
   ProviderCapabilities
 } from './contract.js';
+import { describeProcessFailure } from './diagnostic.js';
 import { parseProviderJson } from './response.js';
 
 const CursorOutputSchema = z.looseObject({
@@ -108,6 +109,7 @@ export class CursorAdapter implements ProviderAdapter {
       authKinds: ['subscription', 'api-key'],
       structuredOutput: false,
       reportsUsage: true,
+      reportsCost: false,
       supportsAbort: true
     };
   }
@@ -193,9 +195,14 @@ export class CursorAdapter implements ProviderAdapter {
         signal
       );
       if (result.exitCode !== 0) {
+        const providerMessage = describeProcessFailure(result.stderr, result.stdout);
         throw new XerifyError('PROVIDER_FAILURE', 'Cursor Agent exited unsuccessfully', {
           retryable: true,
-          details: { exitCode: result.exitCode, signal: result.signal }
+          details: {
+            exitCode: result.exitCode,
+            signal: result.signal,
+            ...(providerMessage === null ? {} : { providerMessage })
+          }
         });
       }
       const parsed = parseOutput(result.stdout);

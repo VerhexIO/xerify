@@ -129,6 +129,16 @@ Sağlayıcı/kimlik doğrulama değişkenleri yalnızca ilgili adaptöre iletili
 
 `PATH`, ev/yapılandırma konumları, geçici dizin değişkenleri ve yerel ayar (locale) gibi platform temelleri, resmi CLI'ların kendi güvenli kimlik doğrulama depolarını bulabilmesi için iletilir. Üst sürecin ortamının geri kalanı körlemesine kopyalanmaz.
 
+Genel bir command adaptörü, projenin içinde değil özel ve boş bir dizinde başlatılır; bu yüzden kendisine verilmeyen proje dosyalarını okuyamaz. Bunun kolayca karşılaşılan bir sonucu var: **`executable` ve `args` içindeki her yol mutlak olmalıdır.** `"args": ["tools/verifier.mjs"]` proje köküne değil bu özel dizine göre çözümlenir ve süreç herhangi bir girdiyi okumadan başarısız olur. Türü belirlenmiş hata, aradığı dizinin adını veren yorumlayıcıyı doğrudan alıntılar:
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "message": "Provider process exited unsuccessfully",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
 Bilinçli olarak model seçimi için bir ortam değişkeni yoktur. Her canlı istek tam bir `--to provider:model` taşır; kaynak kökeni için tam bir `--from provider:model` kullanılır. Model kimliklerini, `agent models` gibi sağlayıcının kendi ücretsiz keşif komutuyla bulun; asla bir takma ad tahmin etmeyin.
 
 ## Sağlık kontrolü ve sağlayıcı keşfi

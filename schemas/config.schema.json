@@ -35,16 +35,7 @@
               "structuredOutput": { "default": false, "type": "boolean" },
               "reportsUsage": { "default": false, "type": "boolean" }
             },
-            "required": [
-              "kind",
-              "provider",
-              "executable",
-              "args",
-              "authKind",
-              "authEnvironment",
-              "structuredOutput",
-              "reportsUsage"
-            ],
+            "required": ["kind", "provider", "executable"],
             "additionalProperties": false
           },
           {
@@ -59,7 +50,7 @@
                 "maxLength": 4096
               }
             },
-            "required": ["kind", "provider", "executable"],
+            "required": ["kind"],
             "additionalProperties": false
           },
           {
@@ -74,7 +65,7 @@
                 "maxLength": 4096
               }
             },
-            "required": ["kind", "provider", "executable"],
+            "required": ["kind"],
             "additionalProperties": false
           },
           {
@@ -89,7 +80,7 @@
                 "maxLength": 4096
               }
             },
-            "required": ["kind", "provider", "executable"],
+            "required": ["kind"],
             "additionalProperties": false
           },
           {
@@ -109,7 +100,7 @@
               },
               "apiKey": { "type": "string", "minLength": 1, "maxLength": 16384 }
             },
-            "required": ["kind", "provider", "endpoint", "apiKeyEnvironment"],
+            "required": ["kind"],
             "additionalProperties": false
           },
           {
@@ -135,7 +126,7 @@
                 "maximum": 100000
               }
             },
-            "required": ["kind", "provider", "endpoint", "apiKeyEnvironment", "maxTokens"],
+            "required": ["kind"],
             "additionalProperties": false
           },
           {

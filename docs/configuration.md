@@ -161,6 +161,20 @@ Platform essentials such as `PATH`, home/config locations, temporary-directory v
 locale are forwarded so official CLIs can find their own secure auth stores. The rest of the parent
 environment is not copied blindly.
 
+A generic command adapter is started in a private empty directory rather than in the project, so it
+cannot read project files it was not given. One consequence is easy to hit: **every path in
+`executable` and `args` must be absolute.** `"args": ["tools/verifier.mjs"]` resolves against the
+private directory, not the project, and the process fails before it reads any input. The typed
+failure quotes the interpreter, which names the directory it searched:
+
+```json
+{
+  "code": "PROVIDER_FAILURE",
+  "message": "Provider process exited unsuccessfully",
+  "providerMessage": "Error: Cannot find module '/tmp/xerify-command-rBJrxX/tools/verifier.mjs'"
+}
+```
+
 There is intentionally no model-selection environment variable. Every live request carries an exact
 `--to provider:model`; source provenance uses exact `--from provider:model`. Find model IDs with the
 provider's own non-billable discovery command, such as `agent models`, and never guess an alias.
